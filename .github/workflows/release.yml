@@ -14,7 +14,8 @@ env:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    # Some tests use Windows paths.
+    runs-on: windows-latest
     outputs:
       version: ${{ steps.v.outputs.version }}
     steps:
