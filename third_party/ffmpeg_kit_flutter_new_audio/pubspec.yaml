@@ -1,0 +1,25 @@
+name: ffmpeg_kit_flutter_new_audio
+description: FFmpeg Kit Audio for Flutter (Prism copy - Android platform only).
+repository: https://github.com/sk3llo/ffmpeg_kit_flutter/tree/audio
+homepage: https://github.com/sk3llo/ffmpeg_kit_flutter
+version: 2.5.7
+publish_to: none
+environment:
+  sdk: ">=3.1.0 <4.0.0"
+  flutter: ">=3.0.0"
+
+# Prism patch: only the Android plugin is registered. On Windows Prism runs the
+# bundled ffmpeg.exe instead, so the Windows plugin (which downloads a second
+# FFmpeg bundle at build time) is left out.
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.antonkarpenko.ffmpegkit
+        pluginClass: FFmpegKitFlutterPlugin
+
+dependencies:
+  ffmpeg_kit_flutter_platform_interface: ^0.2.1
+
+  flutter:
+    sdk: flutter

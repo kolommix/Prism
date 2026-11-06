@@ -1,0 +1,20 @@
+{
+  "_readme": "Copy to online_config.json (Settings -> Online services -> Create file puts it in the right place). Never commit the real file.",
+  "spotify": {
+    "clientId": "",
+    "redirectPort": 43821
+  },
+  "youtube": {
+    "apiKey": "",
+    "oauthClientId": "",
+    "oauthClientSecret": ""
+  },
+  "soundcloud": {
+    "clientId": "",
+    "clientSecret": "",
+    "redirectPort": 43822
+  },
+  "acoustid": {
+    "apiKey": ""
+  }
+}

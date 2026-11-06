@@ -1,0 +1,5 @@
+# Tags: `audio` = needs this Windows PC (real libmpv / FFmpeg / network),
+# excluded from the quick unit run; `network` = needs live online services.
+tags:
+  audio:
+  network:

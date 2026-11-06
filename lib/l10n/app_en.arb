@@ -1,0 +1,2607 @@
+{
+  "@@locale": "en",
+  "nSongs": "{count, plural, one{{count} song} other{{count} songs}}",
+  "@nSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nAlbums": "{count, plural, one{{count} album} other{{count} albums}}",
+  "@nAlbums": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nPlaylists": "{count, plural, one{{count} playlist} other{{count} playlists}}",
+  "@nPlaylists": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nFolders": "{count, plural, one{{count} folder} other{{count} folders}}",
+  "@nFolders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nDays": "{count, plural, one{{count} day} other{{count} days}}",
+  "@nDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nTimes": "{count, plural, one{{count} time} other{{count} times}}",
+  "@nTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nPlays": "{count, plural, one{{count} play} other{{count} plays}}",
+  "@nPlays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nDuplicates": "{count, plural, one{{count} duplicate} other{{count} duplicates}}",
+  "@nDuplicates": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nGroups": "{count, plural, one{{count} group} other{{count} groups}}",
+  "@nGroups": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nCopies": "{count, plural, one{{count} copy} other{{count} copies}}",
+  "@nCopies": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nNewArtists": "{count, plural, one{{count} new artist} other{{count} new artists}}",
+  "@nNewArtists": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nListening": "{count, plural, other{{count} listening}}",
+  "@nListening": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undoFound": "{count, plural, one{Put {count} song back as it was} other{Put {count} songs back as they were}}",
+  "@undoFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "foundInfoFor": "{count, plural, one{Found info for {count} song} other{Found info for {count} songs}}",
+  "@foundInfoFor": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "skipDuplicates": "{count, plural, one{Skip {count} duplicate} other{Skip {count} duplicates}}",
+  "@skipDuplicates": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "matchNSongs": "{count, plural, one{Match {count} song} other{Match {count} songs}}",
+  "@matchNSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createPlaylistN": "{count, plural, one{Create playlist ({count} song)} other{Create playlist ({count} songs)}}",
+  "@createPlaylistN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notMeasuredYet": "{count, plural, one{{count} song not measured yet} other{{count} songs not measured yet}}",
+  "@notMeasuredYet": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "songsNotInLibrary": "{count, plural, one{{count} song not in this library} other{{count} songs not in this library}}",
+  "@songsNotInLibrary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readingNAlbums": "{count, plural, one{Reading {count} album…} other{Reading {count} albums…}}",
+  "@readingNAlbums": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readingNPlaylists": "{count, plural, one{Reading {count} playlist…} other{Reading {count} playlists…}}",
+  "@readingNPlaylists": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "previewNPlaylists": "{count, plural, one{Preview · {count} playlist} other{Preview · {count} playlists}}",
+  "@previewNPlaylists": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "songsFromOrigin": "{count, plural, one{{count} song from {origin}} other{{count} songs from {origin}}}",
+  "@songsFromOrigin": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "origin": {
+        "type": "Object"
+      }
+    }
+  },
+  "musicFoldersIntro": "{count, plural, one{{count} song. Prism reads mp3, flac, m4a, ogg and wav files in these folders.} other{{count} songs. Prism reads mp3, flac, m4a, ogg and wav files in these folders.}}",
+  "@musicFoldersIntro": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "versionAndSongs": "{count, plural, one{Version {version} · {count} song in your library} other{Version {version} · {count} songs in your library}}",
+  "@versionAndSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "version": {
+        "type": "Object"
+      }
+    }
+  },
+  "minutesValue": "{m} min",
+  "@minutesValue": {
+    "placeholders": {
+      "m": {
+        "type": "Object"
+      }
+    }
+  },
+  "hoursMinutesValue": "{h} h {m} min",
+  "@hoursMinutesValue": {
+    "placeholders": {
+      "h": {
+        "type": "Object"
+      },
+      "m": {
+        "type": "Object"
+      }
+    }
+  },
+  "secondsValue": "{s} s",
+  "@secondsValue": {
+    "placeholders": {
+      "s": {
+        "type": "Object"
+      }
+    }
+  },
+  "dbValue": "{sign}{value} dB",
+  "@dbValue": {
+    "placeholders": {
+      "sign": {
+        "type": "Object"
+      },
+      "value": {
+        "type": "Object"
+      }
+    }
+  },
+  "stValue": "{sign}{value} st",
+  "@stValue": {
+    "placeholders": {
+      "sign": {
+        "type": "Object"
+      },
+      "value": {
+        "type": "Object"
+      }
+    }
+  },
+  "notAValidJsonFile": "Not a valid JSON file",
+  "themeFileMustContainAJson": "Theme file must contain a JSON object",
+  "unknownFileFormat": "Unknown file format \"{format}\"",
+  "@unknownFileFormat": {
+    "placeholders": {
+      "format": {
+        "type": "Object"
+      }
+    }
+  },
+  "themeWasMadeWithANewer": "Theme was made with a newer Prism (v{v})",
+  "@themeWasMadeWithANewer": {
+    "placeholders": {
+      "v": {
+        "type": "Object"
+      }
+    }
+  },
+  "missingThemeObject": "Missing \"theme\" object",
+  "invalidThemeValues": "Invalid theme values: {e}",
+  "@invalidThemeValues": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "audioEffectsAreNotAvailableOn": "Audio effects are not available on this platform.",
+  "equalizer": "Equalizer",
+  "resetToFlat": "Reset to flat",
+  "saveAsPreset": "Save as preset",
+  "saveEqPreset": "Save EQ preset",
+  "myPreset": "My preset",
+  "boostOfDbMayClipLower": "Boost of {db} dB may clip – lower the preamp. ",
+  "@boostOfDbMayClipLower": {
+    "placeholders": {
+      "db": {
+        "type": "Object"
+      }
+    }
+  },
+  "aLimiterCatchesPeaksOnWindows": "(A limiter catches peaks on Windows.)",
+  "preset": "preset \"{name}\"",
+  "@preset": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "preamp": "Preamp",
+  "bassBoost": "Bass boost",
+  "xOff": "Off",
+  "xOn": "On",
+  "cover": "Cover",
+  "theCurrentCoverBlurredAndGrey": "The current cover, blurred and grey. Uses no power at all.",
+  "matrix": "Matrix",
+  "fallingSymbolsTheyLightUpAnd": "Falling symbols. They light up and bend around the mouse, a click sends a shockwave.",
+  "constellation": "Constellation",
+  "driftingStarsJoinedByLinesThe": "Drifting stars joined by lines. The mouse pulls them in, a click scatters them.",
+  "ripple": "Ripple",
+  "aGridOfDotsLikeA": "A grid of dots like a water surface. The mouse leaves waves, the bass makes drops.",
+  "katakana": "Katakana",
+  "x0And1": "0 and 1",
+  "hex": "Hex",
+  "letters": "Letters",
+  "musicNotes": "Music notes",
+  "myOwnText": "My own text",
+  "dots": "Dots",
+  "dashes": "Dashes",
+  "plusSigns": "Plus signs",
+  "trailLength": "Trail length",
+  "lineLength": "Line length",
+  "waveWidth": "Wave width",
+  "amountOfRain": "Amount of rain",
+  "numberOfStars": "Number of stars",
+  "dotsPerArea": "Dots per area",
+  "symbolSize": "Symbol size",
+  "starSize": "Star size",
+  "dotSize": "Dot size",
+  "background": "Background",
+  "tryIt": "Try it",
+  "symbols": "Symbols",
+  "yourSymbols": "Your symbols",
+  "anyLettersOrSymbolsEG": "Any letters or symbols, e.g. your name",
+  "shape": "Shape",
+  "colors": "Colors",
+  "useTheThemeColors": "Use the theme colors",
+  "mainColor": "Main color",
+  "highlightColor": "Highlight color",
+  "look": "Look",
+  "brightness": "Brightness",
+  "speed": "Speed",
+  "reactions": "Reactions",
+  "clicksAlsoSendAWaveMusic": "Clicks also send a wave. Music reaction analyses each song once, the first time it plays.",
+  "mouse": "Mouse",
+  "music": "Music",
+  "forEveryAnimatedBackground": "For every animated background",
+  "strength": "Strength",
+  "outOfFocus": "Out of focus",
+  "frostedPanels": "Frosted panels",
+  "panelsBlurWhatIsBehindThem": "Panels blur what is behind them",
+  "solidPanels": "Solid panels",
+  "keepTheCoverUnderneath": "Keep the cover underneath",
+  "stopWhileTheMusicIsPaused": "Stop while the music is paused",
+  "savesPower": "Saves power",
+  "framesPerSecond": "Frames per second",
+  "lowerSavesPower": "Lower saves power",
+  "screen": "Screen",
+  "reset": "Reset {style}",
+  "@reset": {
+    "placeholders": {
+      "style": {
+        "type": "Object"
+      }
+    }
+  },
+  "closeEsc": "Close (Esc)",
+  "moveTheMouseAndClick": "Move the mouse and click",
+  "watchOnYoutube": "Watch on YouTube",
+  "openOnSoundcloud": "Open on SoundCloud",
+  "findOnYoutube": "Find on YouTube",
+  "connectedToDiscord": "Connected to Discord",
+  "connectedAs": "Connected as {user}",
+  "@connectedAs": {
+    "placeholders": {
+      "user": {
+        "type": "Object"
+      }
+    }
+  },
+  "discordIsnTRunningItConnects": "Discord isn't running. It connects by itself when you open it.",
+  "discordDidnTAcceptThisApplication": "Discord didn't accept this application ID.",
+  "oneSetupStepLeft": "One setup step left",
+  "connecting": "Connecting…",
+  "discordStatus": "Discord status",
+  "songAlbumArtProgressLinksAnd": "Song, album art, progress, links and who you listen with",
+  "findAlbumArt": "Find album art",
+  "sendsTitleAndArtistToApple": "Sends title and artist to Apple's and Deezer's public search. Discord can't show covers from your PC.",
+  "discordNeedsAnApplicationToShow": "Discord needs an application to show a status, and only a logged-in person can create one. Once, 30 seconds: New Application → name it Prism → Create → copy Application ID. Prism picks it up from the clipboard by itself.",
+  "openTheDiscordPage": "Open the Discord page",
+  "applicationId": "Application ID",
+  "useMyOwnApplication": "Use my own application",
+  "nothingPlaying": "Nothing playing",
+  "backToFullWindow": "Back to full window",
+  "miniPlayerAlwaysOnTop": "Mini player (always on top)",
+  "trackNotFound": "Track not found",
+  "ffmpegIsNotAvailableWaveformAnd": "FFmpeg is not available – waveform and export are disabled.",
+  "savingNewTrack": "Saving new track…",
+  "exporting": "Exporting…",
+  "ffmpegIsNotAvailableOnThis": "FFmpeg is not available on this device",
+  "ffmpegFailed": "FFmpeg failed ({code}):\n{tail}",
+  "@ffmpegFailed": {
+    "placeholders": {
+      "code": {
+        "type": "Object"
+      },
+      "tail": {
+        "type": "Object"
+      }
+    }
+  },
+  "xEdit": "{title} (edit)",
+  "@xEdit": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotDecodeAudio": "Could not decode audio:\n{tail}",
+  "@couldNotDecodeAudio": {
+    "placeholders": {
+      "tail": {
+        "type": "Object"
+      }
+    }
+  },
+  "pausedTheSearchServicesAreNot": "Paused: the search services are not answering",
+  "prismNeedsPermissionToReadYour": "Prism needs permission to read your music",
+  "settings": "Settings",
+  "chooseAMusicFolder": "Choose a music folder",
+  "unknownArtist": "Unknown artist",
+  "unknownAlbum": "Unknown album",
+  "xLibrary": "Library",
+  "sortSongs": "Sort songs",
+  "title": "Title",
+  "artist": "Artist",
+  "album": "Album",
+  "recentlyAdded": "Recently added",
+  "longestFirst": "Longest first",
+  "songs": "Songs",
+  "albums": "Albums",
+  "artists": "Artists",
+  "folders": "Folders",
+  "songsArtistsAlbums": "Songs, artists, albums",
+  "songsArtistsAlbumsHereAndOnline": "Songs, artists, albums – here and online",
+  "typeToSearchYourLibrary": "Type to search your library",
+  "typeToSearchYourLibraryAnd": "Type to search your library and online",
+  "yourLibrary": "Your library",
+  "nothingFoundInYourLibrary": "Nothing found in your library",
+  "nothingFound": "Nothing found",
+  "tryAgain": "Try again",
+  "play": "Play",
+  "shuffle": "Shuffle",
+  "yourLibraryIsEmpty": "Your library is empty",
+  "addAFolderWithMusicMp3": "Add a folder with music (mp3, flac, m4a, ogg, wav).",
+  "add": "Add {name}",
+  "@add": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "chooseFolder": "Choose folder…",
+  "lookingForMusicFiles": "Looking for music… {found} files",
+  "@lookingForMusicFiles": {
+    "placeholders": {
+      "found": {
+        "type": "Object"
+      }
+    }
+  },
+  "readingTags": "Reading tags {done} / {total}",
+  "@readingTags": {
+    "placeholders": {
+      "done": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "error": "Error: {e}",
+  "@error": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "playNext": "Play next",
+  "playingNext": "Playing next",
+  "addToQueue": "Add to queue",
+  "addedToQueue": "Added to queue",
+  "removeFromFavorites": "Remove from favorites",
+  "addToFavorites": "Add to favorites",
+  "addToPlaylist": "Add to playlist…",
+  "removeOfflineCopy": "Remove offline copy",
+  "saveForOffline": "Save for offline",
+  "personalUseOnlySeeSettingsOnline": "Personal use only – see Settings → Online services",
+  "offlineCopyRemoved": "Offline copy removed",
+  "savingForOffline": "Saving for offline…",
+  "openOn": "Open on {service}",
+  "@openOn": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "theWeb": "the web",
+  "xEdit2": "Edit…",
+  "trimCutSpeedPitchFadesOriginal": "Trim, cut, speed, pitch, fades – original stays untouched",
+  "editTags": "Edit tags…",
+  "removeFromThisPlaylist": "Remove from this playlist",
+  "goToAlbum": "Go to album",
+  "goToArtist": "Go to artist",
+  "more": "More",
+  "notSynced": "Not synced · {source}",
+  "@notSynced": {
+    "placeholders": {
+      "source": {
+        "type": "Object"
+      }
+    }
+  },
+  "sameFile": "same file",
+  "linkedVideo": "linked video",
+  "notInYourLibraryTurnOn": "Not in your library. Turn on YouTube playback or SoundCloud to look online.",
+  "isMissingIn": "{what} is missing in {path}.{error}",
+  "@isMissingIn": {
+    "placeholders": {
+      "what": {
+        "type": "Object"
+      },
+      "path": {
+        "type": "Object"
+      },
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "youtubeApikeyOrTurnOnThe": "youtube.apiKey (or turn on the YouTube extractor)",
+  "pausedSongsLeft": "Paused – {left} songs left.",
+  "@pausedSongsLeft": {
+    "placeholders": {
+      "left": {
+        "type": "Object"
+      }
+    }
+  },
+  "importedPlaylist": "Imported playlist",
+  "portIsBusyCloseTheOther": "Port {port} is busy. Close the other app using it or change redirectPort in the config file.",
+  "@portIsBusyCloseTheOther": {
+    "placeholders": {
+      "port": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotOpenTheBrowser": "Could not open the browser.",
+  "loginTimedOut": "{service} login timed out.",
+  "@loginTimedOut": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "loginWasCancelled": "Login was cancelled.",
+  "loginFailed": "{service} login failed: {error}",
+  "@loginFailed": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      },
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "connectFirstSettingsOnlineServices": "Connect {service} first (Settings → Online services).",
+  "@connectFirstSettingsOnlineServices": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "didNotAnswerInTimeCheck": "{service} did not answer in time. Check your connection.",
+  "@didNotAnswerInTimeCheck": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "secureConnectionToFailedCheckThe": "Secure connection to {service} failed (check the PC clock or a proxy).",
+  "@secureConnectionToFailedCheckThe": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "xFile": "File",
+  "high": "High",
+  "medium": "Medium",
+  "lowCheckIt": "Low – check it",
+  "noMatch": "No match",
+  "notThe": "not the {v}",
+  "@notThe": {
+    "placeholders": {
+      "v": {
+        "type": "Object"
+      }
+    }
+  },
+  "theService": "The service",
+  "youSeemToBeOfflineLocal": "You seem to be offline. Local songs still play; online parts resume when you are back.",
+  "isLimitingRequestsRightNowTry": "{name} is limiting requests right now. Try again in a few minutes.",
+  "@isLimitingRequestsRightNowTry": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "yourLoginExpiredConnectTheAccount": "Your {name} login expired. Connect the account again in Settings → Online services.",
+  "@yourLoginExpiredConnectTheAccount": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "refusedTheRequest": "{name} refused the request.",
+  "@refusedTheRequest": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "notFoundOnDeletedPrivateOr": "Not found on {name} (deleted, private or a wrong link).",
+  "@notFoundOnDeletedPrivateOr": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "hasServerProblemsTryAgainLater": "{name} has server problems. Try again later.",
+  "@hasServerProblemsTryAgainLater": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "needsAnApiKeyInThe": "{name} needs an API key in the online config file (Settings → Online services).",
+  "@needsAnApiKeyInThe": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "isTurnedOffInSettingsOnline": "{name} is turned off in Settings → Online services.",
+  "@isTurnedOffInSettingsOnline": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "canNotDoThis": "{name} can not do this.",
+  "@canNotDoThis": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "sentSomethingUnexpectedItMayHave": "{name} sent something unexpected (it may have changed). Try again later.",
+  "@sentSomethingUnexpectedItMayHave": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "somethingWentWrong": "Something went wrong: {e}",
+  "@somethingWentWrong": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "youtube": "YouTube",
+  "playlistCreated": "Playlist created",
+  "playlistUpdated": "Playlist updated",
+  "open": "Open",
+  "thisImportWasDeleted": "This import was deleted",
+  "openPlaylist": "Open playlist",
+  "matchedOf": "{matched} of {total} matched",
+  "@matchedOf": {
+    "placeholders": {
+      "matched": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "nToCheck": "{n} to check",
+  "@nToCheck": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "nNotFound": "{n} not found",
+  "@nNotFound": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "matchingLocalFilesFirstThenOnline": "Matching {done} / {total}… (local files first, then online)",
+  "@matchingLocalFilesFirstThenOnline": {
+    "placeholders": {
+      "done": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "pause": "Pause",
+  "resumeMatchingLeft": "Resume matching ({left} left)",
+  "@resumeMatchingLeft": {
+    "placeholders": {
+      "left": {
+        "type": "Object"
+      }
+    }
+  },
+  "updatePlaylistWithFixes": "Update playlist with fixes",
+  "xAll": "All {n}",
+  "@xAll": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "check": "Check {n}",
+  "@check": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "notFound": "Not found {n}",
+  "@notFound": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "matched": "Matched {n}",
+  "@matched": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "duplicates": "Duplicates {n}",
+  "@duplicates": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "waiting": "Waiting…",
+  "duplicateOfSkipped": "Duplicate of #{n} – skipped",
+  "@duplicateOfSkipped": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "skipped": "Skipped",
+  "noGoodMatchFound": "No good match found",
+  "fix": "Fix",
+  "fixMatch": "Fix match",
+  "markedAsNoMatch": "Marked as no match",
+  "nothingFoundTryOtherWords": "Nothing found – try other words",
+  "listen": "Listen",
+  "pasteAPlaylistAlbumOrLikes": "Paste a playlist, album or likes link from Spotify, YouTube, SoundCloud, Apple Music or Deezer",
+  "isTurnedOff": "{service} is turned off",
+  "@isTurnedOff": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "notAvailable": "not available",
+  "setUp": "Set up",
+  "reading": "Reading {service}…",
+  "@reading": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "importAPlaylistFile": "Import a playlist file",
+  "playlist": "playlist",
+  "album2": "album",
+  "song": "song",
+  "likes": "likes",
+  "link": "link",
+  "playlistAlbumAndLikesLinksWork": "Playlist, album and likes links work",
+  "notALinkPrismCanRead": "Not a link Prism can read",
+  "needsToBeSetUpFirst": "{what} · {service} needs to be set up first",
+  "@needsToBeSetUpFirst": {
+    "placeholders": {
+      "what": {
+        "type": "Object"
+      },
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "fromYourClipboard": " · from your clipboard",
+  "importPlaylists": "Import playlists",
+  "bringYourPlaylistsFromSpotifyYoutube": "Bring your playlists from Spotify, YouTube and other apps. Prism finds each song in your library first, then online, and shows how sure each match is.",
+  "pasteALink": "Paste a link",
+  "clear": "Clear",
+  "xImport": "Import",
+  "orAFileCsvFromExportify": "Or a file: CSV from Exportify or TuneMyMusic, JSON, M3U",
+  "chooseFile": "Choose file",
+  "setUpServices": "Set up services",
+  "fromYourAccounts": "From your accounts",
+  "yourImports": "Your imports",
+  "loading": "Loading {service}…",
+  "@loading": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "notConnectedSettingsOnlineServices": "Not connected – Settings → Online services",
+  "likedVideos": "Liked videos",
+  "likedSongs": "Liked songs",
+  "readingLikes": "Reading likes…",
+  "savedAlbums": "Saved albums…",
+  "savedAlbums2": "Saved albums",
+  "playlists": "Playlists…",
+  "playlists2": "Playlists",
+  "xImport2": "Import {n}",
+  "@xImport2": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "nothingHere": "Nothing here",
+  "matching": "Matching {done} / {total}…",
+  "@matching": {
+    "placeholders": {
+      "done": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "pausedLeft": "Paused · {n} left",
+  "@pausedLeft": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "stoppedLeftTapToResume": "Stopped · {n} left – tap to resume",
+  "@stoppedLeftTapToResume": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "ofMatchedReadyToSave": "{matched} of {total} matched · ready to save",
+  "@ofMatchedReadyToSave": {
+    "placeholders": {
+      "matched": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "ofMatchedSaved": "{matched} of {total} matched · saved",
+  "@ofMatchedSaved": {
+    "placeholders": {
+      "matched": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "thisImportThePlaylistStays": "this import (the playlist stays)",
+  "deleteImport": "Delete import",
+  "preview": "Preview",
+  "onlyYourLibraryWillBeSearched": "Only your library will be searched",
+  "turnOnYoutubePlaybackOrSoundcloud": "Turn on YouTube playback or SoundCloud in Settings → Online services to also match songs you don't have.",
+  "sameSongTwiceInOneList": "Same song twice in one list (also different \"remaster\" tags)",
+  "playlistName": "Playlist name",
+  "importedBefore": "Imported before",
+  "ofMatchedImportingAgainMakesA": "\"{name}\" – {matched} of {total} matched. Importing again makes a new playlist.",
+  "@ofMatchedImportingAgainMakesA": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "matched": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "duplicateOf": "duplicate of #{n}",
+  "@duplicateOf": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "onlineServices": "Online services",
+  "apiKeysFile": "API keys file",
+  "keysAreReadOnlyFromThis": "Keys are read only from this local file (never stored in the app or the repo). See README → Online services.",
+  "createFile": "Create file",
+  "templateAtFillInYourKeys": "Template at {path} – fill in your keys, then tap Reload.",
+  "@templateAtFillInYourKeys": {
+    "placeholders": {
+      "path": {
+        "type": "Object"
+      }
+    }
+  },
+  "openFolder": "Open folder",
+  "reload": "Reload",
+  "configReloaded": "Config reloaded",
+  "services": "Services",
+  "offline": "Offline",
+  "terms": "Terms",
+  "importPlaylistsLikedSongsAndSaved": "Import playlists, liked songs and saved albums (no audio)",
+  "searchPlaylistsPlaybackYoutubeYoutubeMusic": "Search, playlists, playback (YouTube + YouTube Music links)",
+  "searchLikesAndPlaylistsPlaybackWhere": "Search, likes and playlists, playback where allowed",
+  "importPublicPlaylistAlbumLinksNo": "Import public playlist / album links (no login)",
+  "importPublicPlaylistAlbumLinksReads": "Import public playlist / album links (reads the web page)",
+  "finishTheLoginInYourBrowser": "Finish the {service} login in your browser…",
+  "@finishTheLoginInYourBrowser": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "turnOnTheYoutubeExtractor": "Turn on the YouTube extractor?",
+  "thisPlaysYoutubeAudioInsidePrism": "This plays YouTube audio inside Prism, searches without an API key and can save offline copies. It uses an unofficial extractor, which YouTube's Terms of Service do not allow.\n\nUse it only for yourself, don't share saved files, and expect it to break sometimes.",
+  "cancel": "Cancel",
+  "iUnderstandTurnOn": "I understand, turn on",
+  "needsSetup": "Needs setup: {msg}",
+  "@needsSetup": {
+    "placeholders": {
+      "msg": {
+        "type": "Object"
+      }
+    }
+  },
+  "notWorking": "Not working: {msg}",
+  "@notWorking": {
+    "placeholders": {
+      "msg": {
+        "type": "Object"
+      }
+    }
+  },
+  "ready": "Ready",
+  "redirectUriToRegister": "Redirect URI to register: {uri}",
+  "@redirectUriToRegister": {
+    "placeholders": {
+      "uri": {
+        "type": "Object"
+      }
+    }
+  },
+  "copy": "Copy",
+  "youtubeExtractor": "YouTube extractor",
+  "playbackOfflineCopiesSearchWithoutAn": "Playback, offline copies, search without an API key",
+  "checking": "Checking…",
+  "notConnected": "Not connected",
+  "disconnect": "Disconnect",
+  "connect": "Connect",
+  "keepPlayedSongsOffline": "Keep played songs offline",
+  "savesACopyOfYoutubeSongs": "Saves a copy of YouTube songs you play, so they work without internet",
+  "needsTheYoutubeExtractor": "Needs the YouTube extractor",
+  "offlineCopiesMbOfGb": "Offline copies: {mb} MB of {gb} GB",
+  "@offlineCopiesMbOfGb": {
+    "placeholders": {
+      "mb": {
+        "type": "Object"
+      },
+      "gb": {
+        "type": "Object"
+      }
+    }
+  },
+  "gb": "{gb} GB",
+  "@gb": {
+    "placeholders": {
+      "gb": {
+        "type": "Object"
+      }
+    }
+  },
+  "spotifyImportOnlyNeverAudio": "Spotify – import only, never audio",
+  "usesTheOfficialWebApiTo": "Uses the official Web API to read your playlists, liked songs and saved albums as text (title, artist, length). Prism never downloads, records or plays Spotify audio; songs are matched to your files or other services. Spotify's Developer Terms allow non-commercial apps; a Development Mode app works for at most 5 people you add in the Spotify dashboard, and only reads playlists you own or collaborate on.",
+  "youtubeDataApiOfficial": "YouTube Data API – official",
+  "searchPlaylistsAndWithGoogleLogin": "Search, playlists and (with Google login) your own playlists and liked videos through the official API with your own key. Limited by its daily quota (about 100 searches/day). The official API has no audio.",
+  "youtubeExtractorPlaybackAndOfflineCopies": "YouTube extractor – playback and offline copies",
+  "playsYoutubeAudioInsidePrismSearches": "Plays YouTube audio inside Prism, searches without a key and saves offline copies using an unofficial extractor (youtube_explode_dart). YouTube's Terms of Service do not allow this (no access except through their player, no downloads without a download button). Off by default; turn it on only for yourself, don't share saved files, and expect it to break when YouTube changes.",
+  "soundcloudOfficialApi": "SoundCloud – official API",
+  "searchYourLikesAndPlaylistsThrough": "Search, your likes and playlists through the official API with your own registered app. Only tracks the uploader made streamable are played, always credited to SoundCloud with a link. No offline copies (the API terms don't allow storing audio).",
+  "deezerPublicPlaylistLinks": "Deezer – public playlist links",
+  "readsPublicPlaylistsAlbumsAndSongs": "Reads public playlists, albums and songs from Deezer's open API (text only, no login, no audio). Deezer's API terms are for non-commercial use.",
+  "appleMusicPublicPageReading": "Apple Music – public page reading",
+  "appleHasNoFreeApiSo": "Apple has no free API, so Prism reads the song list from the public web page of a playlist or album. Best effort: it can stop working whenever Apple changes the page. Off by default.",
+  "personalUseOnly": "Personal use only",
+  "whatEachServiceAllows": "What each service allows",
+  "termsOfServiceLimitsInPlain": "Terms of service limits, in plain words",
+  "prismIsAPersonalPlayerFor": "Prism is a personal player for you and friends. It is not affiliated with any of these services. API keys and logins are yours: keys stay in a local config file, logins in the system keychain.",
+  "deezer": "Deezer: {msg}",
+  "@deezer": {
+    "placeholders": {
+      "msg": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotOpenThisDeezerShort": "Could not open this Deezer short link.",
+  "deezerPlaylist": "Deezer playlist",
+  "openThisLink": "open this link",
+  "couldNotReadSongsFromThis": "Could not read songs from this Apple Music page (private playlist, or Apple changed the page). Use a TuneMyMusic CSV export instead.",
+  "appleMusicPlaylist": "Apple Music playlist",
+  "canNot": "{service} can not {what}.",
+  "@canNot": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      },
+      "what": {
+        "type": "Object"
+      }
+    }
+  },
+  "logIn": "log in",
+  "listYourPlaylists": "list your playlists",
+  "listSavedAlbums": "list saved albums",
+  "readLikedSongs": "read liked songs",
+  "openPlaylists": "open playlists",
+  "openLinks": "open links",
+  "playAudio": "play audio",
+  "saveSongsOffline": "save songs offline",
+  "soundcloudLogInOrAddThe": "SoundCloud: log in, or add the app's client secret to the config file for search without login.",
+  "soundcloudUser": "SoundCloud user",
+  "connected": "Connected",
+  "playlist2": "Playlist",
+  "likesSoundcloud": "Likes (SoundCloud)",
+  "soundcloudPlaylist": "SoundCloud playlist",
+  "likesOf": "Likes of {user}",
+  "@likesOf": {
+    "placeholders": {
+      "user": {
+        "type": "Object"
+      }
+    }
+  },
+  "theUploaderDoesNotAllowStreaming": "The uploader does not allow streaming this SoundCloud track outside SoundCloud.",
+  "spotifyUser": "Spotify user",
+  "likedSongsSpotify": "Liked Songs (Spotify)",
+  "openTheSpotifyLinkInA": "Open the spotify.link in a browser and paste the full open.spotify.com link.",
+  "spotifyPlaylist": "Spotify playlist",
+  "spotifyOnlyLetsSmallDevelopmentMode": "Spotify only lets small (Development Mode) apps read playlists you own or collaborate on. For other playlists: export them with Exportify or TuneMyMusic and import the CSV file.",
+  "youtubeDataApiOfficial2": "YouTube Data API (official)",
+  "youtubePlaylist": "YouTube playlist",
+  "youtubeExplodeUnofficial": "youtube_explode (unofficial)",
+  "youtubeAsksToSlowDownToo": "YouTube asks to slow down (too many searches from this connection). Wait a while, then resume.",
+  "youtubeDidNotAnswerInTime": "YouTube did not answer in time.",
+  "thisYoutubeVideoIsUnavailableRemoved": "This YouTube video is unavailable (removed, private or region-locked). {e}",
+  "@thisYoutubeVideoIsUnavailableRemoved": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "youtubeExtractorFailedYoutubeMayHave": "YouTube extractor failed – YouTube may have changed. {e}",
+  "@youtubeExtractorFailedYoutubeMayHave": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "notAValidYoutubeId": "Not a valid YouTube id: {e}",
+  "@notAValidYoutubeId": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "noAudioStreamForThisVideo": "No audio stream for this video.",
+  "canNotStreamAudio": "{name} can not stream audio",
+  "@canNotStreamAudio": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "canNotDownloadAudio": "{name} can not download audio",
+  "@canNotDownloadAudio": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "addAYoutubeDataApiKey": "Add a YouTube Data API key to the config file, or turn on the YouTube extractor.",
+  "searchAndImportWorkPlaybackNeeds": "Search and import work. Playback needs the YouTube extractor (personal use only).",
+  "googleAccount": "Google account",
+  "logInNoGoogleOauthClient": "log in (no Google OAuth client id in the config file)",
+  "listYourPlaylistsWithoutAGoogle": "list your playlists without a Google login",
+  "readLikedVideosWithoutAGoogle": "read liked videos without a Google login",
+  "likedVideosYoutube": "Liked videos (YouTube)",
+  "openThisKindOfLink": "open this kind of link",
+  "youtubePlaybackIsOffTurnOn": "YouTube playback is off. Turn on \"YouTube extractor\" in Settings → Online services (personal use only).",
+  "saveSongsOfflineWithoutTheExtractor": "save songs offline without the extractor",
+  "waveform": "Waveform",
+  "barsWithABrightTrailBehind": "Bars with a bright trail behind the playhead",
+  "ribbon": "Ribbon",
+  "aLineThatWavesWhileThe": "A line that waves while the song plays and flattens on pause",
+  "ledBlocks": "LED blocks",
+  "aHiFiMeterMadeOf": "A hi-fi meter made of small blocks, with a lit column at the playhead",
+  "tuner": "Tuner",
+  "aRadioDialWithANeedle": "A radio dial with a needle, the scale swells around it",
+  "liveSpectrum": "Live spectrum",
+  "theWholeBarIsASpectrum": "The whole bar is a spectrum analyser, it always moves",
+  "fullScreen": "Full screen",
+  "endOfSong": "End of song",
+  "x1Min": "< 1 min",
+  "normal": "Normal",
+  "sleepTimer": "Sleep timer",
+  "speedPitch": "Speed & pitch",
+  "aBLoop": "A-B loop",
+  "setB": "Set B",
+  "listenTogether": "Listen together",
+  "miniPlayer": "Mini player",
+  "leaveFullScreenF11": "Leave full screen (F11)",
+  "fullScreenF11": "Full screen (F11)",
+  "next": "Next",
+  "upNext": "Up next",
+  "close": "Close",
+  "nowPlaying": "Now playing",
+  "editThisSong": "Edit this song",
+  "queue": "Queue",
+  "lyrics": "Lyrics",
+  "visualizer": "Visualizer",
+  "expand": "Expand",
+  "unmute": "Unmute",
+  "mute": "Mute ({v} %)",
+  "@mute": {
+    "placeholders": {
+      "v": {
+        "type": "Object"
+      }
+    }
+  },
+  "queueIsEmpty": "Queue is empty",
+  "stopsAfterThisSong": "Stops after this song",
+  "stopsIn": "Stops in {t}",
+  "@stopsIn": {
+    "placeholders": {
+      "t": {
+        "type": "Object"
+      }
+    }
+  },
+  "musicFadesOutAndPauses": "Music fades out and pauses",
+  "turnOff": "Turn off",
+  "loopingTapToClear": "Looping {a}–{b} (tap to clear)",
+  "@loopingTapToClear": {
+    "placeholders": {
+      "a": {
+        "type": "Object"
+      },
+      "b": {
+        "type": "Object"
+      }
+    }
+  },
+  "tapAgainToSetB": "Tap again to set B",
+  "aBLoopTapToSet": "A-B loop: tap to set A",
+  "xPitchKept": "{v}x  (pitch kept)",
+  "@xPitchKept": {
+    "placeholders": {
+      "v": {
+        "type": "Object"
+      }
+    }
+  },
+  "pitch": "Pitch",
+  "semitonesSpeedKept": "{sign}{v} semitones  (speed kept)",
+  "@semitonesSpeedKept": {
+    "placeholders": {
+      "sign": {
+        "type": "Object"
+      },
+      "v": {
+        "type": "Object"
+      }
+    }
+  },
+  "reset2": "Reset",
+  "shuffleOn": "Shuffle on",
+  "shuffleOff": "Shuffle off",
+  "previous": "Previous",
+  "repeatOff": "Repeat off",
+  "repeatAll": "Repeat all",
+  "repeatOne": "Repeat one",
+  "newPlaylist": "New playlist",
+  "favorites": "Favorites",
+  "yourListeningStats": "Your listening stats",
+  "topSongsArtistsAndStreaks": "Top songs, artists and streaks",
+  "fromSpotifyYoutubeSoundcloudDeezerApple": "From Spotify, YouTube, SoundCloud, Deezer, Apple Music or a file",
+  "smartPlaylists": "Smart playlists",
+  "xNew": "New",
+  "renamePlaylist": "Rename playlist",
+  "rename": "Rename",
+  "delete": "Delete",
+  "save": "Save",
+  "delete2": "Delete {what}?",
+  "@delete2": {
+    "placeholders": {
+      "what": {
+        "type": "Object"
+      }
+    }
+  },
+  "thisCannotBeUndone": "This cannot be undone.",
+  "addToPlaylist2": "Add to playlist",
+  "newPlaylist2": "New playlist…",
+  "addedToPlaylist": "Added to playlist",
+  "deletePlaylist": "Delete playlist",
+  "emptyPlaylistLongPressASong": "Empty playlist.\nLong-press a song → \"Add to playlist\".",
+  "hue": "Hue",
+  "saturation": "Saturation",
+  "lightness": "Lightness",
+  "noLyricsPlain": "No lyrics found.\nPut a .lrc file with the same name next to the song.",
+  "noLyricsHint": "No lyrics found.\nPut a .lrc file with the same name next to the song, or turn on online lyrics in Settings.",
+  "playback": "Playback",
+  "appearance": "Appearance",
+  "onlineImport": "Online & import",
+  "windows": "Windows",
+  "backup": "Backup",
+  "about": "About",
+  "crossfadeN": "Crossfade {s} s",
+  "@crossfadeN": {
+    "placeholders": {
+      "s": {
+        "type": "Object"
+      }
+    }
+  },
+  "gapless": "Gapless",
+  "eqOn": "EQ on",
+  "eqOff": "EQ off",
+  "importPlaylistsAccountsOfflineCopies": "Import playlists, accounts, offline copies",
+  "anywhere": "Anywhere",
+  "sameWiFiOnly": "Same Wi-Fi only",
+  "closesToTheTray": "Closes to the tray",
+  "saveOrRestoreEverythingInOne": "Save or restore everything in one file",
+  "musicFolders": "Music folders",
+  "removeFolder": "Remove folder",
+  "addFolder": "Add folder",
+  "rescanLibrary": "Rescan library",
+  "lastScanNewChangedRemovedIn": "Last scan: {added} new, {updated} changed, {removed} removed in {s} s",
+  "@lastScanNewChangedRemovedIn": {
+    "placeholders": {
+      "added": {
+        "type": "Object"
+      },
+      "updated": {
+        "type": "Object"
+      },
+      "removed": {
+        "type": "Object"
+      },
+      "s": {
+        "type": "Object"
+      }
+    }
+  },
+  "onlyNewOrChangedFilesAre": "Only new or changed files are read again",
+  "findDuplicates": "Find duplicates",
+  "theSameSongInSeveralFiles": "The same song in several files",
+  "sound": "Sound",
+  "crossfade": "Crossfade",
+  "blendTheEndOfASong": "Blend the end of a song into the next one",
+  "offGapless": "Off, gapless",
+  "sendsOnlyTitleArtistAlbumAnd": "Sends only title, artist, album and length to lrclib.net. Local .lrc files always work.",
+  "findLyricsOnline": "Find lyrics online",
+  "theme": "Theme",
+  "matrixConstellationRippleReactsToThe": "Matrix, Constellation, Ripple. Reacts to the mouse and the music",
+  "shownInTheFullPlayer": "Shown in the full player",
+  "reduceMotion": "Reduce motion",
+  "turnsOffDecorativeAnimations": "Turns off decorative animations",
+  "seekBar": "Seek bar",
+  "rightClickTheSeekBarTo": "Right-click the seek bar to switch any time.",
+  "movesWithTheMusic": "Moves with the music",
+  "everyStyleReactsToTheSong": "Every style reacts to the song. Analyses each song once, the first time it plays",
+  "fromALinkAFileOr": "From a link, a file or your accounts",
+  "spotifyYoutubeSoundcloudDeezerAppleMusic": "Spotify, YouTube, SoundCloud, Deezer, Apple Music",
+  "sessionsOnTheSameWiFi": "Sessions on the same Wi-Fi connect directly and show up in a list. Over the internet, messages go through a free public server (HiveMQ, EMQX or Mosquitto): song names, length and position, scrambled with the session code. Never any audio.",
+  "sessionsOverTheInternet": "Sessions over the internet",
+  "offSameWiFiOnlyNothing": "Off: same Wi-Fi only, nothing leaves your network",
+  "yourNameInASession": "Your name in a session",
+  "theNameOfThisDevice": "The name of this device",
+  "ownServerOptional": "Own server (optional)",
+  "ifYouWouldRatherNotUse": "If you would rather not use the public server: someone runs \"dart run tool/relay.dart\" on a reachable computer and everyone enters its address here.",
+  "closeToTray": "Close to tray",
+  "keepPlayingInTheTrayWhen": "Keep playing in the tray when the window is closed",
+  "settingsEqThemesPlaylistsFavoritesSmart": "Settings, EQ, themes, playlists, favorites, smart playlists and edits. Songs are matched by path or by title and artist, so a backup also works on another device.",
+  "backUpToAFile": "Back up to a file",
+  "restoreFromAFile": "Restore from a file",
+  "aMusicPlayerForYourOwn": "A music player for your own songs, made for me and a few friends. Windows and Android.",
+  "lookingOfSongsFound": "Looking… {done} of {total} songs, found {found}",
+  "@lookingOfSongsFound": {
+    "placeholders": {
+      "done": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      },
+      "found": {
+        "type": "Object"
+      }
+    }
+  },
+  "nothingFoundYet": "Nothing found yet",
+  "missingInfo": "Missing info",
+  "sendsOnlyTitleAndArtistTo": "Sends only title and artist to Apple's and Deezer's public search. Your files are never changed and your own tags are never replaced. A song without tags only gets info when its file name clearly matches.",
+  "findCoversAndArtistsOnline": "Find covers and artists online",
+  "lookAgain": "Look again",
+  "forSongsThatGotNothingSo": "For songs that got nothing so far",
+  "undoEverythingFound": "Undo everything found",
+  "backToWhatYourFilesSay": "Back to what your files say",
+  "loudness": "Loudness",
+  "usesReplaygainTagsOrMeasuresSongs": "Uses ReplayGain tags, or measures songs with FFmpeg (EBU R128, −18 LUFS).",
+  "evenOutLoudness": "Even out loudness",
+  "song2": "Song",
+  "measureSongsAutomatically": "Measure songs automatically",
+  "whenASongWithoutReplaygainTags": "When a song without ReplayGain tags starts playing",
+  "measureTheWholeLibrary": "Measure the whole library",
+  "measuringOf": "Measuring {done} of {total}",
+  "@measuringOf": {
+    "placeholders": {
+      "done": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "ffmpegIsMissingOnThisDevice": "FFmpeg is missing on this device",
+  "stop": "Stop",
+  "exportTheme": "Export theme",
+  "themeExported": "Theme exported",
+  "importTheme": "Import theme",
+  "imported": "Imported \"{name}\"",
+  "@imported": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotImport": "Could not import: {e}",
+  "@couldNotImport": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "saveAs": "Save as…",
+  "saveThemeAs": "Save theme as",
+  "myTheme": "My theme",
+  "saved": "Saved \"{name}\"",
+  "@saved": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "presets": "Presets",
+  "mode": "Mode",
+  "auto": "Auto",
+  "light": "Light",
+  "dark": "Dark",
+  "blackWhite": "Black & white",
+  "greysOnlyCoversStayInColor": "Greys only, covers stay in color",
+  "colorsFromAlbumArt": "Colors from album art",
+  "primaryColorFollowsTheCurrentCover": "Primary color follows the current cover",
+  "primary": "Primary",
+  "accent": "Accent",
+  "shapeSurfaces": "Shape & surfaces",
+  "cornerRadius": "Corner radius",
+  "px": "{v} px",
+  "@px": {
+    "placeholders": {
+      "v": {
+        "type": "Object"
+      }
+    }
+  },
+  "glassBlur": "Glass / blur",
+  "textMotion": "Text & motion",
+  "font": "Font",
+  "system": "System",
+  "animationSpeed": "Animation speed",
+  "fastX": "Fast ({v}x)",
+  "@fastX": {
+    "placeholders": {
+      "v": {
+        "type": "Object"
+      }
+    }
+  },
+  "slowX": "Slow ({v}x)",
+  "@slowX": {
+    "placeholders": {
+      "v": {
+        "type": "Object"
+      }
+    }
+  },
+  "normalX": "Normal ({v}x)",
+  "@normalX": {
+    "placeholders": {
+      "v": {
+        "type": "Object"
+      }
+    }
+  },
+  "themeName": "Theme name",
+  "longPressToDelete": "{name} (long-press to delete)",
+  "@longPressToDelete": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "previewSong": "Preview song",
+  "glassPanelPx": "Glass panel · {r} px",
+  "@glassPanelPx": {
+    "placeholders": {
+      "r": {
+        "type": "Object"
+      }
+    }
+  },
+  "search": "Search",
+  "stats": "Stats",
+  "code": "Code {code}",
+  "@code": {
+    "placeholders": {
+      "code": {
+        "type": "Object"
+      }
+    }
+  },
+  "xWith": "With {name}",
+  "@xWith": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "aFriend": "a friend",
+  "rightClickNextBackground": "Right-click: next background",
+  "week": "Week",
+  "month": "Month",
+  "year": "Year",
+  "allTime": "All time",
+  "morning": "Morning",
+  "x5To12": "5 to 12",
+  "afternoon": "Afternoon",
+  "x12To18": "12 to 18",
+  "evening": "Evening",
+  "x18To23": "18 to 23",
+  "night": "Night",
+  "x23To5": "23 to 5",
+  "mostPlayed": "Most played",
+  "forgottenGems": "Forgotten gems",
+  "smartPlaylistNotFound": "Smart playlist not found",
+  "editRules": "Edit rules",
+  "allSongs": "all songs",
+  "playedNPlus": "{count, plural, one{played {count}+ time} other{played {count}+ times}}",
+  "@playedNPlus": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inDays": "in {days} days",
+  "@inDays": {
+    "placeholders": {
+      "days": {
+        "type": "Object"
+      }
+    }
+  },
+  "addedInTheLastDays": "added in the last {days} days",
+  "@addedInTheLastDays": {
+    "placeholders": {
+      "days": {
+        "type": "Object"
+      }
+    }
+  },
+  "genre": "genre \"{genre}\"",
+  "@genre": {
+    "placeholders": {
+      "genre": {
+        "type": "Object"
+      }
+    }
+  },
+  "year2": "year {from}–{to}",
+  "@year2": {
+    "placeholders": {
+      "from": {
+        "type": "Object"
+      },
+      "to": {
+        "type": "Object"
+      }
+    }
+  },
+  "notPlayedForDays": "not played for {days} days",
+  "@notPlayedForDays": {
+    "placeholders": {
+      "days": {
+        "type": "Object"
+      }
+    }
+  },
+  "mySmartPlaylist": "My smart playlist",
+  "minPlays": "min plays",
+  "inDays2": "in days",
+  "genre2": "Genre",
+  "notPlayedFor": "Not played for",
+  "editSmartPlaylist": "Edit smart playlist",
+  "newSmartPlaylist": "New smart playlist",
+  "name": "Name",
+  "songsThatMatchAllRules": "Songs that match all rules:",
+  "addRule": "Add rule",
+  "sortBy": "Sort by  ",
+  "random": "Random",
+  "maxSongs": "max songs",
+  "smartPlaylist": "Smart playlist",
+  "justNow": "just now",
+  "minAgo": "{m} min ago",
+  "@minAgo": {
+    "placeholders": {
+      "m": {
+        "type": "Object"
+      }
+    }
+  },
+  "hAgo": "{h} h ago",
+  "@hAgo": {
+    "placeholders": {
+      "h": {
+        "type": "Object"
+      }
+    }
+  },
+  "vsBefore": "{sign}{pct} % vs before",
+  "@vsBefore": {
+    "placeholders": {
+      "sign": {
+        "type": "Object"
+      },
+      "pct": {
+        "type": "Object"
+      }
+    }
+  },
+  "atAGlance": "At a glance",
+  "listeningTime": "Listening time",
+  "plays": "Plays",
+  "differentSongs": "Different songs",
+  "playedOnlyOnce": "{n} played only once",
+  "@playedOnlyOnce": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "newToYou": "New to you",
+  "daysWithMusic": "Days with music",
+  "aboutADay": "about {t} a day",
+  "@aboutADay": {
+    "placeholders": {
+      "t": {
+        "type": "Object"
+      }
+    }
+  },
+  "currentStreak": "Current streak",
+  "best": "best: {n}",
+  "@best": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "sessions": "Sessions",
+  "aboutEach": "about {t} each",
+  "@aboutEach": {
+    "placeholders": {
+      "t": {
+        "type": "Object"
+      }
+    }
+  },
+  "youHearOfASong": "You hear of a song",
+  "onAverage": "on average",
+  "minutesPerDay": "Minutes per day",
+  "minutesPerMonth": "Minutes per month",
+  "min": "{when} · {m} min",
+  "@min": {
+    "placeholders": {
+      "when": {
+        "type": "Object"
+      },
+      "m": {
+        "type": "Object"
+      }
+    }
+  },
+  "yourWeek": "Your week",
+  "darkerMeansMoreMinutesHoverFor": "Darker means more minutes. Hover for the numbers.",
+  "last6Months": "Last 6 months",
+  "timeOfDay": "Time of day",
+  "ofYourListeningIsOnWeekends": "{pct} % of your listening is on weekends",
+  "@ofYourListeningIsOnWeekends": {
+    "placeholders": {
+      "pct": {
+        "type": "Object"
+      }
+    }
+  },
+  "musicByDecade": "Music by decade",
+  "songsNeedAYearTagFor": "Songs need a year tag for this",
+  "howOldIsWhatYouPlay": "How old is what you play?",
+  "records": "Records",
+  "longestSession": "Longest session",
+  "nSongsOnDate": "{count, plural, one{{count} song, {date}} other{{count} songs, {date}}}",
+  "@nSongsOnDate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "biggestDay": "Biggest day",
+  "onRepeat": "On repeat: {title}",
+  "@onRepeat": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "xOn2": "on {date}",
+  "@xOn2": {
+    "placeholders": {
+      "date": {
+        "type": "Object"
+      }
+    }
+  },
+  "loyalTo": "Loyal to {artist}",
+  "@loyalTo": {
+    "placeholders": {
+      "artist": {
+        "type": "Object"
+      }
+    }
+  },
+  "ofYourPlays": "of your plays",
+  "topSongs": "Top songs",
+  "topArtists": "Top artists",
+  "topAlbums": "Top albums",
+  "topGenres": "Top genres",
+  "nothingHereYet": "Nothing here yet",
+  "totalLength": "Total length",
+  "daysNonstop": "{d} days nonstop",
+  "@daysNonstop": {
+    "placeholders": {
+      "d": {
+        "type": "Object"
+      }
+    }
+  },
+  "averageSong": "Average song",
+  "neverPlayed": "Never played",
+  "withACover": "With a cover",
+  "fullyTagged": "{n} fully tagged",
+  "@fullyTagged": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "extremes": "Extremes",
+  "longest": "Longest: {title}",
+  "@longest": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "shortest": "Shortest: {title}",
+  "@shortest": {
+    "placeholders": {
+      "title": {
+        "type": "Object"
+      }
+    }
+  },
+  "fileTypes": "File types",
+  "genres": "Genres",
+  "decades": "Decades",
+  "noListensYetInThisPeriod": "No listens yet in this period.\nA song counts after 30 seconds, or half of it if it is short.",
+  "yourListening": "Your listening",
+  "overview": "Overview",
+  "xTop": "Top",
+  "history": "History",
+  "wrapped": "Wrapped",
+  "aMorningListener": "a morning listener",
+  "anAfternoonListener": "an afternoon listener",
+  "anEveningListener": "an evening listener",
+  "aNightOwl": "a night owl",
+  "thisWeekYouListenedFor": "This week you listened for",
+  "thisMonthYouListenedFor": "This month you listened for",
+  "thisYearYouListenedFor": "This year you listened for",
+  "inTotalYouListenedFor": "In total you listened for",
+  "nDifferentSongs": "{count, plural, one{{count} different song} other{{count} different songs}}",
+  "@nDifferentSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "youAreMostPlaysAround00": "You are {who} – most plays around {hour}:00",
+  "@youAreMostPlaysAround00": {
+    "placeholders": {
+      "who": {
+        "type": "Object"
+      },
+      "hour": {
+        "type": "Object"
+      }
+    }
+  },
+  "longestListeningStreak": "Longest listening streak",
+  "daysInARow": "days in a row",
+  "daysInARowWithAt": "Days in a row with at least one song",
+  "yourTopSong": "Your top song",
+  "whenYouListen": "When you listen",
+  "someone": "Someone",
+  "starting": "Starting…",
+  "couldNotStartCheckYourNetwork": "Could not start. Check your network connection.",
+  "waitingForFriends": "Waiting for friends…",
+  "friend": "Friend",
+  "listeningTogether": "Listening together",
+  "thatCodeDoesNotLookRight": "That code does not look right",
+  "lookingFor": "Looking for {room}…",
+  "@lookingFor": {
+    "placeholders": {
+      "room": {
+        "type": "Object"
+      }
+    }
+  },
+  "onlineSessionsAreOffSettingsListen": "Online sessions are off (Settings → Listen together)",
+  "noSessionWithTheCodeCheck": "No session with the code {room}. Check the code, the host must keep Prism open.",
+  "@noSessionWithTheCodeCheck": {
+    "placeholders": {
+      "room": {
+        "type": "Object"
+      }
+    }
+  },
+  "followingTheHost": "Following the host",
+  "reconnecting": "Reconnecting…",
+  "theHostIsGone": "The host is gone",
+  "waitingForTheHost": "Waiting for the host…",
+  "theHostEndedTheSession": "The host ended the session",
+  "lookingForTheSongOnline": "Looking for the song online…",
+  "theHostIsPlayingASong": "The host is playing a song you don't have",
+  "everyonePlaysTheSameSongAt": "Everyone plays the same song at the same moment.",
+  "sendThisCodeToYourFriends": "Send this code to your friends",
+  "copied": "Copied",
+  "worksFromAnywhere": "Works from anywhere.",
+  "worksOnThisWiFiOnly": "Works on this Wi-Fi only.",
+  "endSession": "End session",
+  "session": "Session {code}",
+  "@session": {
+    "placeholders": {
+      "code": {
+        "type": "Object"
+      }
+    }
+  },
+  "missing": "Missing: {song}",
+  "@missing": {
+    "placeholders": {
+      "song": {
+        "type": "Object"
+      }
+    }
+  },
+  "addTheSongToYourLibrary": "Add the song to your library, or turn on YouTube or SoundCloud in Settings → Online & import.",
+  "justYouAndTheHost": "Just you and the host",
+  "leave": "Leave",
+  "friendSCode": "Friend's code",
+  "join": "Join",
+  "startASession": "Start a session",
+  "eachPersonPlaysTheSongFrom": "Each person plays the song from their own library. Song names pass through a free public server, scrambled with the code. You can turn that off in Settings → Listen together.",
+  "onThisNetwork": "On this network",
+  "backupSummary": "{playlists} playlists ({playlistSongs} songs), {favorites} favorites, {themes} themes, {smart} smart playlists, {edits} edits",
+  "@backupSummary": {
+    "placeholders": {
+      "playlists": {
+        "type": "Object"
+      },
+      "playlistSongs": {
+        "type": "Object"
+      },
+      "favorites": {
+        "type": "Object"
+      },
+      "themes": {
+        "type": "Object"
+      },
+      "smart": {
+        "type": "Object"
+      },
+      "edits": {
+        "type": "Object"
+      }
+    }
+  },
+  "notAPrismBackupInvalidJson": "Not a Prism backup (invalid JSON)",
+  "notAPrismBackup": "Not a Prism backup",
+  "backupIsFromANewerPrism": "Backup is from a newer Prism version",
+  "restored": "{name} (restored)",
+  "@restored": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "writingTagsIsNotSupportedFor": "Writing tags is not supported for {ext} files",
+  "@writingTagsIsNotSupportedFor": {
+    "placeholders": {
+      "ext": {
+        "type": "Object"
+      }
+    }
+  },
+  "couldNotWriteTags": "Could not write tags: {e}",
+  "@couldNotWriteTags": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "tagsDidNotStickFileRestored": "Tags did not stick (file restored)",
+  "duplicateFinder": "Duplicate finder",
+  "noDuplicatesFound": "No duplicates found 🎉",
+  "nGroupsHint": "{count, plural, one{{count} group. Keep the best copy; removing from the library leaves the file on disk.} other{{count} groups. Keep the best copy; removing from the library leaves the file on disk.}}",
+  "@nGroupsHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "theFile": "the file\n{uri}",
+  "@theFile": {
+    "placeholders": {
+      "uri": {
+        "type": "Object"
+      }
+    }
+  },
+  "removeFromLibrary": "Remove from library",
+  "deleteFile": "Delete file…",
+  "mb": "{mb} MB",
+  "@mb": {
+    "placeholders": {
+      "mb": {
+        "type": "Object"
+      }
+    }
+  },
+  "chooseCoverImage": "Choose cover image",
+  "tagsSavedABackupOfThe": "Tags saved (a backup of the original was kept)",
+  "editTags2": "Edit tags",
+  "changeCover": "Change cover…",
+  "removeCover": "Remove cover",
+  "track": "Track",
+  "thisFormatOggCanOnlyBe": "This format (OGG) can only be read, not edited.",
+  "saveToFile": "Save to file",
+  "savePrismBackup": "Save Prism backup",
+  "backupSaved": "Backup saved",
+  "backupFailed": "Backup failed: {e}",
+  "@backupFailed": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "restorePrismBackup": "Restore Prism backup",
+  "restored2": "Restored: {report}",
+  "@restored2": {
+    "placeholders": {
+      "report": {
+        "type": "Object"
+      }
+    }
+  },
+  "restoreFailed": "Restore failed: {e}",
+  "@restoreFailed": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "theVisualizerWorksWithSongsFrom": "The visualizer works with songs from your library",
+  "analysingTheSong": "Analysing the song",
+  "couldNotAnalyseThisSong": "Could not analyse this song",
+  "theVisualizerNeedsFfmpegWhichIs": "The visualizer needs FFmpeg, which is missing on this device",
+  "bars": "Bars",
+  "mirror": "Mirror",
+  "radial": "Radial",
+  "wave": "Wave",
+  "vuMeters": "VU meters",
+  "waterfall": "Waterfall",
+  "ledMatrix": "LED matrix",
+  "low": "Low",
+  "thisDeviceSEqualizerHasBands": "This device's Equalizer has {n} bands ({freqs} Hz, ±{db} dB); the 10-band curve is sampled at those frequencies.Bass boost uses the system BassBoost effect; its exact curve depends on the phone.Some phones (or other EQ apps like Wavelet) can override or block audio effects.",
+  "@thisDeviceSEqualizerHasBands": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      },
+      "freqs": {
+        "type": "Object"
+      },
+      "db": {
+        "type": "Object"
+      }
+    }
+  },
+  "changingEqBandsRebuildsTheLibmpv": "Changing EQ bands rebuilds the libmpv filter chain; fast slider drags are smoothed, but a very short click is possible.",
+  "livePitchShiftUsesResamplingTime": "Live pitch shift uses resampling + time-stretch (WSOLA); exports use rubberband, which sounds a bit cleaner.",
+  "unknownSong": "Unknown song",
+  "paused": "Paused · {who}",
+  "@paused": {
+    "placeholders": {
+      "who": {
+        "type": "Object"
+      }
+    }
+  },
+  "playingInPrism": "Playing in Prism",
+  "paused2": "Paused",
+  "openInAppleMusic": "Open in Apple Music",
+  "openOnDeezer": "Open on Deezer",
+  "thisDevice": "This device",
+  "couldNotRead": "Could not read {path}: {e}",
+  "@couldNotRead": {
+    "placeholders": {
+      "path": {
+        "type": "Object"
+      },
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "topLevelMustBeAnObject": "top level must be an object",
+  "noSongsFoundIn": "No songs found in {file}.",
+  "@noSongsFoundIn": {
+    "placeholders": {
+      "file": {
+        "type": "Object"
+      }
+    }
+  },
+  "theCsvFileHasNoSong": "The CSV file has no song rows.",
+  "couldNotFindATitleColumn": "Could not find a title column. Expected a header like \"Track name\" or \"Title\".",
+  "notValidJson": "Not valid JSON: {e}",
+  "@notValidJson": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "unknownJsonLayout": "Unknown JSON layout.",
+  "couldNotFindASongList": "Could not find a song list in the JSON (expected \"tracks\", \"items\" or \"playlists\").",
+  "onlineServicesUnavailable": "Online services unavailable: {e}",
+  "@onlineServicesUnavailable": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "dragOnTheWaveformToSelect": "Drag on the waveform to select a part first",
+  "saveAsNewTrack": "Save as new track",
+  "exportToFile": "Export to file",
+  "savedAndAddedToYourLibrary": "Saved and added to your library:\n{path}",
+  "@savedAndAddedToYourLibrary": {
+    "placeholders": {
+      "path": {
+        "type": "Object"
+      }
+    }
+  },
+  "exportEdit": "Export edit",
+  "exported": "Exported",
+  "exportFailed": "Export failed: {e}",
+  "@exportFailed": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "editor": "Editor",
+  "readingWaveform": "Reading waveform…",
+  "undoCtrlZ": "Undo (Ctrl+Z)",
+  "redoCtrlY": "Redo (Ctrl+Y)",
+  "saveExport": "Save / export",
+  "saveAsNewTrack2": "Save as new track…",
+  "exportToFile2": "Export to file…",
+  "playThisEditInThePlayer": "Play this edit in the player",
+  "livePresetTheOriginalFileIs": "Live preset – the original file is never changed",
+  "editedOriginal": "Edited {a}  ·  original {b}",
+  "@editedOriginal": {
+    "placeholders": {
+      "a": {
+        "type": "Object"
+      },
+      "b": {
+        "type": "Object"
+      }
+    }
+  },
+  "selection": "Selection {a} – {b}",
+  "@selection": {
+    "placeholders": {
+      "a": {
+        "type": "Object"
+      },
+      "b": {
+        "type": "Object"
+      }
+    }
+  },
+  "xEdit3": "Edit",
+  "splitAtCursor": "Split at cursor",
+  "cut": "Cut",
+  "trimToSelection": "Trim to selection",
+  "speed2": "Speed…",
+  "speedPitchKept": "Speed (pitch kept)",
+  "pitch2": "Pitch…",
+  "pitchSpeedKept": "Pitch (speed kept)",
+  "volume": "Volume…",
+  "volumeOfSelection": "Volume of selection",
+  "fadeIn": "Fade in…",
+  "fadeIn2": "Fade in",
+  "fadeOut": "Fade out…",
+  "fadeOut2": "Fade out",
+  "pausePreview": "Pause preview",
+  "playPreview": "Play preview",
+  "aOriginal": "A  original",
+  "bEdited": "B  edited",
+  "apply": "Apply",
+  "dragToSelectTapToMove": "Drag to select · tap to move the cursor · pinch or Ctrl+wheel to zoom · wheel to scroll · Space = play, Del = cut, Ctrl+Z / Ctrl+Y = undo / redo",
+  "keysLocalOnly": "Keys are read only from this local file (never stored in the app or the repo). See README → Online services.",
+  "boostMayClip": "Boost of {db} dB may clip – lower the preamp. ",
+  "@boostMayClip": {
+    "placeholders": {
+      "db": {
+        "type": "Object"
+      }
+    }
+  },
+  "limiterNote": "(A limiter catches peaks on Windows.)",
+  "editedVsOriginal": "Edited {a}  ·  original {b}",
+  "@editedVsOriginal": {
+    "placeholders": {
+      "a": {
+        "type": "Object"
+      },
+      "b": {
+        "type": "Object"
+      }
+    }
+  },
+  "oauthConnected": "Connected to {service}",
+  "@oauthConnected": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "oauthFailed": "Login failed",
+  "oauthCloseTab": "You can close this tab and go back to Prism.",
+  "oauthWrongState": "Wrong state",
+  "decade": "{year}s",
+  "@decade": {
+    "placeholders": {
+      "year": {
+        "type": "Object"
+      }
+    }
+  },
+  "connectedAsWithDetail": "Connected as {name} ({detail})",
+  "@connectedAsWithDetail": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "detail": {
+        "type": "Object"
+      }
+    }
+  },
+  "langSystem": "System language",
+  "langTitle": "Language",
+  "langEnglish": "English",
+  "langRussian": "Русский",
+  "smartMostPlayed": "Most played",
+  "smartRecentlyAdded": "Recently added",
+  "smartForgottenGems": "Forgotten gems",
+  "eqPresetFlat": "Flat",
+  "eqPresetCustom": "Custom",
+  "eqPresetBassBoost": "Bass Boost",
+  "eqPresetVocal": "Vocal",
+  "eqPresetTreble": "Treble",
+  "eqPresetRock": "Rock",
+  "eqPresetElectronic": "Electronic",
+  "eqPresetPop": "Pop",
+  "eqPresetHipHop": "Hip-Hop",
+  "eqPresetJazz": "Jazz",
+  "eqPresetClassical": "Classical",
+  "eqPresetAcoustic": "Acoustic",
+  "eqPresetSpeech": "Speech",
+  "trayShow": "Show Prism",
+  "trayQuit": "Quit",
+  "hoursValue": "{h} h",
+  "@hoursValue": {
+    "placeholders": {
+      "h": {
+        "type": "Object"
+      }
+    }
+  },
+  "edTabEdit": "Edit",
+  "edTabSegment": "Segment",
+  "edTabQuick": "Quick",
+  "edExport": "Export",
+  "edRippleDelete": "Ripple delete",
+  "edDeleteGap": "Delete, leave a gap",
+  "edDuplicate": "Duplicate",
+  "edLoopN": "Loop…",
+  "edLoopTitle": "Repeat the selection",
+  "edReverse": "Reverse",
+  "edMerge": "Merge songs…",
+  "edMergeTitle": "Add to the end",
+  "edAddN": "Add {n}",
+  "@edAddN": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "edAutoTrim": "Auto-trim silence",
+  "edRemoveSilence": "Remove silence inside",
+  "edNormalize": "Normalize peaks",
+  "edLoudness": "Match loudness…",
+  "edLoudnessTitle": "Loudness target",
+  "edNothingToDo": "Nothing to do here",
+  "edRingtone": "Save as ringtone",
+  "edRingtoneSet": "Set as ringtone",
+  "edRingtoneDone": "Ringtone set",
+  "edRingtoneAllow": "Allow Prism to change system settings, then tap again",
+  "edRingtoneSave": "Save ringtone",
+  "edMakingRingtone": "Making the ringtone…",
+  "edRenderingPreset": "Rendering the live preset…",
+  "edRenderingPreview": "Rendering preview…",
+  "edLoopSel": "Loop selection (L)",
+  "edFollow": "Follow the playhead",
+  "edSnapZero": "Snap to zero crossings",
+  "edSnapBeats": "Snap to beats",
+  "edSnapSilence": "Snap to silence",
+  "edZoomIn": "Zoom in (+)",
+  "edZoomOut": "Zoom out (-)",
+  "edSegmentN": "Segment {n} of {total}",
+  "@edSegmentN": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      },
+      "total": {
+        "type": "Object"
+      }
+    }
+  },
+  "edRamp": "Gradual speed change",
+  "edRampTo": "Speed at the end",
+  "edVolume": "Volume",
+  "edCrossfadeNext": "Crossfade into the next",
+  "edCurve": "Fade curve",
+  "edCurveLinear": "Linear",
+  "edCurveSmooth": "Smooth",
+  "edCurveS": "S-curve",
+  "edCurveFast": "Fast start",
+  "edCurveSlow": "Slow start",
+  "edEq": "Equalizer",
+  "edMid": "Mid",
+  "edHigh": "High",
+  "edGate": "Noise gate",
+  "edGateHint": "Mutes everything quieter than the level",
+  "edGateLevel": "Level",
+  "edVbr": "Variable bitrate (VBR)",
+  "edVbrQuality": "Quality {q} (0 is best, 9 is smallest)",
+  "@edVbrQuality": {
+    "placeholders": {
+      "q": {
+        "type": "Object"
+      }
+    }
+  },
+  "edBitrate": "{kbps} kbps",
+  "@edBitrate": {
+    "placeholders": {
+      "kbps": {
+        "type": "Object"
+      }
+    }
+  },
+  "edWavBits": "{bits}-bit",
+  "@edWavBits": {
+    "placeholders": {
+      "bits": {
+        "type": "Object"
+      }
+    }
+  },
+  "edFlacLevel": "Compression {n}",
+  "@edFlacLevel": {
+    "placeholders": {
+      "n": {
+        "type": "Object"
+      }
+    }
+  },
+  "edApplyEq": "Apply the global equalizer",
+  "edKeepTags": "Keep tags and cover",
+  "edKeepCover": "Keep cover",
+  "edOverwrite": "Overwrite the original (a backup is kept)",
+  "edOverwriteDone": "Original replaced. Backup: {path}",
+  "@edOverwriteDone": {
+    "placeholders": {
+      "path": {
+        "type": "Object"
+      }
+    }
+  },
+  "edOverwriteUnsupported": "Can't overwrite {ext} files, save as a new track instead",
+  "@edOverwriteUnsupported": {
+    "placeholders": {
+      "ext": {
+        "type": "Object"
+      }
+    }
+  },
+  "edOverwriteFailed": "Could not replace the file, the original was put back: {e}",
+  "@edOverwriteFailed": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "edHelpDesktop": "Drag to select, drag an edge to adjust, click to move the cursor, double-click selects a segment. Wheel scrolls, Ctrl+wheel zooms. Space play, S split, Del ripple delete, Shift+Del delete with gap, T trim, R reverse, L loop, B A/B, Ctrl+D duplicate, Ctrl+A select all, Ctrl+E export, Ctrl+Z / Ctrl+Y undo / redo, arrows move the cursor, + - 0 zoom.",
+  "edHelpTouch": "Drag to select, drag an edge to adjust, tap to move the cursor, double-tap selects a segment. Pinch to zoom, two fingers to scroll. Hold a block in the row below the waveform to move it.",
+  "lyricsError": "Lyrics error: {e}",
+  "@lyricsError": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "lyricsOffsetTitle": "Lyrics timing",
+  "lyricsOffsetHint": "Plus shows the lines earlier, minus later. Saved for this song.",
+  "vizRibbon": "Ribbon",
+  "vizParticles": "Particles",
+  "vizGlow": "Glow",
+  "vizSensitivity": "Sensitivity",
+  "vizLowPower": "Low-power visualizer",
+  "vizLowPowerHint": "30 frames per second and fewer details",
+  "vizLive": "Live spectrum",
+  "vizLiveHint": "Reacts to what is actually playing, also streams and EQ. Android asks for the microphone permission for this; Prism records nothing.",
+  "vizLiveRefused": "Permission refused, the visualizer keeps analysing the file",
+  "metaTitle": "Fix song info",
+  "metaFix": "Fix info…",
+  "metaFixAlbum": "Fix info of all these songs",
+  "metaSearchAll": "Search all",
+  "metaSaveAll": "Save all",
+  "metaSave": "Save to file",
+  "metaResearch": "Search again",
+  "metaNothingFound": "Nothing found. Try other words above, or type the info by hand.",
+  "metaCandidates": "Found",
+  "metaUseCover": "Use this cover",
+  "metaSavedN": "{count, plural, one{Saved {count} song, a backup of the original was kept} other{Saved {count} songs, backups of the originals were kept}}",
+  "@metaSavedN": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "metaSaveFailed": "Could not save: {e}",
+  "@metaSaveFailed": {
+    "placeholders": {
+      "e": {
+        "type": "Object"
+      }
+    }
+  },
+  "yandexChanged": "Yandex Music answered in an unexpected way. It has no official API, so this can break at any time. Export the playlist to CSV or JSON and import the file instead.",
+  "yandexNeedsToken": "Yandex Music needs your token for this: Settings → Online services.",
+  "yandexPlaylist": "Yandex Music playlist",
+  "yandexLikes": "Liked songs (Yandex Music)",
+  "yandexLabel": "Yandex Music",
+  "yandexDescribe": "Experimental, no official API. Public links, your playlists and likes with your token. Song names only, no audio.",
+  "yandexTokenTitle": "Your Yandex Music token",
+  "yandexTokenSteps": "Only needed for your own playlists and likes; public links work without it.\n\n1. Open the guide below.\n2. Follow its browser steps while signed in to your Yandex account.\n3. Copy the token and paste it here.",
+  "yandexOpenGuide": "Open the guide (community project)",
+  "yandexToken": "Token",
+  "yandexTokenPrivate": "The token gives access to your Yandex account: don't share it. Prism keeps it in the system's secure storage and sends it only to api.music.yandex.net.",
+  "yandexTermsTitle": "Yandex Music – unofficial, import only",
+  "yandexTermsText": "Yandex has no public API. Prism reads song names through the private one its apps use (documented by the community project yandex-music-api), which can change or stop without warning and answers only from some countries. Off by default, for personal use. Prism never downloads or plays Yandex audio. If it stops working, import a CSV or JSON export instead.",
+  "regionBlocked": "{service} isn't available from your country or network (blocked by the service). Export the playlist to CSV or JSON and import the file instead.",
+  "@regionBlocked": {
+    "placeholders": {
+      "service": {
+        "type": "Object"
+      }
+    }
+  },
+  "setUpYandexToken": "Paste token",
+  "shareTitle": "Share this playlist",
+  "shareHint": "{count, plural, one{Send this code to a friend. It holds the name of {count} song, no audio and no file paths; Prism finds it in their library or enabled services.} other{Send this code to a friend. It holds the names of {count} songs, no audio and no file paths; Prism finds them in their library or enabled services.}}",
+  "@shareHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareLong": "This code is long and some chat apps may cut it. If so, send the file instead.",
+  "shareSaveFile": "Save .liner file",
+  "shareSaved": "File saved",
+  "shareButton": "Share",
+  "shareBadCode": "This code is damaged or incomplete. Ask for it again, or for the .liner file.",
+  "shareNewerVersion": "This code was made by a newer Prism. Update the app to open it.",
+  "shareTooBig": "This playlist is too big to open.",
+  "shareEmpty": "There are no songs in this code.",
+  "shareDefaultName": "Shared playlist",
+  "shareRecognized": "A shared playlist",
+  "orderSelected": "{count, plural, one{{count} selected} other{{count} selected}}",
+  "@orderSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "orderMoveTop": "Move to top",
+  "orderMoveBottom": "Move to bottom",
+  "orderSelect": "Select several",
+  "orderSort": "Sort",
+  "orderCustom": "My order",
+  "orderSortedHint": "Sorted by: {by}. Your own order is kept.",
+  "@orderSortedHint": {
+    "placeholders": {
+      "by": {
+        "type": "Object"
+      }
+    }
+  },
+  "orderBackToCustom": "Back to my order",
+  "orderKeepThis": "Make this my order",
+  "statsNewVsRepeat": "New and repeat",
+  "statsNewVsRepeatNote": "{count, plural, one{{count} song heard for the first time} other{{count} songs heard for the first time}}",
+  "@statsNewVsRepeatNote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsNewPlays": "Discoveries",
+  "statsRepeatPlays": "Songs you knew",
+  "statsStoryPlay": "Play as a story",
+  "statsSaveImage": "Save this card as a picture",
+  "statsImageSaved": "Picture saved",
+  "statsMinutesUnit": "{count, plural, one{minute} other{minutes}}",
+  "@statsMinutesUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsDaysInARow": "{count, plural, one{day in a row} other{days in a row}}",
+  "@statsDaysInARow": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statsWrappedNew": "You discovered",
+  "statsNewSongsUnit": "{count, plural, one{new song} other{new songs}}",
+  "@statsNewSongsUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bgMesh": "Mesh gradient",
+  "bgMeshDesc": "Soft colors slowly flowing into each other.",
+  "bgAurora": "Aurora",
+  "bgAuroraDesc": "Curtains of light moving across a dark sky.",
+  "bgBlobs": "Liquid blobs",
+  "bgBlobsDesc": "Shapes that merge and split like a lava lamp, swelling with the bass.",
+  "bgGradient": "Gradient",
+  "bgGradientDesc": "A still gradient. Pick a preset below. Uses no power once drawn.",
+  "bgStarfield": "Starfield",
+  "bgStarfieldDesc": "Flying through the stars, faster on the bass.",
+  "bgRain": "Rain",
+  "bgRainDesc": "Thin falling rain. The mouse is the wind.",
+  "bgSnow": "Snow",
+  "bgSnowDesc": "Flakes drifting down in layers.",
+  "bgGrain": "Film grain",
+  "bgGrainDesc": "A quiet tinted gradient with moving film grain.",
+  "bgImage": "My picture",
+  "bgImageDesc": "Your own picture behind the app. Blur and darken it below.",
+  "bgVideo": "My video",
+  "bgVideoDesc": "The first 30 seconds of your video as a silent loop at 12 frames per second.",
+  "bgChooseImage": "Choose a picture…",
+  "bgChooseVideo": "Choose a video…",
+  "bgPreparingVideo": "Preparing the video…",
+  "bgVideoFailed": "Could not read this video on this device.",
+  "bgPresets": "Presets",
+  "bgDim": "Darken",
+  "bgParallax": "Parallax",
+  "bgParallaxHint": "The background shifts a little with the mouse",
+  "bgBatterySaver": "Battery saver",
+  "bgBatterySaverHint": "20 frames per second, fewer details, no blur or frosted panels",
+  "bgPresetDusk": "Dusk",
+  "bgPresetOcean": "Ocean",
+  "bgPresetForest": "Forest",
+  "bgPresetEmber": "Ember",
+  "bgPresetIce": "Ice",
+  "bgPresetGraphite": "Graphite",
+  "bgPresetRose": "Rose",
+  "bgPresetNight": "Night",
+  "bgDensity": "Density",
+  "bgSize": "Size",
+  "updateCheck": "Check for updates",
+  "updateAuto": "Check when the app starts",
+  "updateAutoHint": "Asks GitHub once a day for the latest version",
+  "updateChecking": "Checking for updates…",
+  "updateNone": "You have the latest version ({version})",
+  "@updateNone": {
+    "placeholders": {
+      "version": {
+        "type": "Object"
+      }
+    }
+  },
+  "updateFailed": "Could not check for updates: {reason}",
+  "@updateFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "Object"
+      }
+    }
+  },
+  "updateAvailable": "Version {version} is out",
+  "@updateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "Object"
+      }
+    }
+  },
+  "updateHowTo": "Download the new installer or APK and install it over this one. Your library and settings stay.",
+  "updateOpen": "Open download page"
+}

@@ -1,0 +1,80 @@
+# Publishing a new version of Prism
+
+A version tag makes GitHub build everything and publish a Release. The workflow is `.github/workflows/release.yml`.
+
+## Once, before the first release
+
+Do these in order, from this folder.
+
+1. **The repo** is https://github.com/kolommix/Prism. Its name must match `githubRepo` in `lib/core/app_version.dart`, or the in-app
+   update check finds nothing. It has to stay public for that check to read its releases.
+
+2. **Upload the big Windows files.** `libmpv-2.dll` and `ffmpeg.exe` are over GitHub's 100 MB limit for git, so they are
+   ignored and live on a release instead:
+
+   ```bash
+   gh release create windows-deps windows/third_party/libmpv/libmpv-2.dll windows/third_party/ffmpeg/ffmpeg.exe --title "Windows build files" --notes "libmpv and ffmpeg.exe from zhongfly/mpv-winbuild 2026-10-30, used by the release workflow. Not an app release." --latest=false
+   ```
+
+3. **Add the signing key as secrets.** Use the same keystore as before (`%USERPROFILE%\.prism-signing\`), otherwise friends have to
+   uninstall to update. Back it up: if it's lost, nobody can update over their install.
+
+   Encode the keystore without line breaks (PowerShell), replacing the file name with yours:
+
+   ```powershell
+   [Convert]::ToBase64String([IO.File]::ReadAllBytes("$env:USERPROFILE\.prism-signing\release.jks")) | gh secret set ANDROID_KEYSTORE_BASE64
+   ```
+
+   Then set the other three. `gh` asks for each value, so it doesn't end up in your shell history. The values are in
+   `%USERPROFILE%\.prism-signing\key.properties`:
+
+   ```bash
+   gh secret set ANDROID_STORE_PASSWORD
+   ```
+
+   ```bash
+   gh secret set ANDROID_KEY_ALIAS
+   ```
+
+   ```bash
+   gh secret set ANDROID_KEY_PASSWORD
+   ```
+
+   Without these the Android job stops on purpose: a debug-signed APK couldn't update anyone's install.
+
+## Every release
+
+1. Set the new version in `pubspec.yaml` (`version: 1.2.0+7`).
+2. Run `flutter analyze`, `flutter test --exclude-tags "audio,network"` and `flutter test --tags audio`.
+3. Commit, then tag and push. The tag must equal the version in `pubspec.yaml`, or the workflow stops:
+
+   ```bash
+   git tag v1.2.0
+   ```
+
+   ```bash
+   git push origin main v1.2.0
+   ```
+
+4. Watch it build, then write the release notes on the GitHub page:
+
+   ```bash
+   gh run watch
+   ```
+
+The Release gets `Prism-Setup-<version>.exe`, `Prism-<version>.apk`, and the `arm64-v8a` and `armeabi-v7a` APKs. Installed apps see it under
+Settings → About → Check for updates.
+
+## If something goes wrong
+
+- **Tag doesn't match pubspec**: delete the tag (`git push origin :v1.2.0`, `git tag -d v1.2.0`), fix, tag again.
+- **windows-deps not found**: step 2 above wasn't done.
+- **The Android build can't find SDK 37**: `android/build.gradle.kts` maps plugins' compileSdk; update `compileSdk` if a plugin
+  asks for a newer one.
+- **Local build instead of CI**: `powershell -ExecutionPolicy Bypass -File tool\build_release.ps1` builds the same files into `dist\`.
+
+## Licenses
+
+Prism's own code is GPL-3.0 (`LICENSE`), because the Windows build ships GPL builds of libmpv and FFmpeg (rubberband). If you
+publish binaries, GPL requires the source to stay available: a public repo does that. The Windows build files come from
+[zhongfly/mpv-winbuild](https://github.com/zhongfly/mpv-winbuild); see `third_party/README.md`.
