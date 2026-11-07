@@ -9,6 +9,7 @@ import '../../../core/widgets/artwork.dart';
 import '../../library/domain/track.dart';
 import '../../library/presentation/widgets/library_widgets.dart';
 import '../../player/presentation/widgets/waveform_seek_bar.dart';
+import '../application/import_downloader.dart';
 import '../application/import_flow.dart';
 import '../application/match_service.dart';
 import '../application/online_providers.dart';
@@ -164,7 +165,40 @@ class _ImportJobPageState extends ConsumerState<ImportJobPage> {
                           label: Text(l10n.createPlaylistN(job.matched)),
                         ),
                       ),
-                    if (unmatched > 0) FindTheRest(jobIds: [job.id]),
+                    FindTheRest(
+                      jobIds: [job.id],
+                      notFound: unmatched,
+                      toDownload: items.where((i) => i.status == ImportItemStatus.matched && i.track?.sourceId == 'youtube').length,
+                    ),
+                  ],
+                  if (ref.watch(importDownloaderProvider) case final d? when d.jobId == job.id) ...[
+                    const SizedBox(height: 8),
+                    if (d.running) ...[
+                      const LinearProgressIndicator(),
+                      const SizedBox(height: 6),
+                    ],
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            d.running ? l10n.importDownloading(d.done, d.current ?? '') : l10n.importDownloaded(d.done),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: text.bodySmall,
+                          ),
+                        ),
+                        if (d.running)
+                          TextButton(
+                            onPressed: ref.read(importDownloaderProvider.notifier).stop,
+                            child: Text(l10n.pause),
+                          ),
+                      ],
+                    ),
+                    if (!d.running && d.failed > 0)
+                      Text(
+                        '${l10n.importDownloadFailed(d.failed)}${d.message == null ? '' : ' ${d.message}'}',
+                        style: text.bodySmall?.copyWith(color: scheme.tertiary),
+                      ),
                   ],
                   const SizedBox(height: 10),
                   Wrap(
@@ -269,6 +303,9 @@ class _ItemTile extends ConsumerWidget {
                       final repo = ref.read(importRepositoryProvider);
                       await repo.acceptMatch(item.id);
                       await repo.refreshPlaylistOfItem(item.id);
+                      if (ref.read(onlineHubProvider).flags.importDownload) {
+                        ref.read(importDownloaderProvider.notifier).poke(item.jobId);
+                      }
                     },
                   ),
                 TextButton(onPressed: () => showFixMatchSheet(context, ref, item), child: Text(l10n.fix)),
@@ -280,15 +317,41 @@ class _ItemTile extends ConsumerWidget {
 
 /// Nothing was found for some songs: search again, or first turn on a place to
 /// find them. YouTube stays off until someone says yes to its terms.
+/// Asks once, with the terms, before songs are saved from YouTube. True = yes.
+Future<bool> askToDownload(BuildContext context, WidgetRef ref) async {
+  final hub = ref.read(onlineHubProvider);
+  final ok = await showDialog<bool>(
+    context: context,
+    useRootNavigator: true,
+    builder: (c) => AlertDialog(
+      title: Text(l10n.importDownloadAsk),
+      content: Text(l10n.importDownloadTerms),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l10n.importOnlyLibrary)),
+        FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(l10n.iUnderstandTurnOn)),
+      ],
+    ),
+  );
+  if (ok != true) return false;
+  await hub.setFlags(hub.flags.copyWith(youtubeExtractor: true, importDownload: true));
+  return true;
+}
+
 class FindTheRest extends ConsumerWidget {
-  const FindTheRest({super.key, required this.jobIds});
+  const FindTheRest({super.key, required this.jobIds, this.notFound = 1, this.toDownload = 0});
   final List<int> jobIds;
+  final int notFound;
+  final int toDownload;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(onlineRevisionProvider);
     final hub = ref.watch(onlineHubProvider);
     final text = Theme.of(context).textTheme;
     final noneOnline = hub.playable.isEmpty;
+    final downloads = hub.flags.importDownload && !noneOnline;
+    final busy = ref.watch(importDownloaderProvider)?.running ?? false;
+    if (busy || (notFound == 0 && toDownload == 0)) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -298,27 +361,15 @@ class FindTheRest extends ConsumerWidget {
             child: Text(l10n.importOnlyLibrarySearched, style: text.bodySmall),
           ),
         FilledButton.tonalIcon(
-          icon: const Icon(Icons.travel_explore_rounded),
-          label: Text(noneOnline ? l10n.importFindOnYoutube : l10n.importSearchAgain),
+          icon: Icon(downloads ? Icons.refresh_rounded : Icons.download_rounded),
+          label: Text(downloads ? l10n.importTryAgainSongs : l10n.importDownloadSongs),
           onPressed: () async {
-            if (noneOnline) {
-              final ok = await showDialog<bool>(
-                context: context,
-                useRootNavigator: true,
-                builder: (c) => AlertDialog(
-                  title: Text(l10n.turnOnTheYoutubeExtractor),
-                  content: Text(l10n.thisPlaysYoutubeAudioInsidePrism),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l10n.cancel)),
-                    FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(l10n.iUnderstandTurnOn)),
-                  ],
-                ),
-              );
-              if (ok != true) return;
-              await hub.setFlags(hub.flags.copyWith(youtubeExtractor: true));
-            }
+            if (!downloads && !await askToDownload(context, ref)) return;
+            final flow = ref.read(importFlowProvider);
+            final downloader = ref.read(importDownloaderProvider.notifier);
             for (final id in jobIds) {
-              await ref.read(importFlowProvider).retryUnmatched(id);
+              if (notFound > 0) await flow.retryUnmatched(id);
+              downloader.retry(id);
             }
           },
         ),
@@ -373,6 +424,9 @@ class _FixMatchSheetState extends ConsumerState<_FixMatchSheet> {
     final repo = ref.read(importRepositoryProvider);
     await repo.saveMatch(widget.item.id, trackId: t.id, confidence: c.score.value, source: manualSource);
     await repo.refreshPlaylistOfItem(widget.item.id);
+    if (ref.read(onlineHubProvider).flags.importDownload) {
+      ref.read(importDownloaderProvider.notifier).poke(widget.item.jobId);
+    }
     if (mounted) Navigator.pop(context);
   }
 

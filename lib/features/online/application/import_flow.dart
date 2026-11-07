@@ -12,6 +12,7 @@ import '../domain/import_parsers.dart';
 import '../domain/link_parser.dart';
 import '../domain/online_error.dart';
 import '../services/link_only/link_modules.dart';
+import 'import_downloader.dart';
 import 'online_providers.dart';
 
 /// Everything an import does between "here is a link or file" and "the songs
@@ -120,6 +121,19 @@ class ImportFlow {
   Future<void> retryUnmatched(int jobId) async {
     await _ref.read(importRepositoryProvider).requeueUnmatched(jobId);
     _runInBackground([jobId]);
+  }
+
+  /// Carries on with everything unfinished: songs still to find and songs still
+  /// to save. After the download switch goes on, and at every start with it on.
+  Future<void> resumeAll() async {
+    final jobs = await _ref.read(importRepositoryProvider).watchJobs().first;
+    final waiting = [for (final j in jobs) if (j.pending > 0) j.id];
+    if (waiting.isNotEmpty) _runInBackground(waiting);
+    if (_ref.read(onlineHubProvider).flags.importDownload) {
+      for (final j in jobs) {
+        _ref.read(importDownloaderProvider.notifier).poke(j.id);
+      }
+    }
   }
 
   /// True when [job] can be read again from where it came from.

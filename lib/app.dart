@@ -21,6 +21,8 @@ import 'features/player/platform/windows_desktop_integration.dart';
 import 'features/settings/application/settings_controller.dart';
 import 'l10n/l10n.dart';
 
+import 'features/online/application/import_flow.dart';
+import 'features/online/application/online_providers.dart';
 import 'features/online/domain/import_intake.dart';
 import 'features/playlists/application/share_inbox.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -58,6 +60,8 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     WidgetsBinding.instance.addPostFrameCallback((_) {
       DeepLinks(_onImportRequest).start(widget.startArgs);
       _quietUpdateCheck();
+      // Imports that were still going when the app closed.
+      if (ref.read(onlineHubProvider).flags.importDownload) unawaited(ref.read(importFlowProvider).resumeAll());
     });
     // A streamed song that can't play (offline, removed video, service off)
     // is skipped by the player; say why, once, instead of failing silently.

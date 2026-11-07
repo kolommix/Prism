@@ -29,7 +29,10 @@ class SeekPaintData {
     required this.led,
     required this.bubble,
     required this.bubbleText,
+    this.look = const SeekBarLook(),
   });
+
+  final SeekBarLook look;
 
   final ValueListenable<double> progress;
 
@@ -82,7 +85,7 @@ abstract class _SeekPainter extends CustomPainter {
   void paintBar(Canvas canvas, Size size);
 
   /// 0..1 how much the music moves things now: nothing while paused.
-  double get liveMix => d.live ? d.playT.value : 0;
+  double get liveMix => d.live ? d.playT.value * math.min(1.0, d.look.react) : 0;
 
   /// What the music does at [f] (0..1 across the bar): bass in the middle,
   /// fading to the treble at both ends. Songs without a spectrum (streamed,
@@ -92,9 +95,9 @@ abstract class _SeekPainter extends CustomPainter {
     if (bands.isNotEmpty) {
       final at = (f - 0.5).abs() * 2 * (bands.length - 1);
       final lo = at.floor(), hi = math.min(lo + 1, bands.length - 1);
-      return math.pow(bands[lo] + (bands[hi] - bands[lo]) * (at - lo), 1.6).toDouble();
+      return math.pow(bands[lo] + (bands[hi] - bands[lo]) * (at - lo), 1.6).toDouble() * math.max(1.0, d.look.react);
     }
-    return peak * (0.55 + 0.45 * math.sin(d.pulse.value * 3 + i * 0.7));
+    return peak * (0.55 + 0.45 * math.sin(d.pulse.value * 3 + i * 0.7)) * math.max(1.0, d.look.react);
   }
 
   /// Thin marker + time bubble above the bar, the same in every style.
@@ -133,6 +136,7 @@ abstract class _SeekPainter extends CustomPainter {
   bool shouldRepaint(covariant _SeekPainter old) =>
       old.runtimeType != runtimeType ||
       old.d.peaks != d.peaks ||
+      old.d.look != d.look ||
       old.d.duration != d.duration ||
       old.d.live != d.live ||
       old.d.ink != d.ink ||
@@ -152,7 +156,7 @@ class WavePainter extends _SeekPainter {
     if (peaks.isEmpty) return;
     final n = peaks.length;
     final slot = size.width / n;
-    final barW = math.max(2.0, slot * 0.55);
+    final barW = math.max(1.5, math.min(slot - 1, math.max(2.0, slot * 0.55) * d.look.thickness));
     final playX = d.progress.value * size.width;
     final t = d.pulse.value;
     final ht = Curves.easeOutCubic.transform(d.hoverT.value);
@@ -192,6 +196,7 @@ class WavePainter extends _SeekPainter {
       canvas.drawRRect(rect, paint);
     }
 
+    if (!d.look.head) return;
     // Playhead: a solid pill, no glow.
     final head = RRect.fromRectAndRadius(
       Rect.fromCenter(center: Offset(playX.clamp(1.5, size.width - 1.5), mid), width: 3, height: size.height + 4),
@@ -214,7 +219,7 @@ class RibbonPainter extends _SeekPainter {
     final live = d.playT.value;
     final t = d.pulse.value;
     final amp = size.height * (0.16 + 0.1 * ht) * live;
-    final length = math.max(18.0, size.height * 0.9);
+    final length = math.max(18.0, size.height * 0.9) / d.look.density;
     final k = 2 * math.pi / length;
 
     final mix = liveMix;
@@ -231,14 +236,14 @@ class RibbonPainter extends _SeekPainter {
       Paint()
         ..color = d.ink
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
+        ..strokeWidth = 3 * d.look.thickness
         ..strokeJoin = StrokeJoin.round
         ..strokeCap = StrokeCap.round,
     );
 
     final rest = Paint()
       ..color = d.dim
-      ..strokeWidth = 3
+      ..strokeWidth = 3 * d.look.thickness
       ..strokeCap = StrokeCap.round;
     if (playX + 6 < size.width) canvas.drawLine(Offset(playX + 6, mid), Offset(size.width - 2, mid), rest);
     final hx = d.hover.value == null ? null : d.hover.value! * size.width;
@@ -246,6 +251,7 @@ class RibbonPainter extends _SeekPainter {
       canvas.drawLine(Offset(playX + 6, mid), Offset(hx, mid), rest..color = d.ink.withValues(alpha: 0.35 + 0.15 * ht));
     }
 
+    if (!d.look.head) return;
     final headH = size.height * (0.62 + 0.2 * ht);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -266,7 +272,8 @@ class LedPainter extends _SeekPainter {
   void paintBar(Canvas canvas, Size size) {
     final peaks = d.peaks;
     if (peaks.isEmpty) return;
-    const blockH = 3.0, gapV = 2.0;
+    final blockH = 3.0 * d.look.thickness;
+    const gapV = 2.0;
     final rows = math.max(3, ((size.height + gapV) / (blockH + gapV)).floor());
     final top = size.height - rows * (blockH + gapV) + gapV;
     final slot = math.max(5.0, size.width / peaks.length);
@@ -280,7 +287,7 @@ class LedPainter extends _SeekPainter {
     final lit = Path(), lit2 = Path(), idle = Path(), jump = Path(), head = Path();
     for (var c = 0; c < cols; c++) {
       final x = c * slot + 1;
-      final isHead = playX >= x - 1 && playX < x + slot - 1;
+      final isHead = d.look.head && playX >= x - 1 && playX < x + slot - 1;
       final peak = peaks[c * peaks.length ~/ cols];
       final shown = mix == 0 ? peak : peak * (1 - 0.6 * mix) + musicAt(c / math.max(1, cols - 1), c, peak) * 0.85 * mix;
       final level = isHead ? rows : math.max(1, (shown * rows).ceil().clamp(1, rows));
@@ -318,21 +325,22 @@ class TunerPainter extends _SeekPainter {
     final playX = d.progress.value * size.width;
     final ht = Curves.easeOutCubic.transform(d.hoverT.value);
     final hx = d.hover.value == null ? null : d.hover.value! * size.width;
-    const slot = 6.0;
+    final slot = 6.0 / d.look.density;
+    final tick = 1.5 * d.look.thickness;
     final count = (size.width / slot).floor();
     final lens = 54 + 26 * ht;
 
     final played = Paint()
       ..color = d.ink
-      ..strokeWidth = 1.5
+      ..strokeWidth = tick
       ..strokeCap = StrokeCap.round;
     final idle = Paint()
       ..color = d.dim
-      ..strokeWidth = 1.5
+      ..strokeWidth = tick
       ..strokeCap = StrokeCap.round;
     final jump = Paint()
       ..color = d.ink.withValues(alpha: 0.35 + 0.15 * ht)
-      ..strokeWidth = 1.5
+      ..strokeWidth = tick
       ..strokeCap = StrokeCap.round;
 
     final mix = liveMix;
@@ -350,6 +358,7 @@ class TunerPainter extends _SeekPainter {
       canvas.drawLine(Offset(x, mid - h / 2), Offset(x, mid + h / 2), paint);
     }
 
+    if (!d.look.head) return;
     // Needle with a small pointer on top.
     final nx = playX.clamp(1.0, size.width - 1);
     canvas.drawLine(
@@ -380,12 +389,12 @@ class LivePainter extends _SeekPainter {
     if (peaks.isEmpty) return;
     final n = peaks.length;
     final slot = size.width / n;
-    final barW = math.max(2.0, slot * 0.6);
+    final barW = math.max(1.5, math.min(slot - 1, math.max(2.0, slot * 0.6) * d.look.thickness));
     final playX = d.progress.value * size.width;
     final ht = Curves.easeOutCubic.transform(d.hoverT.value);
     final hx = d.hover.value == null ? null : d.hover.value! * size.width;
     final mid = size.height / 2;
-    final live = d.playT.value;
+    final live = d.playT.value * math.min(1.0, d.look.react);
 
     final played = Paint()..color = d.ink;
     final idle = Paint()..color = d.dim;
@@ -405,6 +414,7 @@ class LivePainter extends _SeekPainter {
         paint,
       );
     }
+    if (!d.look.head) return;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromCenter(center: Offset(playX.clamp(1.5, size.width - 1.5), mid), width: 3, height: size.height + 4),

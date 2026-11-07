@@ -38,6 +38,7 @@ class OnlineFlags {
     this.appleMusicLinks = false,
     this.offlineCache = false,
     this.cacheLimitMb = 2048,
+    this.importDownload = false,
   });
 
   factory OnlineFlags.fromJson(Map<String, dynamic> j) {
@@ -53,6 +54,7 @@ class OnlineFlags {
       appleMusicLinks: b('appleMusicLinks', d.appleMusicLinks),
       offlineCache: b('offlineCache', d.offlineCache),
       cacheLimitMb: (j['cacheLimitMb'] as num?)?.toInt().clamp(256, 51200) ?? d.cacheLimitMb,
+      importDownload: b('importDownload', d.importDownload),
     );
   }
 
@@ -75,6 +77,9 @@ class OnlineFlags {
   final bool offlineCache;
   final int cacheLimitMb;
 
+  /// Imports save each song found on YouTube as a file. Personal use, asked first.
+  final bool importDownload;
+
   Map<String, Object> toJson() => {
     'spotify': spotify,
     'youtube': youtube,
@@ -85,6 +90,7 @@ class OnlineFlags {
     'appleMusicLinks': appleMusicLinks,
     'offlineCache': offlineCache,
     'cacheLimitMb': cacheLimitMb,
+    'importDownload': importDownload,
   };
 
   bool enabled(OnlineService s) => switch (s) {
@@ -107,6 +113,7 @@ class OnlineFlags {
     bool? appleMusicLinks,
     bool? offlineCache,
     int? cacheLimitMb,
+    bool? importDownload,
   }) => OnlineFlags(
     spotify: spotify ?? this.spotify,
     youtube: youtube ?? this.youtube,
@@ -117,6 +124,7 @@ class OnlineFlags {
     appleMusicLinks: appleMusicLinks ?? this.appleMusicLinks,
     offlineCache: offlineCache ?? this.offlineCache,
     cacheLimitMb: cacheLimitMb ?? this.cacheLimitMb,
+    importDownload: importDownload ?? this.importDownload,
   );
 
   OnlineFlags withService(OnlineService s, bool on) => switch (s) {

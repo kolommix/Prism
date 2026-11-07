@@ -223,6 +223,24 @@ class ImportRepository {
     ),
   );
 
+  /// Found on YouTube but not saved yet. Uncertain matches wait for a yes.
+  Future<List<ImportItem>> downloadableItems(int jobId) async {
+    final q = _db.select(_db.importItems).join([innerJoin(_db.tracks, _db.tracks.id.equalsExp(_db.importItems.trackId))])
+      ..where(
+        _db.importItems.jobId.equals(jobId) &
+            _db.importItems.status.equals(ImportItemStatus.matched.name) &
+            _db.tracks.sourceId.equals('youtube') &
+            (_db.importItems.confidence.isBiggerOrEqualValue(0.7) | _db.importItems.matchSource.equals(manualSource)),
+      )
+      ..orderBy([OrderingTerm(expression: _db.importItems.position)]);
+    final rows = await q.get();
+    return [for (final r in rows) _item(r.readTable(_db.importItems), r.readTable(_db.tracks))];
+  }
+
+  /// The song now lives in a file: same match, new track.
+  Future<void> relinkItem(int itemId, int trackId) => (_db.update(_db.importItems)..where((i) => i.id.equals(itemId)))
+      .write(ImportItemsCompanion(trackId: Value(trackId)));
+
   /// "Yes, this is the right song."
   Future<void> acceptMatch(int itemId) async {
     await (_db.update(_db.importItems)..where((i) => i.id.equals(itemId)))

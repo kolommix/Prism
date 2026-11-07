@@ -16,6 +16,7 @@ import '../../playlists/presentation/playlist_dialogs.dart';
 import '../application/import_flow.dart';
 import '../application/online_providers.dart';
 import '../data/import_repository.dart';
+import 'import_job_page.dart';
 import '../domain/external_track.dart';
 import '../domain/import_intake.dart';
 import '../domain/link_parser.dart';
@@ -88,6 +89,9 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   VoidCallback? _retry;
 
   bool _advancedOpen = false;
+
+  /// Said "only my library" this session: not asked at every import.
+  static bool _saidNoToDownloads = false;
 
   @override
   void initState() {
@@ -170,7 +174,14 @@ class _ImportPageState extends ConsumerState<ImportPage> {
     });
     try {
       final flow = ref.read(importFlowProvider);
-      final ids = await flow.start(await read());
+      final lists = await read();
+      if (!mounted) return;
+      // Only asked once there is really something to import.
+      if (!ref.read(onlineHubProvider).flags.importDownload && !_saidNoToDownloads) {
+        if (!await askToDownload(context, ref)) _saidNoToDownloads = true;
+        if (!mounted) return;
+      }
+      final ids = await flow.start(lists);
       if (!mounted) return;
       _link.clear();
       setState(() => _busy = null);
@@ -366,6 +377,35 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                                 color: known && !needsSetUp ? scheme.onSurface : scheme.onSurfaceVariant,
                               ),
                             ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(l10n.importDownloadSwitch, style: text.bodyMedium),
+                                Text(
+                                  l10n.importDownloadSwitchHint,
+                                  style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Switch(
+                            value: hub.flags.importDownload,
+                            onChanged: (on) async {
+                              if (on) {
+                                _saidNoToDownloads = !await askToDownload(context, ref);
+                                if (!_saidNoToDownloads) await ref.read(importFlowProvider).resumeAll();
+                              } else {
+                                await hub.setFlags(hub.flags.copyWith(importDownload: false));
+                              }
+                            },
                           ),
                         ],
                       ),

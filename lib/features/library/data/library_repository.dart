@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -408,6 +410,34 @@ class LibraryRepository {
               });
             });
       });
+
+  /// A song saved by an import becomes a normal library song. Returns its id.
+  Future<int> addDownloadedFile(
+    File file, {
+    required String title,
+    required String artist,
+    required String album,
+    required int durationMs,
+    String? artwork,
+  }) async {
+    final stat = await file.stat();
+    await upsertTracks([
+      TracksCompanion.insert(
+        uri: file.path,
+        folder: p.dirname(file.path),
+        title: title,
+        artist: Value(artist),
+        album: Value(album),
+        durationMs: Value(durationMs),
+        artworkPath: Value(artwork),
+        fileSize: Value(stat.size),
+        modifiedMs: Value(stat.modified.millisecondsSinceEpoch),
+        searchText: Value(buildSearchText(title: title, artist: artist, album: album, albumArtist: '')),
+      ),
+    ]);
+    final row = await (_db.select(_db.tracks)..where((t) => t.uri.equals(file.path))).getSingle();
+    return row.id;
+  }
 
   Stream<List<RemovedTrackRow>> watchRemoved() =>
       (_db.select(_db.removedTracks)..orderBy([(r) => OrderingTerm.desc(r.removedAt)])).watch();

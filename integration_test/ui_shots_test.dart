@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:prism/core/motion/smooth_scroll.dart';
 import 'package:prism/core/router/app_router.dart';
 import 'package:prism/features/library/application/library_providers.dart';
 import 'package:prism/features/settings/application/settings_controller.dart';
@@ -134,6 +135,37 @@ void main() {
       go(route);
       await shot('a-page-$name');
     }
+
+    // The seek bar at the far end of its options: it must still fit everywhere.
+    final lookBefore = c().read(settingsProvider);
+    c().read(settingsProvider.notifier).update(
+          (x) => x.copyWith(seekBarColor: 0xFF40C4FF, seekBarSize: 1.6, seekBarDensity: 2, seekBarThickness: 2, seekBarDim: 0.5, seekBarReact: 2),
+        );
+    go(Routes.library);
+    await shot('look-big');
+    router.push(Routes.immersive);
+    await shot('look-big-immersive');
+    router.pop();
+    await wait(700);
+    c().read(settingsProvider.notifier).update((x) => x.copyWith(seekBarSize: 0.6, seekBarDensity: 0.5, seekBarThickness: 0.5, seekBarHead: false, seekBarTimes: false));
+    await shot('look-small');
+    c().read(settingsProvider.notifier).update((x) => x.copyWith(seekBarSize: 1, seekBarDensity: 1, seekBarThickness: 1, seekBarHead: true));
+    go(Routes.settings);
+    await wait(200);
+    c().read(selectedSettingsSectionProvider.notifier).select(SettingsSection.appearance);
+    await wait(500);
+    final list = tester.state<ScrollableState>(
+      find.descendant(of: find.byType(SmoothListView).last, matching: find.byType(Scrollable)).first,
+    );
+    for (var i = 0; i < 3; i++) {
+      list.position.jumpTo(list.position.maxScrollExtent);
+      await wait(200);
+    }
+    await shot('look-settings');
+    list.position.jumpTo(list.position.pixels - 620);
+    await shot('look-settings-top');
+    c().read(settingsProvider.notifier).update((_) => lookBefore);
+    await wait(200);
 
     // The animated backgrounds behind the real pages.
     for (final style in ['matrix', 'constellation', 'ripple', 'mesh', 'aurora', 'blobs', 'gradient', 'starfield', 'rain', 'snow', 'grain']) {

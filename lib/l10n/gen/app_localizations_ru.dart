@@ -4391,4 +4391,111 @@ class AppLocalizationsRu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get seekBarCustomize => 'Настроить полосу перемотки';
+
+  @override
+  String get seekBarOwnColor => 'Свой цвет';
+
+  @override
+  String get seekBarOwnColorHint => 'Выключено: полоса следует теме';
+
+  @override
+  String get seekBarColor => 'Цвет';
+
+  @override
+  String get seekBarSize => 'Высота';
+
+  @override
+  String get seekBarDensity => 'Количество полос';
+
+  @override
+  String get seekBarThickness => 'Толщина';
+
+  @override
+  String get seekBarDim => 'Яркость непроигранной части';
+
+  @override
+  String get seekBarReact => 'Реакция на музыку';
+
+  @override
+  String get seekBarHead => 'Показывать указатель';
+
+  @override
+  String get seekBarTimes => 'Показывать время';
+
+  @override
+  String get seekBarReset => 'Сбросить настройки полосы';
+
+  @override
+  String get importDownloadAsk => 'Скачать песни в Prism?';
+
+  @override
+  String get importDownloadTerms =>
+      'Prism находит каждую песню на YouTube и сохраняет звук в файл внутри приложения, поэтому песня остаётся в библиотеке и играет без интернета. Это нарушает правила YouTube: только для себя, файлы никому не передавайте. Функция может перестать работать в любой момент.';
+
+  @override
+  String get importOnlyLibrary => 'Искать только в библиотеке';
+
+  @override
+  String get importDownloadSwitch => 'Скачивать песни в Prism';
+
+  @override
+  String get importDownloadSwitchHint =>
+      'С YouTube, автоматически. Только для личного использования.';
+
+  @override
+  String get importDownloadSongs => 'Скачать песни';
+
+  @override
+  String get importTryAgainSongs => 'Повторить для несохранённых песен';
+
+  @override
+  String importDownloading(int done, String title) {
+    return 'Сохранено: $done. Сейчас: $title';
+  }
+
+  @override
+  String importDownloaded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count песен сохранено в библиотеке',
+      few: '$count песни сохранены в библиотеке',
+      one: '$count песня сохранена в библиотеке',
+      zero: 'Нечего сохранять',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importDownloadFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Не удалось сохранить $count песен.',
+      few: 'Не удалось сохранить $count песни.',
+      one: 'Не удалось сохранить $count песню.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get togetherFindOnYoutube => 'Найти недостающие песни на YouTube';
+
+  @override
+  String get togetherOr => 'или';
+
+  @override
+  String importRetryIn(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Сам попробует снова через $minutes минут.',
+      few: 'Сам попробует снова через $minutes минуты.',
+      one: 'Сам попробует снова через $minutes минуту.',
+    );
+    return '$_temp0';
+  }
 }

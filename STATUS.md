@@ -1,13 +1,21 @@
 # Prism - status (2026-11-07)
 
-## Latest: privacy + easier import, version 1.2.0 (2026-11-07), not released yet
-- **Location report solved**: `permission_handler_windows` created a Windows `Geolocator` and subscribed to it in its constructor, at every launch, in every version so far. Nothing read or sent the result. Prism now links only `permission_handler_android`. Android never had a location permission. Friends keep seeing it until a new release is out.
-- Also: computer name no longer used as the default listen-together name, `RECEIVE_BOOT_COMPLETED` removed, Settings → Privacy, `docs/PRIVACY.md`, CI check (`tool/privacy_check.dart`, `.github/workflows/privacy.yml`, never run on GitHub yet).
+## Latest: imports download songs (2026-11-07), installed here, not released
+- **Import saves real files**: `ImportDownloader` (2 at a time, gives up after 4 failures in a row) saves each song found on YouTube into `<app support>/imported_music` and makes it a normal library song with the imported names, the playlist then plays the file. Uncertain matches wait until accepted. Off by default, asked with the terms at the first import (`OnlineFlags.importDownload`). Soundcloud matches stay streams (its terms). Real song saved and read back by FFmpeg. NOT run: a whole real playlist through the screen. Removing such a song from Prism leaves its file in that folder.
+- **Listen together, small round**: now-playing row, one tap to find missing songs on YouTube, next 3 songs found ahead. Not a rewrite: the user still has to say what feels wrong.
+
+## Before that: Discord pause + seek bar options (2026-11-07), installed here, not released
+- **Discord, paused**: with no timestamps Discord runs its own clock, and it can't hold a bar at a chosen time. Paused now sends a start a year ahead, so the bar stays still at 0:00 with the real length. If Discord refuses that, the status falls back to no timestamps. NOT seen in Discord yet: needs a look on a real profile.
+- **Seek bar options**: Settings → Appearance → Customize the seek bar: own color, height, number of bars, thickness, unplayed brightness, reaction to music, playhead, time labels, reset. Same for all styles (`SeekBarLook`). In the player bar the height stops at 34 px, the bar's own limit.
+
+## Before that: privacy + easier import, version 1.2.0 (2026-11-07), released
+- **Location report solved**: `permission_handler_windows` created a Windows `Geolocator` and subscribed to it in its constructor, at every launch, in every version so far. Nothing read or sent the result. Prism now links only `permission_handler_android`. Android never had a location permission. Friends keep seeing it until they update to 1.2.0.
+- Also: computer name no longer used as the default listen-together name, `RECEIVE_BOOT_COMPLETED` removed, Settings → Privacy, `docs/PRIVACY.md`, CI check (`tool/privacy_check.dart`, `.github/workflows/privacy.yml`, passed on GitHub for 1.2.0).
 - **Full screen**: own code in `flutter_window.cpp` (`prism/window`), because window_manager keeps the title bar on a maximized window. `integration_test/fullscreen_test.dart` measures it.
 - **Remove from Prism**: track menu, file stays, undo, rescans skip it (schema v8 `removed_tracks`), Settings → Library → Removed songs.
 - **Import**: one screen, details in `docs/PROGRESS.md` block 15. `ImportFlow`, `import_intake.dart`, `public_readers.dart`, `import_review_page.dart`, `drop_bridge.cpp`, Android SEND filters (launchMode is now singleTask).
 - **Limits**: SoundCloud links need a key or a file, Spotify about 100 songs without a login, Yandex only where it answers. Without YouTube turned on, matching only searches the library; the job and Review pages offer to turn it on, with its terms.
-- **NOT verified**: drag and drop by hand, Android share target and immersive mode on a device, re-sync against a real changed playlist, the GitHub workflow.
+- **NOT verified**: drag and drop by hand, Android share target and immersive mode on a device, re-sync against a real changed playlist.
 
 ## Before that: the big feature round, version 1.1.0 (2026-11-07)
 Checklist with a status per block: `docs/PROGRESS.md`. Short version:

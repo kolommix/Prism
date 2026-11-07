@@ -13,6 +13,7 @@ broken or not set up, everything else keeps working.
 | Import Deezer playlist/album links | nothing | ✅ |
 | Import Apple Music playlist/album links (reads the public web page) | nothing | ✅ best effort, *personal use* |
 | Import public Yandex Music links | nothing, only where Yandex answers (HTTP 451 elsewhere) | ✅ best effort, *personal use* |
+| Save imported songs as files in Prism (from YouTube, asks first) | switch on the Import screen | ✅ *personal use*, against YouTube's Terms, don't share the files |
 | Import SoundCloud links | `soundcloud.clientId` (its pages hold almost no songs without a key) or a file | needs your key |
 | YouTube / YouTube Music: search, playlist links, **playback**, offline copies | switch on **YouTube extractor** | ✅ *personal use* |
 | YouTube search/playlists via the official API | `youtube.apiKey` | needs your key |

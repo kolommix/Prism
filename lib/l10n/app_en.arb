@@ -2784,5 +2784,61 @@
         "type": "int"
       }
     }
+  },
+  "seekBarCustomize": "Customize the seek bar",
+  "seekBarOwnColor": "Own color",
+  "seekBarOwnColorHint": "Off: the bar follows the theme",
+  "seekBarColor": "Color",
+  "seekBarSize": "Height",
+  "seekBarDensity": "Number of bars",
+  "seekBarThickness": "Thickness",
+  "seekBarDim": "Brightness of the unplayed part",
+  "seekBarReact": "Reaction to the music",
+  "seekBarHead": "Show the playhead",
+  "seekBarTimes": "Show the time",
+  "seekBarReset": "Reset the seek bar",
+  "importDownloadAsk": "Download the songs into Prism?",
+  "importDownloadTerms": "Prism finds each song on YouTube and saves its audio as a file in the app, so it stays in your library and plays offline. This goes against YouTube's Terms: use it only for yourself, don't share the files. It can stop working at any time.",
+  "importOnlyLibrary": "Only search my library",
+  "importDownloadSwitch": "Download songs into Prism",
+  "importDownloadSwitchHint": "From YouTube, automatically. Personal use only.",
+  "importDownloadSongs": "Download the songs",
+  "importTryAgainSongs": "Try again for songs not saved",
+  "importDownloading": "{done} saved. Now: {title}",
+  "@importDownloading": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "importDownloaded": "{count, plural, =0{Nothing new to save} one{{count} song saved in your library} other{{count} songs saved in your library}}",
+  "@importDownloaded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importDownloadFailed": "{count, plural, one{{count} song could not be saved.} other{{count} songs could not be saved.}}",
+  "@importDownloadFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "togetherFindOnYoutube": "Find missing songs on YouTube",
+  "togetherOr": "or",
+  "importRetryIn": "{minutes, plural, one{Trying again by itself in {minutes} minute.} other{Trying again by itself in {minutes} minutes.}}",
+  "@importRetryIn": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
   }
 }

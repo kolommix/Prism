@@ -490,7 +490,19 @@ class TogetherController extends Notifier<TogetherState> {
   SharedState? _pendingState;
   bool _applying = false;
 
+  /// Looks again for the song that is missing (YouTube was just turned on).
+  void findMissingOnline() {
+    _foundOnline.removeWhere((_, t) => t == null);
+    final latest = _latestState;
+    if (latest == null || state.role != TogetherRole.guest) return;
+    _pendingState ??= latest;
+    unawaited(_drainStates());
+  }
+
+  SharedState? _latestState;
+
   void _onState(SharedState s) {
+    _latestState = s;
     if (s.queue.isNotEmpty) {
       _queue = s.queue;
       _haveVersion = s.queueVersion;
@@ -545,6 +557,10 @@ class TogetherController extends Notifier<TogetherState> {
       );
       await _player.pause();
       return;
+    }
+    // Find the next songs now, so the session doesn't stop when they come up.
+    for (var i = s.index + 1; i < _queue.length && i <= s.index + 3; i++) {
+      if (i >= 0 && matcher.match(_queue[i]) == null) unawaited(_findOnline(_queue[i], s));
     }
     final expected = s.expectedPosition(guestNowMs: DateTime.now().millisecondsSinceEpoch, clockOffsetMs: _clockOffset);
     if (_player.queue.current?.id != matched[localIndex].id) {

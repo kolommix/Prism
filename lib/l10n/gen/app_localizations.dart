@@ -6965,6 +6965,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{Skip {count} not found} other{Skip {count} not found}}'**
   String importSkipNotFound(int count);
+
+  /// No description provided for @seekBarCustomize.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize the seek bar'**
+  String get seekBarCustomize;
+
+  /// No description provided for @seekBarOwnColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Own color'**
+  String get seekBarOwnColor;
+
+  /// No description provided for @seekBarOwnColorHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: the bar follows the theme'**
+  String get seekBarOwnColorHint;
+
+  /// No description provided for @seekBarColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get seekBarColor;
+
+  /// No description provided for @seekBarSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get seekBarSize;
+
+  /// No description provided for @seekBarDensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of bars'**
+  String get seekBarDensity;
+
+  /// No description provided for @seekBarThickness.
+  ///
+  /// In en, this message translates to:
+  /// **'Thickness'**
+  String get seekBarThickness;
+
+  /// No description provided for @seekBarDim.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness of the unplayed part'**
+  String get seekBarDim;
+
+  /// No description provided for @seekBarReact.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaction to the music'**
+  String get seekBarReact;
+
+  /// No description provided for @seekBarHead.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the playhead'**
+  String get seekBarHead;
+
+  /// No description provided for @seekBarTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the time'**
+  String get seekBarTimes;
+
+  /// No description provided for @seekBarReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset the seek bar'**
+  String get seekBarReset;
+
+  /// No description provided for @importDownloadAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Download the songs into Prism?'**
+  String get importDownloadAsk;
+
+  /// No description provided for @importDownloadTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Prism finds each song on YouTube and saves its audio as a file in the app, so it stays in your library and plays offline. This goes against YouTube\'s Terms: use it only for yourself, don\'t share the files. It can stop working at any time.'**
+  String get importDownloadTerms;
+
+  /// No description provided for @importOnlyLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Only search my library'**
+  String get importOnlyLibrary;
+
+  /// No description provided for @importDownloadSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Download songs into Prism'**
+  String get importDownloadSwitch;
+
+  /// No description provided for @importDownloadSwitchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'From YouTube, automatically. Personal use only.'**
+  String get importDownloadSwitchHint;
+
+  /// No description provided for @importDownloadSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'Download the songs'**
+  String get importDownloadSongs;
+
+  /// No description provided for @importTryAgainSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again for songs not saved'**
+  String get importTryAgainSongs;
+
+  /// No description provided for @importDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} saved. Now: {title}'**
+  String importDownloading(int done, String title);
+
+  /// No description provided for @importDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing new to save} one{{count} song saved in your library} other{{count} songs saved in your library}}'**
+  String importDownloaded(int count);
+
+  /// No description provided for @importDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} song could not be saved.} other{{count} songs could not be saved.}}'**
+  String importDownloadFailed(int count);
+
+  /// No description provided for @togetherFindOnYoutube.
+  ///
+  /// In en, this message translates to:
+  /// **'Find missing songs on YouTube'**
+  String get togetherFindOnYoutube;
+
+  /// No description provided for @togetherOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get togetherOr;
+
+  /// No description provided for @importRetryIn.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, one{Trying again by itself in {minutes} minute.} other{Trying again by itself in {minutes} minutes.}}'**
+  String importRetryIn(int minutes);
 }
 
 class _AppLocalizationsDelegate

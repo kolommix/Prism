@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/prism_theme_extensions.dart';
 import '../../../../core/widgets/led_dot.dart';
 import '../../../settings/application/settings_controller.dart';
+import '../../../settings/domain/app_settings.dart';
 import '../../../visualizer/domain/spectrum.dart';
 import '../../../visualizer/presentation/visualizer.dart';
 import '../../application/player_providers.dart';
@@ -31,6 +32,20 @@ String formatDuration(Duration d) {
 ///   on the big bars, once per pixel on small ones, 30 fps for styles that
 ///   move on their own.
 /// * Drag or tap to seek; [compact] draws a thin classic bar instead.
+/// The seek bar part of the settings.
+extension SeekBarLookOf on AppSettings {
+  SeekBarLook get seekBarLook => SeekBarLook(
+        color: seekBarColor,
+        size: seekBarSize,
+        density: seekBarDensity,
+        thickness: seekBarThickness,
+        dim: seekBarDim,
+        react: seekBarReact,
+        head: seekBarHead,
+        times: seekBarTimes,
+      );
+}
+
 class WaveformSeekBar extends ConsumerStatefulWidget {
   const WaveformSeekBar({
     super.key,
@@ -260,6 +275,7 @@ class _WaveformSeekBarState extends ConsumerState<WaveformSeekBar> with TickerPr
     final track = ref.watch(currentTrackProvider);
     _style = SeekBarStyle.parse(ref.watch(settingsProvider.select((s) => s.seekBarStyle)));
     _liveSetting = ref.watch(settingsProvider.select((s) => s.liveSeekBar));
+    final look = ref.watch(settingsProvider.select((s) => s.seekBarLook));
     _spectrum = _wantsBands && context.motion.decorative && track != null && track.sourceId == 'local'
         ? ref.watch(spectrumProvider(track)).value
         : null;
@@ -284,6 +300,10 @@ class _WaveformSeekBarState extends ConsumerState<WaveformSeekBar> with TickerPr
     _syncPlayAnim();
 
     final scheme = Theme.of(context).colorScheme;
+    final ink = look.color == null ? scheme.primary : Color(look.color!);
+    final dim = scheme.onSurface.withValues(alpha: look.dim);
+    // The player bar has a fixed height: the bar can't grow past what fits there.
+    final barHeight = widget.inlineTimes ? math.min(widget.height * look.size, 34.0) : widget.height * look.size;
     final timeStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
           color: scheme.onSurfaceVariant,
           fontFeatures: const [FontFeature.tabularFigures()],
@@ -292,7 +312,7 @@ class _WaveformSeekBarState extends ConsumerState<WaveformSeekBar> with TickerPr
       builder: (context, c) {
         _barPixels = c.maxWidth * MediaQuery.devicePixelRatioOf(context);
         // About one bar per 6 px: a wide bar gets a denser, finer waveform.
-        final count = (c.maxWidth / 6).clamp(40, 160).round();
+        final count = (c.maxWidth / 6 * look.density).clamp(20, 320).round();
         if (count != _peaks.length) _peaks = _fakePeaks(_trackId ?? 0, count);
         double fractionAt(Offset local) => (local.dx / c.maxWidth).clamp(0.0, 1.0);
         return GestureDetector(
@@ -327,7 +347,7 @@ class _WaveformSeekBarState extends ConsumerState<WaveformSeekBar> with TickerPr
               if (_dragValue == null) _hoverOut();
             },
             child: SizedBox(
-              height: widget.compact ? 18 : widget.height,
+              height: widget.compact ? 18 : barHeight,
               width: double.infinity,
               child: RepaintBoundary(
                 child: CustomPaint(
@@ -336,8 +356,9 @@ class _WaveformSeekBarState extends ConsumerState<WaveformSeekBar> with TickerPr
                           progress: _progress,
                           pulse: _pulse,
                           levels: () => _liveSetting && _playing ? _levels : null,
-                          active: scheme.primary,
-                          inactive: scheme.onSurface.withValues(alpha: 0.18),
+                          active: ink,
+                          inactive: dim,
+                          thickness: look.thickness,
                         )
                       : seekPainterFor(
                           _style,
@@ -350,9 +371,10 @@ class _WaveformSeekBarState extends ConsumerState<WaveformSeekBar> with TickerPr
                             peaks: _peaks,
                             levels: _levels,
                             live: _liveSetting && context.motion.decorative,
+                            look: look,
                             duration: _duration,
-                            ink: scheme.primary,
-                            dim: scheme.onSurface.withValues(alpha: 0.18),
+                            ink: ink,
+                            dim: dim,
                             led: context.look.led,
                             bubble: scheme.inverseSurface,
                             bubbleText: (timeStyle ?? const TextStyle()).copyWith(
@@ -369,6 +391,7 @@ class _WaveformSeekBarState extends ConsumerState<WaveformSeekBar> with TickerPr
       },
     );
 
+    if (!look.times) return bar;
     if (widget.inlineTimes) {
       // Player bar: elapsed | waveform | total, all on one line.
       return Row(
@@ -414,13 +437,21 @@ class _WaveformSeekBarState extends ConsumerState<WaveformSeekBar> with TickerPr
 
 /// The thin bar of the mini players; it thickens with the bass when live.
 class _LinePainter extends CustomPainter {
-  _LinePainter({required this.progress, required this.pulse, required this.levels, required this.active, required this.inactive})
+  _LinePainter({
+    required this.progress,
+    required this.pulse,
+    required this.levels,
+    required this.active,
+    required this.inactive,
+    this.thickness = 1,
+  })
       : super(repaint: Listenable.merge([progress, pulse]));
 
   final ValueNotifier<double> progress;
   final ValueNotifier<double> pulse;
   final Float32List? Function() levels;
   final Color active, inactive;
+  final double thickness;
 
   double get _bass {
     final l = levels();
@@ -438,23 +469,31 @@ class _LinePainter extends CustomPainter {
     final y = size.height / 2;
     final bass = _bass;
     final paint = Paint()
-      ..strokeWidth = 4
+      ..strokeWidth = 4 * thickness
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(Offset(2, y), Offset(size.width - 2, y), paint..color = inactive);
     final x = 2 + (size.width - 4) * progress.value;
     canvas.drawLine(Offset(2, y), Offset(x, y), paint
       ..color = active
-      ..strokeWidth = 4 + 3 * bass);
+      ..strokeWidth = (4 + 3 * bass) * thickness);
     canvas.drawCircle(Offset(x, y), 5 + 2.5 * bass, Paint()..color = active);
   }
 
   @override
-  bool shouldRepaint(_LinePainter old) => old.active != active || old.inactive != inactive;
+  bool shouldRepaint(_LinePainter old) => old.active != active || old.inactive != inactive || old.thickness != thickness;
 }
 
 /// A small working sample of a style, for the picker in Settings.
 class SeekBarStylePreview extends StatefulWidget {
-  const SeekBarStylePreview({super.key, required this.style, this.height = 30, this.live = false});
+  const SeekBarStylePreview({
+    super.key,
+    required this.style,
+    this.height = 30,
+    this.live = false,
+    this.look = const SeekBarLook(),
+  });
+
+  final SeekBarLook look;
 
   final SeekBarStyle style;
   final double height;
@@ -465,14 +504,15 @@ class SeekBarStylePreview extends StatefulWidget {
 }
 
 class _SeekBarStylePreviewState extends State<SeekBarStylePreview> {
-  static final _peaks = () {
-    final r = math.Random(7);
-    var v = 0.5;
-    return List<double>.generate(90, (i) {
-      v = (v + (r.nextDouble() - 0.5) * 0.5).clamp(0.15, 1.0);
-      return (v * (0.55 + 0.45 * math.sin(i / 90 * math.pi))).clamp(0.12, 1.0);
-    });
-  }();
+  static final _peaksByCount = <int, List<double>>{};
+  static List<double> _peaksFor(int n) => _peaksByCount.putIfAbsent(n, () {
+        final r = math.Random(7);
+        var v = 0.5;
+        return List<double>.generate(n, (i) {
+          v = (v + (r.nextDouble() - 0.5) * 0.5).clamp(0.15, 1.0);
+          return (v * (0.55 + 0.45 * math.sin(i / n * math.pi))).clamp(0.12, 1.0);
+        });
+      });
 
   final _progress = ValueNotifier<double>(0.42);
   final _pulse = ValueNotifier<double>(0);
@@ -514,9 +554,10 @@ class _SeekBarStylePreviewState extends State<SeekBarStylePreview> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final decorative = context.motion.decorative;
+    final look = widget.look;
     return RepaintBoundary(
       child: SizedBox(
-        height: widget.height,
+        height: widget.height * look.size,
         width: double.infinity,
         child: CustomPaint(
           painter: seekPainterFor(
@@ -527,12 +568,13 @@ class _SeekBarStylePreviewState extends State<SeekBarStylePreview> {
               hover: _hover,
               hoverT: kAlwaysDismissedAnimation,
               playT: decorative ? kAlwaysCompleteAnimation : kAlwaysDismissedAnimation,
-              peaks: _peaks,
+              peaks: _peaksFor((90 * look.density).round()),
               levels: _noBands,
               live: widget.live && decorative,
+              look: look,
               duration: const Duration(minutes: 3),
-              ink: scheme.primary,
-              dim: scheme.onSurface.withValues(alpha: 0.18),
+              ink: look.color == null ? scheme.primary : Color(look.color!),
+              dim: scheme.onSurface.withValues(alpha: look.dim),
               led: context.look.led,
               bubble: scheme.inverseSurface,
               bubbleText: const TextStyle(),

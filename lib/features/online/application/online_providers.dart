@@ -12,6 +12,7 @@ import '../data/stream_cache.dart';
 import '../domain/external_track.dart';
 import '../domain/online_error.dart';
 import '../services/music_service_module.dart';
+import 'import_downloader.dart';
 import 'match_service.dart';
 import 'online_hub.dart';
 import '../../../l10n/l10n.dart';
@@ -87,6 +88,10 @@ Future<void> playTracksAnywhere(WidgetRef ref, List<Track> tracks, {int startInd
 
 // --------------------------------------------------------------- matching
 
+/// How long an import waits before it tries again by itself after a service
+/// refused or the connection dropped: longer every time, at most 30 minutes.
+Duration importRetryDelay(int attempt) => Duration(minutes: const [2, 5, 10, 20, 30][attempt.clamp(0, 4)]);
+
 class ImportRun {
   const ImportRun({required this.jobId, required this.done, required this.total, this.running = true});
   final int jobId;
@@ -101,17 +106,27 @@ class ImportRun {
 class ImportRunner extends Notifier<ImportRun?> {
   bool _stop = false;
 
-  /// How many songs are matched in parallel (keeps services happy).
-  static const workers = 2;
+  /// One search at a time: YouTube stops answering when searches come fast.
+  static const workers = 1;
+
+  /// Between searches of an online service.
+  static const searchGap = Duration(milliseconds: 1500);
+
+  Timer? _retry;
+  final _attempts = <int, int>{};
 
   @override
   ImportRun? build() => null;
 
   bool isRunning(int jobId) => state?.jobId == jobId && state!.running;
 
-  void pause() => _stop = true;
+  void pause() {
+    _stop = true;
+    _retry?.cancel();
+  }
 
   Future<void> run(int jobId) async {
+    _retry?.cancel();
     if (state?.running ?? false) {
       if (state!.jobId == jobId) return;
       pause();
@@ -128,6 +143,7 @@ class ImportRunner extends Notifier<ImportRun?> {
     final total = queue.length;
     var done = 0;
     String? pauseMessage;
+    var lastWasLocal = false;
     final retries = <int, int>{};
     state = ImportRun(jobId: jobId, done: 0, total: total);
 
@@ -136,8 +152,12 @@ class ImportRunner extends Notifier<ImportRun?> {
         final item = queue.removeAt(0);
         try {
           final r = await matcher.match(item.wanted);
+          lastWasLocal = r.source == 'local';
           final t = r.track == null ? null : await store.ensure(r.track!);
           await repo.saveMatch(item.id, trackId: t?.id, confidence: r.score.value, source: r.source, note: r.note);
+          if (t != null && ref.read(onlineHubProvider).flags.importDownload) {
+            ref.read(importDownloaderProvider.notifier).poke(jobId);
+          }
         } on OnlineException catch (e) {
           final wait = e.retryAfter;
           final n = retries[item.id] = (retries[item.id] ?? 0) + 1;
@@ -156,8 +176,8 @@ class ImportRunner extends Notifier<ImportRun?> {
         }
         done++;
         state = ImportRun(jobId: jobId, done: done, total: total);
-        // Be gentle with the services between searches.
-        await Future<void>.delayed(const Duration(milliseconds: 200));
+        // Be gentle with the services between searches. Local matches ask nobody.
+        await Future<void>.delayed(lastWasLocal ? const Duration(milliseconds: 20) : searchGap);
       }
     }
 
@@ -190,10 +210,23 @@ class ImportRunner extends Notifier<ImportRun?> {
       await repo.setState(
         jobId,
         left == 0 ? ImportJobState.review : ImportJobState.paused,
-        message: left == 0 ? null : (pauseMessage ?? l10n.pausedSongsLeft(left)),
+        message: left == 0
+            ? null
+            : pauseMessage == null
+            ? l10n.pausedSongsLeft(left)
+            : '$pauseMessage ${l10n.importRetryIn(importRetryDelay(_attempts[jobId] ?? 0).inMinutes)}',
       );
     }
+    // A service said wait: go on by itself later, nobody has to press Resume.
+    if (left > 0 && pauseMessage != null) {
+      final attempt = _attempts[jobId] ?? 0;
+      _attempts[jobId] = attempt + 1;
+      _retry = Timer(importRetryDelay(attempt), () => unawaited(run(jobId)));
+    } else if (left == 0) {
+      _attempts.remove(jobId);
+    }
     state = ImportRun(jobId: jobId, done: done, total: total, running: false);
+    if (ref.read(onlineHubProvider).flags.importDownload) ref.read(importDownloaderProvider.notifier).poke(jobId);
   }
 }
 

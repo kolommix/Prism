@@ -35,6 +35,25 @@ void main() {
     expect((pa['state'], pa.containsKey('timestamps')), ('Paused · Band', false));
   });
 
+  test('paused: the bar starts ahead, so it stays still and keeps the length', () {
+    Map<String, Object?> frame(int now) => activityFrame(
+        title: 'Song', artist: 'Band', album: '', playing: false, position: const Duration(seconds: 42),
+        duration: const Duration(seconds: 124), nowMs: now, pid: 1);
+    final act = (frame(1000)['args'] as Map)['activity'] as Map;
+    final times = act['timestamps'] as Map;
+    expect(times['start'] as int, greaterThan(1000 + const Duration(days: 300).inMilliseconds));
+    expect((times['end'] as int) - (times['start'] as int), 124000, reason: 'Discord shows the real length');
+    // Discord refused it: a plain status with its own clock, not none at all.
+    final plain = (plainActivity(frame(1000))['args'] as Map)['activity'] as Map;
+    expect(plain.containsKey('timestamps'), isFalse);
+    expect(plain['details'], 'Song');
+    // A playing bar is never dropped.
+    final playing = activityFrame(
+        title: 'Song', artist: 'Band', album: '', playing: true, position: const Duration(seconds: 42),
+        duration: const Duration(seconds: 124), nowMs: 100000, pid: 1);
+    expect(((plainActivity(playing)['args'] as Map)['activity'] as Map).containsKey('timestamps'), isTrue);
+  });
+
   test('activity: album art, links and listening together', () {
     final a = activityFrame(
       title: 'Song',

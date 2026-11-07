@@ -62,6 +62,18 @@ abstract class AppSettings with _$AppSettings {
     /// Every seek bar style moves with the music (analyses each song once).
     @Default(true) bool liveSeekBar,
 
+    /// Seek bar look, for every style: own color (null = theme), size, number
+    /// and thickness of the bars, brightness of the unplayed part, how much
+    /// it moves with the music, the playhead and the time labels.
+    int? seekBarColor,
+    @Default(1.0) double seekBarSize,
+    @Default(1.0) double seekBarDensity,
+    @Default(1.0) double seekBarThickness,
+    @Default(0.18) double seekBarDim,
+    @Default(1.0) double seekBarReact,
+    @Default(true) bool seekBarHead,
+    @Default(true) bool seekBarTimes,
+
     /// Cover or animated background, all of its settings.
     @Default(BackgroundConfig()) BackgroundConfig background,
 

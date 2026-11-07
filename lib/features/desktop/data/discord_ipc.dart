@@ -32,6 +32,11 @@ Uint8List encodeFrame(int op, Map<String, Object?> payload) {
   return (b.getInt32(0, Endian.little), b.getInt32(4, Endian.little));
 }
 
+/// How far ahead a paused song's bar starts. Discord runs its bar from the
+/// timestamps and shows its own running clock when there are none, and it can't
+/// hold a bar at a chosen time: a start that hasn't come yet stays at 0:00.
+const pausedBarAhead = Duration(days: 365);
+
 /// SET_ACTIVITY payload for a song (pure, tested).
 Map<String, Object?> activityFrame({
   required String title,
@@ -65,9 +70,14 @@ Map<String, Object?> activityFrame({
         'details': title.isEmpty ? l10n.unknownSong : _cut(title),
         'state': _cut(playing ? who : l10n.paused(who)),
         if (linkUrl != null && linkUrl.isNotEmpty) 'details_url': linkUrl,
-        // Progress bar while playing; none while paused.
-        if (playing && duration > Duration.zero)
-          'timestamps': {'start': start, 'end': start + duration.inMilliseconds},
+        // A moving bar while playing, one that stays still while paused.
+        if (duration > Duration.zero)
+          'timestamps': playing
+              ? {'start': start, 'end': start + duration.inMilliseconds}
+              : {
+                  'start': nowMs + pausedBarAhead.inMilliseconds,
+                  'end': nowMs + pausedBarAhead.inMilliseconds + duration.inMilliseconds,
+                },
         'assets': {
           if (hasImage) 'large_image': image,
           'large_text': _cut(album.isEmpty ? 'Prism' : album),
@@ -91,6 +101,13 @@ Map<String, Object?> activityFrame({
   };
 }
 
+/// A paused bar's start: dropped too if Discord refuses, a running clock beats no status.
+bool _isAhead(Map<String, Object?> frame, Object? timestamps) {
+  final start = timestamps is Map ? timestamps['start'] : null;
+  final now = int.tryParse('${frame['nonce']}');
+  return start is int && now != null && start > now;
+}
+
 /// The same activity with only the plain fields: used when Discord refuses
 /// an extra (links and buttons depend on the Discord version).
 Map<String, Object?> plainActivity(Map<String, Object?> frame) {
@@ -103,7 +120,8 @@ Map<String, Object?> plainActivity(Map<String, Object?> frame) {
       ...args,
       'activity': {
         for (final e in activity.entries)
-          if (e.key != 'buttons' && e.key != 'details_url' && e.key != 'party') e.key: e.value,
+          if (e.key != 'buttons' && e.key != 'details_url' && e.key != 'party' && !(e.key == 'timestamps' && _isAhead(frame, e.value)))
+            e.key: e.value,
       },
     },
   };

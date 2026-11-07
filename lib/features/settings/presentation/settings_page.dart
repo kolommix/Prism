@@ -28,6 +28,8 @@ import 'settings_widgets.dart';
 import '../../../l10n/l10n.dart';
 
 import '../../visualizer/data/live_fft.dart';
+import '../domain/app_settings.dart';
+import 'color_picker.dart';
 import '../../library/presentation/removed_songs.dart';
 import 'privacy_section.dart';
 import '../../update/update_check.dart';
@@ -505,9 +507,11 @@ class _SectionBody extends ConsumerWidget {
               selected: s == SeekBarStyle.parse(settings.seekBarStyle),
               live: settings.liveSeekBar,
               onTap: () => ctrl.update((x) => x.copyWith(seekBarStyle: s.name)),
+              look: settings.seekBarLook,
             ),
         ],
       ),
+      const _SeekBarCustomGroup(),
     ];
   }
 
@@ -724,8 +728,111 @@ class _AutoFindGroup extends ConsumerWidget {
 final _autoTaggedCountProvider = StreamProvider<int>((ref) => ref.watch(libraryRepositoryProvider).watchAutoTaggedCount());
 
 /// A seek bar style with a working sample of it.
+/// Color, size and the rest of the seek bar, shown on the chosen style while
+/// you change them.
+class _SeekBarCustomGroup extends ConsumerWidget {
+  const _SeekBarCustomGroup();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(settingsProvider);
+    final ctrl = ref.read(settingsProvider.notifier);
+    final look = s.seekBarLook;
+    final scheme = Theme.of(context).colorScheme;
+
+    List<Widget> slider(
+      IconData icon,
+      String title,
+      double value,
+      double min,
+      double max,
+      AppSettings Function(AppSettings, double) set, {
+      double shownOver = 1,
+    }) => [
+          SettingsTile(
+            icon: icon,
+            title: title,
+            trailing: SettingsValue('${fmtNum(value / shownOver * 100, 0)} %'),
+          ),
+          SettingsControl(
+            child: Slider(
+              value: value.clamp(min, max),
+              min: min,
+              max: max,
+              onChanged: (v) => ctrl.update((x) => set(x, v)),
+            ),
+          ),
+        ];
+
+    return SettingsGroup(
+      title: l10n.seekBarCustomize,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          child: SeekBarStylePreview(
+            style: SeekBarStyle.parse(s.seekBarStyle),
+            live: s.liveSeekBar,
+            look: look,
+            height: 44,
+          ),
+        ),
+        SettingsSwitch(
+          icon: Icons.palette_outlined,
+          title: l10n.seekBarOwnColor,
+          subtitle: l10n.seekBarOwnColorHint,
+          value: s.seekBarColor != null,
+          onChanged: (v) => ctrl.update((x) => x.copyWith(seekBarColor: v ? scheme.primary.toARGB32() : null)),
+        ),
+        if (s.seekBarColor != null)
+          ColorPickerTile(
+            title: l10n.seekBarColor,
+            color: Color(s.seekBarColor!),
+            onChanged: (c) => ctrl.update((x) => x.copyWith(seekBarColor: c.toARGB32())),
+          ),
+        ...slider(Icons.height_rounded, l10n.seekBarSize, s.seekBarSize, 0.6, 1.6, (x, v) => x.copyWith(seekBarSize: v)),
+        ...slider(Icons.bar_chart_rounded, l10n.seekBarDensity, s.seekBarDensity, 0.5, 2, (x, v) => x.copyWith(seekBarDensity: v)),
+        ...slider(Icons.line_weight_rounded, l10n.seekBarThickness, s.seekBarThickness, 0.5, 2, (x, v) => x.copyWith(seekBarThickness: v)),
+        ...slider(Icons.brightness_low_rounded, l10n.seekBarDim, s.seekBarDim, 0.05, 0.6, (x, v) => x.copyWith(seekBarDim: v), shownOver: 0.18),
+        if (s.liveSeekBar)
+          ...slider(Icons.graphic_eq_rounded, l10n.seekBarReact, s.seekBarReact, 0, 2, (x, v) => x.copyWith(seekBarReact: v)),
+        SettingsSwitch(
+          icon: Icons.vertical_align_center_rounded,
+          title: l10n.seekBarHead,
+          value: s.seekBarHead,
+          onChanged: (v) => ctrl.update((x) => x.copyWith(seekBarHead: v)),
+        ),
+        SettingsSwitch(
+          icon: Icons.schedule_rounded,
+          title: l10n.seekBarTimes,
+          value: s.seekBarTimes,
+          onChanged: (v) => ctrl.update((x) => x.copyWith(seekBarTimes: v)),
+        ),
+        SettingsTile(
+          icon: Icons.restart_alt_rounded,
+          title: l10n.seekBarReset,
+          enabled: !look.isDefault,
+          onTap: () => ctrl.update(
+            (x) => x.copyWith(
+              seekBarColor: null,
+              seekBarSize: 1,
+              seekBarDensity: 1,
+              seekBarThickness: 1,
+              seekBarDim: 0.18,
+              seekBarReact: 1,
+              seekBarHead: true,
+              seekBarTimes: true,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _SeekStyleRow extends StatelessWidget {
-  const _SeekStyleRow({required this.style, required this.selected, required this.live, required this.onTap});
+  const _SeekStyleRow({required this.style, required this.selected, required this.live, required this.onTap, required this.look});
+
+  final SeekBarLook look;
 
   final SeekBarStyle style;
   final bool selected;
@@ -752,7 +859,7 @@ class _SeekStyleRow extends StatelessWidget {
             const SizedBox(height: 2),
             Text(style.description, style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
             const SizedBox(height: 12),
-            SeekBarStylePreview(style: style, live: live),
+            SeekBarStylePreview(style: style, live: live, look: look),
           ],
         ),
       ),

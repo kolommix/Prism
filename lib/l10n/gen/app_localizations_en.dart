@@ -4299,4 +4299,108 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get seekBarCustomize => 'Customize the seek bar';
+
+  @override
+  String get seekBarOwnColor => 'Own color';
+
+  @override
+  String get seekBarOwnColorHint => 'Off: the bar follows the theme';
+
+  @override
+  String get seekBarColor => 'Color';
+
+  @override
+  String get seekBarSize => 'Height';
+
+  @override
+  String get seekBarDensity => 'Number of bars';
+
+  @override
+  String get seekBarThickness => 'Thickness';
+
+  @override
+  String get seekBarDim => 'Brightness of the unplayed part';
+
+  @override
+  String get seekBarReact => 'Reaction to the music';
+
+  @override
+  String get seekBarHead => 'Show the playhead';
+
+  @override
+  String get seekBarTimes => 'Show the time';
+
+  @override
+  String get seekBarReset => 'Reset the seek bar';
+
+  @override
+  String get importDownloadAsk => 'Download the songs into Prism?';
+
+  @override
+  String get importDownloadTerms =>
+      'Prism finds each song on YouTube and saves its audio as a file in the app, so it stays in your library and plays offline. This goes against YouTube\'s Terms: use it only for yourself, don\'t share the files. It can stop working at any time.';
+
+  @override
+  String get importOnlyLibrary => 'Only search my library';
+
+  @override
+  String get importDownloadSwitch => 'Download songs into Prism';
+
+  @override
+  String get importDownloadSwitchHint =>
+      'From YouTube, automatically. Personal use only.';
+
+  @override
+  String get importDownloadSongs => 'Download the songs';
+
+  @override
+  String get importTryAgainSongs => 'Try again for songs not saved';
+
+  @override
+  String importDownloading(int done, String title) {
+    return '$done saved. Now: $title';
+  }
+
+  @override
+  String importDownloaded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs saved in your library',
+      one: '$count song saved in your library',
+      zero: 'Nothing new to save',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importDownloadFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs could not be saved.',
+      one: '$count song could not be saved.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get togetherFindOnYoutube => 'Find missing songs on YouTube';
+
+  @override
+  String get togetherOr => 'or';
+
+  @override
+  String importRetryIn(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Trying again by itself in $minutes minutes.',
+      one: 'Trying again by itself in $minutes minute.',
+    );
+    return '$_temp0';
+  }
 }

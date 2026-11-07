@@ -9,6 +9,9 @@ import '../../../core/theme/prism_theme_extensions.dart';
 import '../../../core/widgets/led_dot.dart';
 import '../application/together_controller.dart';
 import '../data/nearby.dart';
+import '../../../core/widgets/artwork.dart';
+import '../../online/application/online_providers.dart';
+import '../../player/application/player_providers.dart';
 import '../../../l10n/l10n.dart';
 
 /// Player-bar button; lit while a session is active.
@@ -86,6 +89,7 @@ class _TogetherSheetState extends ConsumerState<_TogetherSheet> {
   Widget build(BuildContext context) {
     final s = ref.watch(togetherProvider);
     final ctrl = ref.read(togetherProvider.notifier);
+    final current = ref.watch(currentTrackProvider);
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final muted = text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant);
@@ -105,6 +109,25 @@ class _TogetherSheetState extends ConsumerState<_TogetherSheet> {
                 const SizedBox(height: 4),
                 Text(l10n.everyonePlaysTheSameSongAt, style: muted),
                 const SizedBox(height: 20),
+                if (s.role != TogetherRole.none && current != null) ...[
+                  Row(
+                    children: [
+                      Artwork(path: current.artworkPath, size: 44, seed: current.album),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(current.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: text.bodyLarge),
+                            Text(current.displayArtist, maxLines: 1, overflow: TextOverflow.ellipsis, style: muted),
+                          ],
+                        ),
+                      ),
+                      if (ref.watch(isPlayingProvider)) LedDot(on: true),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 if (s.role == TogetherRole.host) ...[
                   Text(l10n.sendThisCodeToYourFriends, style: text.labelLarge),
                   const SizedBox(height: 6),
@@ -150,10 +173,35 @@ class _TogetherSheetState extends ConsumerState<_TogetherSheet> {
                     const SizedBox(height: 8),
                     Text(l10n.missing(s.missingSong!), style: TextStyle(color: scheme.error)),
                     const SizedBox(height: 2),
-                    Text(
-                      l10n.addTheSongToYourLibrary,
-                      style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-                    ),
+                    if (ref.watch(onlineHubProvider).playable.isEmpty) ...[
+                      const SizedBox(height: 8),
+                      FilledButton.tonalIcon(
+                        icon: const Icon(Icons.travel_explore_rounded),
+                        label: Text(l10n.togetherFindOnYoutube),
+                        onPressed: () async {
+                          final hub = ref.read(onlineHubProvider);
+                          final ok = await showDialog<bool>(
+                            context: context,
+                            useRootNavigator: true,
+                            builder: (c) => AlertDialog(
+                              title: Text(l10n.turnOnTheYoutubeExtractor),
+                              content: Text(l10n.thisPlaysYoutubeAudioInsidePrism),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l10n.cancel)),
+                                FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(l10n.iUnderstandTurnOn)),
+                              ],
+                            ),
+                          );
+                          if (ok != true) return;
+                          await hub.setFlags(hub.flags.copyWith(youtubeExtractor: true));
+                          ctrl.findMissingOnline();
+                        },
+                      ),
+                    ] else
+                      Text(
+                        l10n.addTheSongToYourLibrary,
+                        style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
                   ],
                   const SizedBox(height: 16),
                   _People(names: s.people, empty: l10n.justYouAndTheHost),
@@ -187,7 +235,7 @@ class _TogetherSheetState extends ConsumerState<_TogetherSheet> {
                   Row(
                     children: [
                       const Expanded(child: Divider()),
-                      Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Text('or', style: muted)),
+                      Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: Text(l10n.togetherOr, style: muted)),
                       const Expanded(child: Divider()),
                     ],
                   ),

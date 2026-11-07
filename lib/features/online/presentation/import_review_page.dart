@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/artwork.dart';
 import '../../library/presentation/widgets/library_widgets.dart';
+import '../application/import_downloader.dart';
 import '../application/online_providers.dart';
 import '../data/import_repository.dart';
 import '../../../l10n/l10n.dart';
@@ -22,8 +23,10 @@ class ImportReviewPage extends ConsumerWidget {
       await repo.acceptMatch(i.id);
       jobs.add(i.jobId);
     }
+    final download = ref.read(onlineHubProvider).flags.importDownload;
     for (final j in jobs) {
       await repo.writePlaylist(j, finish: false);
+      if (download) ref.read(importDownloaderProvider.notifier).poke(j);
     }
   }
 
@@ -75,7 +78,7 @@ class ImportReviewPage extends ConsumerWidget {
                     runSpacing: 8,
                     crossAxisAlignment: WrapCrossAlignment.end,
                     children: [
-                      FindTheRest(jobIds: {for (final n in notFound) n.jobId}.toList()),
+                      FindTheRest(jobIds: {for (final n in notFound) n.jobId}.toList(), notFound: notFound.length),
                       OutlinedButton(
                         onPressed: () => _skipNotFound(ref, notFound),
                         child: Text(l10n.importSkipNotFound(notFound.length)),
@@ -103,6 +106,9 @@ class _ReviewRow extends ConsumerWidget {
     Future<void> decide(Future<void> Function() change) async {
       await change();
       await repo.refreshPlaylistOfItem(item.id);
+      if (ref.read(onlineHubProvider).flags.importDownload) {
+        ref.read(importDownloaderProvider.notifier).poke(item.jobId);
+      }
     }
 
     return ListTile(

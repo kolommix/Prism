@@ -43,7 +43,7 @@ never sends it anywhere itself.
 | Feature | Where | What is sent |
 |---|---|---|
 | Import from a link | `open.spotify.com`, `api.spotify.com`, `youtube.com`, `googleapis.com`, `soundcloud.com`, `api.deezer.com`, `music.apple.com`, `api.music.yandex.net` | The link you import |
-| Matching and playing online songs (if you turn it on) | YouTube, SoundCloud | Song title and artist searches, the songs you play |
+| Matching, playing and saving online songs (if you turn it on) | YouTube, SoundCloud | Song title and artist searches, the songs you play or save |
 | Accounts (optional) | Spotify, Google, SoundCloud, Yandex | Login through the service. Tokens stay in the system keychain |
 | Song info fixer | `musicbrainz.org`, `coverartarchive.org`, `itunes.apple.com`, `api.acoustid.org` (only with your own key) | Title, artist, album; an audio fingerprint for AcoustID |
 | Listen together, by code | `broker.emqx.io`, `broker.hivemq.com` (public servers) | Scrambled with the session code: what is playing, position, the name you typed in Settings. Without a name you appear as "Someone", never your computer's name |

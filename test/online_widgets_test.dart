@@ -253,7 +253,7 @@ void main() {
     expect(find.text('No match'), findsOneWidget);
     // Imports from before songs went in by themselves can still be saved.
     expect(find.text('Create playlist (2 songs)'), findsOneWidget);
-    expect(find.text('Find the rest on YouTube'), findsOneWidget);
+    expect(find.text('Download the songs'), findsOneWidget);
 
     await tester.tap(find.text('Check 2'));
     await tester.pumpAndSettle();
