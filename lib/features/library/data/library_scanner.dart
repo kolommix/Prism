@@ -49,6 +49,7 @@ class LibraryScanner {
   Stream<ScanProgress> scanFolders(List<String> roots) async* {
     final sw = Stopwatch()..start();
     final known = await _repo.fileFingerprints();
+    final removedByUser = await _repo.removedUris();
 
     // 1) Discover files ------------------------------------------------------
     final found = <String, FileStat>{};
@@ -56,7 +57,7 @@ class LibraryScanner {
       final dir = Directory(root);
       if (!await dir.exists()) continue;
       await for (final entity in dir.list(recursive: true, followLinks: false).handleError((_) {})) {
-        if (entity is! File || !isSupportedAudioFile(entity.path)) continue;
+        if (entity is! File || !isSupportedAudioFile(entity.path) || removedByUser.contains(entity.path)) continue;
         found[entity.path] = await entity.stat();
         if (found.length % 200 == 0) yield ScanProgress.discovering(found: found.length);
       }

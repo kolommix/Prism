@@ -32,6 +32,22 @@ bool FlutterWindow::OnCreate() {
   deep_link_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
       flutter_controller_->engine()->messenger(), "prism/deeplink",
       &flutter::StandardMethodCodec::GetInstance());
+  window_channel_ = std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+      flutter_controller_->engine()->messenger(), "prism/window",
+      &flutter::StandardMethodCodec::GetInstance());
+  window_channel_->SetMethodCallHandler([this](const auto& call, auto result) {
+    if (call.method_name() == "setFullScreen") {
+      const auto* on = std::get_if<bool>(call.arguments());
+      if (on) SetFullScreen(*on);
+      result->Success();
+    } else if (call.method_name() == "isFullScreen") {
+      result->Success(flutter::EncodableValue(full_screen_));
+    } else {
+      result->NotImplemented();
+    }
+  });
+  drop_bridge_ = std::make_unique<DropBridge>(
+      GetHandle(), flutter_controller_->engine()->messenger());
   tray_bridge_ = std::make_unique<TrayBridge>(
       GetHandle(), flutter_controller_->engine()->messenger());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
@@ -49,7 +65,42 @@ bool FlutterWindow::OnCreate() {
   return true;
 }
 
+// Saves the window as it is, then covers the whole monitor with no title bar or
+// frame. Leaving puts everything back, also the maximized state.
+void FlutterWindow::SetFullScreen(bool on) {
+  if (on == full_screen_) return;
+  HWND hwnd = GetHandle();
+  if (on) {
+    style_before_full_screen_ = ::GetWindowLongPtr(hwnd, GWL_STYLE);
+    ex_style_before_full_screen_ = ::GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+    placement_before_full_screen_.length = sizeof(WINDOWPLACEMENT);
+    ::GetWindowPlacement(hwnd, &placement_before_full_screen_);
+    // A maximized window keeps its frame sizes, so leave that state first.
+    if (::IsZoomed(hwnd)) ::SendMessage(hwnd, WM_SYSCOMMAND, SC_RESTORE, 0);
+    MONITORINFO monitor{};
+    monitor.cbSize = sizeof(MONITORINFO);
+    ::GetMonitorInfo(::MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &monitor);
+    ::SetWindowLongPtr(hwnd, GWL_STYLE,
+                       style_before_full_screen_ & ~(WS_CAPTION | WS_THICKFRAME | WS_MAXIMIZE));
+    ::SetWindowLongPtr(hwnd, GWL_EXSTYLE,
+                       ex_style_before_full_screen_ &
+                           ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
+    const RECT& r = monitor.rcMonitor;
+    ::SetWindowPos(hwnd, HWND_TOP, r.left, r.top, r.right - r.left, r.bottom - r.top,
+                   SWP_NOOWNERZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+  } else {
+    ::SetWindowLongPtr(hwnd, GWL_STYLE, style_before_full_screen_);
+    ::SetWindowLongPtr(hwnd, GWL_EXSTYLE, ex_style_before_full_screen_);
+    ::SetWindowPlacement(hwnd, &placement_before_full_screen_);
+    ::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
+                   SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+  }
+  full_screen_ = on;
+}
+
 void FlutterWindow::OnDestroy() {
+  window_channel_ = nullptr;
+  drop_bridge_ = nullptr;
   frame_pump_.Stop();
   smtc_bridge_ = nullptr;
   tray_bridge_ = nullptr;

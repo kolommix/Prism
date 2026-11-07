@@ -704,7 +704,7 @@ void main() {
       expect((await repo.jobForSource('https://open.spotify.com/playlist/1'))!.id, id);
 
       await repo.saveMatch(pending.single.id, trackId: null, confidence: 0.2);
-      final playlistId = await repo.writePlaylist(id);
+      final playlistId = (await repo.writePlaylist(id))!;
       final entries = await (db.select(db.playlistEntries)..where((e) => e.playlistId.equals(playlistId))).get();
       expect(entries.map((e) => e.trackId), [t1.id, t2.id]);
 

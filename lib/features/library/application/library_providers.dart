@@ -121,4 +121,7 @@ class ScanController extends Notifier<ScanProgress?> {
   }
 }
 
+/// Songs the user took out of Prism (their files stay).
+final removedTracksProvider = StreamProvider((ref) => ref.watch(libraryRepositoryProvider).watchRemoved());
+
 final scanControllerProvider = NotifierProvider<ScanController, ScanProgress?>(ScanController.new);

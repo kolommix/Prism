@@ -8,6 +8,7 @@
 
 #include <memory>
 
+#include "drop_bridge.h"
 #include "smtc_bridge.h"
 #include "tray_bridge.h"
 #include "frame_pump.h"
@@ -46,8 +47,19 @@ class FlutterWindow : public Win32Window {
   // Notification-area icon (see tray_bridge.h).
   std::unique_ptr<TrayBridge> tray_bridge_;
 
+  // Files and links dropped on the window (see drop_bridge.h).
+  std::unique_ptr<DropBridge> drop_bridge_;
+
   // Passes liner:// links and .liner paths to Dart.
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> deep_link_;
+
+  // Full screen (window_manager keeps the title bar on a maximized window).
+  void SetFullScreen(bool on);
+  std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> window_channel_;
+  bool full_screen_ = false;
+  LONG_PTR style_before_full_screen_ = 0;
+  LONG_PTR ex_style_before_full_screen_ = 0;
+  WINDOWPLACEMENT placement_before_full_screen_{};
 };
 
 #endif  // RUNNER_FLUTTER_WINDOW_H_

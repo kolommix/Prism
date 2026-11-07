@@ -34,7 +34,7 @@ enum OnlineErrorKind {
 }
 
 class OnlineException implements Exception {
-  OnlineException(this.kind, {this.service, this._message, this.retryAfter});
+  OnlineException(this.kind, {this.service, this._message, this.retryAfter, this.isRegionBlocked = false});
 
   final OnlineErrorKind kind;
   final OnlineService? service;
@@ -42,6 +42,9 @@ class OnlineException implements Exception {
 
   /// For [OnlineErrorKind.rateLimited]: how long the service asked to wait.
   final Duration? retryAfter;
+
+  /// The service refuses this country or network (HTTP 451).
+  final bool isRegionBlocked;
 
   /// True when trying again later can help (matching pauses instead of failing).
   bool get isTransient =>

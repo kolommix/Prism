@@ -153,7 +153,7 @@ UI / Android notification / Windows SMTC & tray
   their state, dot when one is on), `VolumeSlider` (`playerVolumeProvider`). `ImmersivePlayerPage`
   (root navigator): lyrics left, cover right, Hero `panelArtHeroTag` from the side panel.
   `Routes.immersive` (click on the panel cover) fills the app window and leaves the window as it is;
-  `Routes.immersiveWindow` (the bar's button) also makes the Windows window full screen. F11 toggles either way.
+  `Routes.immersiveWindow` (the bar's button) also makes the Windows window full screen (`WindowsFullScreen`, own code in `flutter_window.cpp`). F11 toggles either way.
 * Seek bar: `SeekBarStyle` (Waveform, Ribbon, LED blocks, Tuner, Live spectrum) in `seek_bar_painters.dart`, all
   fed by one `SeekPaintData`. With `liveSeekBar` on (default) every style moves with the song (`musicAt`: spectrum if
   analysed, a gentle wobble if not) and gets a frame per refresh while playing; off, they only update when the playhead

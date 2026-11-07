@@ -39,6 +39,8 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test --exclude-tags "audio,network"
+      - name: Privacy check (packages)
+        run: dart run tool/privacy_check.dart --lock pubspec.lock
 
   android:
     needs: check
@@ -87,6 +89,8 @@ jobs:
         run: flutter build apk --release --build-number=${{ github.run_number }}
       - name: Per-CPU APKs
         run: flutter build apk --release --split-per-abi --build-number=${{ github.run_number }}
+      - name: Privacy check (no location or unlisted permission in the merged manifest)
+        run: dart run tool/privacy_check.dart --manifest build/app/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml
       - name: Name the files
         shell: bash
         run: |
@@ -118,6 +122,8 @@ jobs:
         run: ./tool/fetch_windows_deps.ps1
       - run: flutter pub get
       - run: flutter build windows --release --build-number=${{ github.run_number }}
+      - name: Privacy check (no Windows location API in the build)
+        run: dart run tool/privacy_check.dart --windows build/windows/x64/runner/Release
       - name: Inno Setup
         run: choco install innosetup --no-progress -y
       - name: Installer

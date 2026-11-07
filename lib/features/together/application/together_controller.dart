@@ -128,13 +128,10 @@ class TogetherController extends Notifier<TogetherState> {
   PlayerController get _player => ref.read(playerControllerProvider);
 
   String get _myName {
+    // Never the computer's name: this goes to other people and, for code
+    // sessions, through a public broker.
     final set = ref.read(settingsProvider).togetherName.trim();
-    if (set.isNotEmpty) return set;
-    try {
-      return Platform.localHostname;
-    } on Object {
-      return l10n.someone;
-    }
+    return set.isNotEmpty ? set : l10n.someone;
   }
 
   @override

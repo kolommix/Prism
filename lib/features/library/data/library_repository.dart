@@ -48,6 +48,10 @@ class LibraryRepository {
         await (_db.delete(_db.tracks)
               ..where((t) => t.uri.like('${_escapeLike(prefix)}%', escapeChar: '\\')))
             .go();
+        // Adding the folder again means all of it.
+        await (_db.delete(_db.removedTracks)
+              ..where((t) => t.uri.like('${_escapeLike(prefix)}%', escapeChar: '\\')))
+            .go();
       });
 
   // ----------------------------------------------------------------- tracks
@@ -364,6 +368,54 @@ class LibraryRepository {
       }
     });
   }
+
+  /// Takes songs out of Prism without touching their files: scans skip them
+  /// from now on. Returns an undo that puts back everything, also their plays,
+  /// favorites and playlist places (it only works while the app is open; after
+  /// that [restoreRemoved] brings the song back through a scan).
+  Future<Future<void> Function()> removeFromLibrary(Iterable<Track> tracks) => _db.transaction(() async {
+        final ids = [for (final t in tracks) t.id];
+        final uris = [for (final t in tracks) t.uri];
+        final rows = await (_db.select(_db.tracks)..where((t) => t.id.isIn(ids))).get();
+        final plays = await (_db.select(_db.plays)..where((x) => x.trackId.isIn(ids))).get();
+        final favorites = await (_db.select(_db.favorites)..where((x) => x.trackId.isIn(ids))).get();
+        final entries = await (_db.select(_db.playlistEntries)..where((x) => x.trackId.isIn(ids))).get();
+        final edits = await (_db.select(_db.trackEdits)..where((x) => x.trackId.isIn(ids))).get();
+        final lyrics = await (_db.select(_db.lyricsCache)..where((x) => x.trackId.isIn(ids))).get();
+        final imports = await (_db.select(_db.importItems)..where((x) => x.trackId.isIn(ids))).get();
+        await _db.batch((b) {
+          for (final t in tracks) {
+            b.insert(
+              _db.removedTracks,
+              RemovedTracksCompanion.insert(uri: t.uri, title: Value(t.title), artist: Value(t.artist)),
+              mode: InsertMode.insertOrReplace,
+            );
+          }
+        });
+        await (_db.delete(_db.tracks)..where((t) => t.id.isIn(ids))).go();
+        return () => _db.transaction(() async {
+              await (_db.delete(_db.removedTracks)..where((r) => r.uri.isIn(uris))).go();
+              await _db.batch((b) {
+                b.insertAll(_db.tracks, rows, mode: InsertMode.insertOrIgnore);
+                b.insertAll(_db.plays, plays, mode: InsertMode.insertOrIgnore);
+                b.insertAll(_db.favorites, favorites, mode: InsertMode.insertOrIgnore);
+                b.insertAll(_db.playlistEntries, entries, mode: InsertMode.insertOrIgnore);
+                b.insertAll(_db.trackEdits, edits, mode: InsertMode.insertOrIgnore);
+                b.insertAll(_db.lyricsCache, lyrics, mode: InsertMode.insertOrIgnore);
+                for (final i in imports) {
+                  b.update(_db.importItems, ImportItemsCompanion(trackId: Value(i.trackId)), where: (t) => t.id.equals(i.id));
+                }
+              });
+            });
+      });
+
+  Stream<List<RemovedTrackRow>> watchRemoved() =>
+      (_db.select(_db.removedTracks)..orderBy([(r) => OrderingTerm.desc(r.removedAt)])).watch();
+
+  Future<Set<String>> removedUris() async => {for (final r in await _db.select(_db.removedTracks).get()) r.uri};
+
+  /// Scans may add this song again.
+  Future<void> restoreRemoved(String uri) => (_db.delete(_db.removedTracks)..where((r) => r.uri.equals(uri))).go();
 
   Future<int> deleteByUris(Iterable<String> uris) async {
     final list = uris.toList();

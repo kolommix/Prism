@@ -1455,7 +1455,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appleHasNoFreeApiSo =>
-      'Apple has no free API, so Prism reads the song list from the public web page of a playlist or album. Best effort: it can stop working whenever Apple changes the page. Off by default.';
+      'Apple has no free API, so Prism reads the song list from the public web page of a playlist or album when you import a link. Best effort: it can stop working whenever Apple changes the page. For personal use.';
 
   @override
   String get personalUseOnly => 'Personal use only';
@@ -1830,7 +1830,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fromSpotifyYoutubeSoundcloudDeezerApple =>
-      'From Spotify, YouTube, SoundCloud, Deezer, Apple Music or a file';
+      'From a link or a file. Spotify, YouTube, SoundCloud, Yandex Music, Apple Music, Deezer';
 
   @override
   String get smartPlaylists => 'Smart playlists';
@@ -3622,7 +3622,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yandexTermsText =>
-      'Yandex has no public API. Prism reads song names through the private one its apps use (documented by the community project yandex-music-api), which can change or stop without warning and answers only from some countries. Off by default, for personal use. Prism never downloads or plays Yandex audio. If it stops working, import a CSV or JSON export instead.';
+      'Yandex has no public API. Prism reads song names through the private one its apps use (documented by the community project yandex-music-api), which can change or stop without warning and answers only from some countries. Public links are read when you import them; your account stays off until you turn it on. For personal use. Prism never downloads or plays Yandex audio. If it stops working, import a CSV or JSON export instead.';
 
   @override
   String regionBlocked(Object service) {
@@ -3941,4 +3941,362 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateOpen => 'Open download page';
+
+  @override
+  String get privacy => 'Privacy';
+
+  @override
+  String get privacyNoLocationTitle => 'Prism does not read your location';
+
+  @override
+  String get privacyNoLocationText =>
+      'No analytics, no telemetry, no ads, no crash reports. No device id. Prism has no account or server of its own.';
+
+  @override
+  String get privacyPermsTitle => 'Android permissions';
+
+  @override
+  String get privacyPermMusic => 'Music and audio files';
+
+  @override
+  String get privacyPermMusicWhy =>
+      'Reads your music. Asked when you add a folder.';
+
+  @override
+  String get privacyPermPlayback => 'Background playback';
+
+  @override
+  String get privacyPermPlaybackWhy =>
+      'Keeps music playing with the screen off.';
+
+  @override
+  String get privacyPermNotify => 'Notifications';
+
+  @override
+  String get privacyPermNotifyWhy =>
+      'Only the player notification with its buttons.';
+
+  @override
+  String get privacyPermInternet => 'Internet and network state';
+
+  @override
+  String get privacyPermInternetWhy =>
+      'For the requests listed below, and to know whether you are online.';
+
+  @override
+  String get privacyPermMic => 'Microphone (live visualizer only)';
+
+  @override
+  String get privacyPermMicWhy =>
+      'Android files its visualizer under the microphone. Asked only when you turn it on. Prism records nothing.';
+
+  @override
+  String get privacyPermRingtone => 'Change system settings (ringtones only)';
+
+  @override
+  String get privacyPermRingtoneWhy =>
+      'Sets a ringtone made in the editor. You allow it on a system screen when you use it.';
+
+  @override
+  String get privacyPermsFooter =>
+      'Never asked for: location, Bluetooth, Wi-Fi details, phone state, contacts, accounts, advertising id.';
+
+  @override
+  String get privacyWindowsTitle => 'Windows';
+
+  @override
+  String get privacyWindowsText =>
+      'Needs no special permissions and does not use the Windows location API. Before version 1.2 a library started the Windows location service at launch, so Windows could list Prism as using location. Prism never read or sent the result, and that library is gone.';
+
+  @override
+  String get privacySentTitle => 'What leaves this device';
+
+  @override
+  String get privacySentFooter =>
+      'Every server sees your IP address, like with any internet request. Prism never looks up where that address is.';
+
+  @override
+  String get privacySentUpdates => 'Update check: GitHub';
+
+  @override
+  String get privacySentUpdatesWhat =>
+      'Sends the app version. Automatic, can be turned off in About.';
+
+  @override
+  String get privacySentInfo => 'Missing info: Apple, Deezer';
+
+  @override
+  String get privacySentInfoWhat =>
+      'Sends song title and artist. Automatic, can be turned off in Library.';
+
+  @override
+  String get privacySentLyrics => 'Lyrics: LRCLIB';
+
+  @override
+  String get privacySentLyricsWhat =>
+      'Sends title, artist, album and length of the song you open lyrics for.';
+
+  @override
+  String get privacySentFonts => 'Font: Google Fonts';
+
+  @override
+  String get privacySentFontsWhat =>
+      'Downloads the app font once. Sends nothing about you or your music.';
+
+  @override
+  String get privacySentImport =>
+      'Import: Spotify, YouTube, SoundCloud, Deezer, Apple Music, Yandex Music';
+
+  @override
+  String get privacySentImportWhat =>
+      'Only when you import: the link you gave. A copied link stays on this device until you tap Import.';
+
+  @override
+  String get privacySentOnline => 'Online songs: YouTube, SoundCloud';
+
+  @override
+  String get privacySentOnlineWhat =>
+      'If you turn them on: song searches and the songs you play.';
+
+  @override
+  String get privacySentFixer =>
+      'Song info fixer: MusicBrainz, Cover Art Archive, Apple, AcoustID';
+
+  @override
+  String get privacySentFixerWhat =>
+      'When you use it: title, artist, album. AcoustID only with your own key.';
+
+  @override
+  String get privacySentTogether =>
+      'Listen together: public servers or your Wi-Fi';
+
+  @override
+  String get privacySentTogetherWhat =>
+      'While in a session: what is playing and the name you typed. Without a name you appear as “Someone”, never your computer name.';
+
+  @override
+  String get privacySentDiscord => 'Discord status';
+
+  @override
+  String get privacySentDiscordWhat =>
+      'If Discord runs on this computer: the song you play.';
+
+  @override
+  String get privacyFullText => 'Read the full privacy notes';
+
+  @override
+  String get privacyContinue => 'Continue';
+
+  @override
+  String get vizLiveAskTitle => 'Android will ask about the microphone';
+
+  @override
+  String get vizLiveAskText =>
+      'The live visualizer uses the Visualizer API, which Android files under the microphone. Prism only reads the sound it plays itself. It records nothing and sends nothing.';
+
+  @override
+  String get removeFromPrism => 'Remove from Prism';
+
+  @override
+  String get removeFromPrismHint => 'The file stays on your disk';
+
+  @override
+  String removeFromPrismAsk(String title) {
+    return 'Remove “$title” from Prism?';
+  }
+
+  @override
+  String get removeFromPrismText =>
+      'It leaves your library, playlists, favorites and stats in Prism. The file stays on your disk and rescans skip it. You can bring it back in Settings → Library.';
+
+  @override
+  String get removeFromPrismDone =>
+      'Removed from Prism. The file is still on your disk.';
+
+  @override
+  String get undoAction => 'Undo';
+
+  @override
+  String get removedSongs => 'Removed songs';
+
+  @override
+  String removedSongsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs hidden from Prism',
+      one: '$count song hidden from Prism',
+      zero: 'Nothing removed',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get removedSongsHelp =>
+      'Their files are still on your disk. Restore puts a song back in your library with a scan, which starts right away. Old stats and playlist places do not come back.';
+
+  @override
+  String get restoreAction => 'Restore';
+
+  @override
+  String get importSupported =>
+      'Spotify, YouTube, SoundCloud, Yandex Music, Apple Music or Deezer. Public links work with no account.';
+
+  @override
+  String get importFileOrDrop => 'Or drop a file here: CSV, JSON, M3U, .liner';
+
+  @override
+  String get importFileHint => 'Or pick a file: CSV, JSON, M3U, .liner';
+
+  @override
+  String get importDropHere => 'Drop to import';
+
+  @override
+  String get importClipboardAsk => 'Import this playlist?';
+
+  @override
+  String get importRecent => 'Recent imports';
+
+  @override
+  String get importResync => 'Sync again';
+
+  @override
+  String get importSynced => 'Syncing with the source';
+
+  @override
+  String get importAccept => 'Right song';
+
+  @override
+  String importAcceptAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Accept all $count',
+      one: 'Accept $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importReview => 'Review';
+
+  @override
+  String get importReviewEmpty =>
+      'Nothing to check. Songs Prism is unsure about will wait here.';
+
+  @override
+  String importReviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs to check',
+      one: '$count song to check',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importReviewHint => 'One tap to accept or fix';
+
+  @override
+  String get importAdvanced => 'Advanced: connect an account';
+
+  @override
+  String get importAdvancedHint =>
+      'Optional. Only for private playlists, liked songs and long Spotify lists.';
+
+  @override
+  String get importNotConnected => 'Not connected';
+
+  @override
+  String get importOneScreenHint => 'From a link or a file, on one screen';
+
+  @override
+  String get importOnlyLibrarySearched =>
+      'Only your library was searched. Prism can look for the rest on YouTube if you turn it on.';
+
+  @override
+  String get importFindOnYoutube => 'Find the rest on YouTube';
+
+  @override
+  String get importSearchAgain => 'Search again for songs not found';
+
+  @override
+  String get importStepsSpotify =>
+      'For your private playlists and liked songs. Public links already work.\n1. Open developer.spotify.com/dashboard and create an app with the Web API.\n2. Add the redirect URI http://127.0.0.1:43821/callback.\n3. Copy the Client ID.\n4. In Online services tap Create file, paste it as spotify.clientId, tap Reload, then Connect.';
+
+  @override
+  String get importStepsYoutube =>
+      'For your private playlists and liked videos. Public links already work.\n1. Open console.cloud.google.com and make a project with the YouTube Data API v3.\n2. Add yourself as a test user on the OAuth consent screen.\n3. Create an OAuth client of type Desktop app.\n4. In Online services tap Create file, paste youtube.oauthClientId and youtube.oauthClientSecret, tap Reload, then Connect.';
+
+  @override
+  String get importStepsSoundcloud =>
+      'SoundCloud links need this, or export the playlist to a file.\n1. Open soundcloud.com/you/apps and register an app. SoundCloud may need to approve it.\n2. Add the redirect URI http://127.0.0.1:43822/callback.\n3. In Online services tap Create file, paste soundcloud.clientId and soundcloud.clientSecret, tap Reload.';
+
+  @override
+  String get importStepsYandex =>
+      'For your own playlists and liked songs. Public links already work where Yandex answers.\n1. Open Online services and turn on Yandex Music.\n2. Tap Connect and follow the steps to get your token.\n3. Paste the token. It stays in the secure storage of this device.';
+
+  @override
+  String get importErrorOffline =>
+      'You seem to be offline. Check your connection and try again.';
+
+  @override
+  String importErrorSlowDown(String service) {
+    return '$service is asking to slow down. Wait a few minutes and try again.';
+  }
+
+  @override
+  String importErrorServer(String service) {
+    return '$service has problems right now. Try again later.';
+  }
+
+  @override
+  String get importErrorPrivate =>
+      'This playlist is private or was deleted. Make it public, or export it to a file and import that.';
+
+  @override
+  String importErrorRegion(String service) {
+    return '$service does not answer from your country or network. Export the playlist to a CSV or JSON file and import that.';
+  }
+
+  @override
+  String importErrorAccount(String service) {
+    return 'This list is private, so $service needs your account. Connect it, or export a file.';
+  }
+
+  @override
+  String importErrorNeedsKey(String service) {
+    return '$service links need a free key, or export the playlist to a file.';
+  }
+
+  @override
+  String importErrorCantRead(String service) {
+    return 'Could not read this $service page. It may have changed. Export the playlist to a file and import that.';
+  }
+
+  @override
+  String importErrorFile(String problem) {
+    return '$problem Prism reads CSV, JSON, M3U and .liner files.';
+  }
+
+  @override
+  String importErrorFileGone(String path) {
+    return 'The file is no longer at $path. Pick it again.';
+  }
+
+  @override
+  String get importErrorUnknown =>
+      'Something went wrong while reading this. Try exporting the playlist to a file.';
+
+  @override
+  String importSkipNotFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Skip $count not found',
+      one: 'Skip $count not found',
+    );
+    return '$_temp0';
+  }
 }

@@ -31,7 +31,7 @@ class OnlineHttp {
   final Duration maxRetryWait;
   final Future<void> Function(Duration) _sleep;
 
-  static const userAgent = 'Prism/1.1 (personal music player)';
+  static const userAgent = 'Prism/1.2 (personal music player)';
 
   Future<http.Response> send(
     String method,
@@ -96,7 +96,7 @@ class OnlineHttp {
         401 => OnlineException(OnlineErrorKind.auth, service: service),
         403 => OnlineException(OnlineErrorKind.forbidden, service: service, message: _apiMessage(res, service)),
         404 => OnlineException(OnlineErrorKind.notFound, service: service),
-        451 => OnlineException(OnlineErrorKind.forbidden, service: service, message: l10n.regionBlocked(service.label)),
+        451 => OnlineException(OnlineErrorKind.forbidden, service: service, message: l10n.regionBlocked(service.label), isRegionBlocked: true),
         _ => OnlineException(OnlineErrorKind.badResponse, service: service, message: _apiMessage(res, service)),
       };
     }

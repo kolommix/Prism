@@ -17,4 +17,13 @@ owner. Updated as soon as a block changes, not at the end.
 | 10 | Backgrounds | partial | All styles built (shader mesh, aurora, blobs, grain; starfield, rain, snow; gradient presets; own picture and video), parallax, strength + blur + dim, battery saver, backgrounds inside theme files. Video is a silent 12 fps loop of the first 30 s made with FFmpeg (no video player added); may not decode on Android\u0027s audio-only FFmpeg build. Parallax needs a mouse, so nothing on phones. Not run on Android |
 | 11 | GitHub release | blocked on you | Workflow, READMEs (en + ru), GPL-3.0 LICENSE, .gitignore, docs/RELEASING.md, in-app update check all written. Never run: there is no repo yet. You need to create it, upload the two big Windows files and add the signing secrets (steps in docs/RELEASING.md) |
 
-Final check: analyzer clean, 395 unit/widget tests, real-audio tests pass, Windows release built and installed, Android APK compiles (never run on a device), benchmark 0 missed frames.
+## Round 2 (version 1.2.0, 2026-11-07)
+
+| # | Block | Status | Notes |
+|---|-------|--------|-------|
+| 12 | Privacy audit | done | Cause: `permission_handler_windows` started a Windows Geolocator at launch. Plugin gone, Android manifest removals, computer name no longer sent, `docs/PRIVACY.md`, Settings → Privacy, `tool/privacy_check.dart` in CI. Android has never had a location permission (1.0.0 APK checked). Not verified: Windows' own location log, location is set to Deny on this PC |
+| 13 | Full screen | done | window_manager kept the title bar and lost 16x39 px on a maximized window. Own code in `flutter_window.cpp`, measured on the real window from normal and maximized. Android hides the system bars (not run on a device) |
+| 14 | Remove from Prism | done (code + tests) | Track menu, file stays, undo restores plays + favorites + playlists, rescans skip it, Settings → Library → Removed songs. One song at a time, the library has no multi-select |
+| 15 | One Import screen | partial | Link or file, service worked out, clipboard offer, no preview, songs arrive while matching, Review list with accept / fix / no match, re-sync, friendly errors, Advanced with steps. Spotify, YouTube video, Deezer, Apple read live with no key. SoundCloud needs a key or a file. Yandex answers 451 from this PC. Spotify lists stop at about 100 songs without a login. NOT clicked through by hand: the import of a real playlist on screen, drag and drop. NOT run on a device: Android share target |
+
+Final check of round 1: analyzer clean, 395 unit/widget tests, real-audio tests pass, Windows release built and installed, Android APK compiles (never run on a device), benchmark 0 missed frames.

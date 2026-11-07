@@ -12,6 +12,25 @@ class ParsedLink {
   final String id;
   final Uri url;
 
+  /// A whole list (not one song), or a short link that may be one.
+  bool get isList => kind != LinkKind.track;
+
+  /// The same link without tracking bits ("?si=..."), so importing it twice is
+  /// recognised. It still parses back to this link.
+  String get canonicalUrl => switch ((service, kind)) {
+        (OnlineService.spotify, LinkKind.playlist) => 'https://open.spotify.com/playlist/$id',
+        (OnlineService.spotify, LinkKind.album) => 'https://open.spotify.com/album/$id',
+        (OnlineService.spotify, LinkKind.track) => 'https://open.spotify.com/track/$id',
+        (OnlineService.youtube, LinkKind.playlist) => 'https://www.youtube.com/playlist?list=$id',
+        (OnlineService.youtube, LinkKind.track) => 'https://www.youtube.com/watch?v=$id',
+        (OnlineService.deezer, LinkKind.playlist) => 'https://www.deezer.com/playlist/$id',
+        (OnlineService.deezer, LinkKind.album) => 'https://www.deezer.com/album/$id',
+        (OnlineService.deezer, LinkKind.track) => 'https://www.deezer.com/track/$id',
+        // An Apple song lives in ?i= of its album link.
+        (OnlineService.appleMusic, LinkKind.track) => url.toString(),
+        _ => url.replace(query: '', fragment: '').toString().replaceFirst(RegExp(r'[?#]+$'), ''),
+      };
+
   @override
   bool operator ==(Object other) =>
       other is ParsedLink && other.service == service && other.kind == kind && other.id == id;
@@ -24,6 +43,23 @@ class ParsedLink {
 }
 
 final _spotifyUri = RegExp(r'^spotify:(playlist|album|track):([A-Za-z0-9]+)$');
+final _linkInText = RegExp(
+  r'(spotify:(?:playlist|album|track):[A-Za-z0-9]+)|'
+  r'((?:https?://)?(?:[a-z0-9-]+\.)+[a-z]{2,}/[^\s<>"]*)',
+  caseSensitive: false,
+);
+
+/// The first link Prism can read inside any text. Share sheets send things like
+/// "Listen to this: https://open.spotify.com/playlist/abc?si=1 on Spotify".
+ParsedLink? findMusicLink(String text) {
+  for (final m in _linkInText.allMatches(text)) {
+    // Punctuation that ends a sentence is not part of the link.
+    final candidate = m[0]!.replaceFirst(RegExp(r'''[.,;:!?)\]}'»”"]+$'''), '');
+    final parsed = parseMusicLink(candidate);
+    if (parsed != null) return parsed;
+  }
+  return null;
+}
 
 /// Recognises Spotify, YouTube / YouTube Music, SoundCloud, Apple Music and
 /// Deezer links. Returns null for anything else.
@@ -42,7 +78,9 @@ ParsedLink? parseMusicLink(String input) {
 
   // ---------------------------------------------------------------- Spotify
   if (host == 'open.spotify.com' || host == 'play.spotify.com') {
-    final s = seg.isNotEmpty && seg.first.startsWith('intl-') ? seg.sublist(1) : seg;
+    var s = seg.isNotEmpty && seg.first.startsWith('intl-') ? seg.sublist(1) : seg;
+    // Old form: /user/{name}/playlist/{id}
+    if (s.length >= 4 && s[0] == 'user' && s[2] == 'playlist') s = s.sublist(2);
     if (s.length >= 2 && s[0] == 'collection' && s[1] == 'tracks') {
       return ParsedLink(OnlineService.spotify, LinkKind.likes, 'me', uri);
     }
@@ -79,6 +117,10 @@ ParsedLink? parseMusicLink(String input) {
     return null;
   }
   if (host == 'youtu.be' && seg.isNotEmpty) {
+    final list = uri.queryParameters['list'];
+    if (list != null && list.isNotEmpty && !list.startsWith('RD')) {
+      return ParsedLink(OnlineService.youtube, LinkKind.playlist, list, uri);
+    }
     return ParsedLink(OnlineService.youtube, LinkKind.track, seg[0], uri);
   }
 
@@ -93,10 +135,10 @@ ParsedLink? parseMusicLink(String input) {
     }
     return null;
   }
-  if (host == 'on.soundcloud.com') return ParsedLink(OnlineService.soundcloud, LinkKind.shortLink, '', uri);
+  if (host == 'on.soundcloud.com' || host == 'soundcloud.app.goo.gl') return ParsedLink(OnlineService.soundcloud, LinkKind.shortLink, '', uri);
 
   // ------------------------------------------------------------ Apple Music
-  if (host == 'music.apple.com' || host == 'itunes.apple.com') {
+  if (host == 'music.apple.com' || host == 'itunes.apple.com' || host == 'geo.music.apple.com' || host == 'embed.music.apple.com') {
     // /{country}/playlist/{slug}/{pl.id} or /{country}/album/{slug}/{id}
     final i = seg.indexWhere((s) => s == 'playlist' || s == 'album');
     if (i >= 0 && seg.length > i + 1) {
@@ -122,7 +164,7 @@ ParsedLink? parseMusicLink(String input) {
     }
     return null;
   }
-  if (host == 'deezer.page.link' || host == 'link.deezer.com') {
+  if (host == 'deezer.page.link' || host == 'dzr.page.link' || host == 'link.deezer.com') {
     return ParsedLink(OnlineService.deezer, LinkKind.shortLink, '', uri);
   }
   // ------------------------------------------------------------ Yandex Music

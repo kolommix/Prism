@@ -28,6 +28,8 @@ import 'settings_widgets.dart';
 import '../../../l10n/l10n.dart';
 
 import '../../visualizer/data/live_fft.dart';
+import '../../library/presentation/removed_songs.dart';
+import 'privacy_section.dart';
 import '../../update/update_check.dart';
 /// The settings categories, in the order they are listed.
 enum SettingsSection {
@@ -38,6 +40,7 @@ enum SettingsSection {
   together(Icons.groups_outlined),
   windows(Icons.desktop_windows_outlined),
   backup(Icons.save_alt_rounded),
+  privacy(Icons.shield_outlined),
   about(Icons.info_outline_rounded);
 
   const SettingsSection(this.icon);
@@ -51,6 +54,7 @@ enum SettingsSection {
         SettingsSection.together => l10n.listenTogether,
         SettingsSection.windows => l10n.windows,
         SettingsSection.backup => l10n.backup,
+        SettingsSection.privacy => l10n.privacy,
         SettingsSection.about => l10n.about,
       };
 
@@ -168,6 +172,7 @@ String? _summary(WidgetRef ref, SettingsSection s) {
     SettingsSection.together => settings.togetherInternet || settings.relayUrl.isNotEmpty ? l10n.anywhere : l10n.sameWiFiOnly,
     SettingsSection.windows => settings.closeToTray ? l10n.closesToTheTray : null,
     SettingsSection.backup => l10n.saveOrRestoreEverythingInOne,
+    SettingsSection.privacy => l10n.privacyNoLocationTitle,
     SettingsSection.about => null,
   };
 }
@@ -255,6 +260,7 @@ class _SectionBody extends ConsumerWidget {
       SettingsSection.together => _together(ref),
       SettingsSection.windows => _windows(ref),
       SettingsSection.backup => _backup(context, ref),
+      SettingsSection.privacy => const [PrivacySection()],
       SettingsSection.about => _about(context, ref),
     };
     return SmoothListView(padding: padding, children: children);
@@ -286,6 +292,14 @@ class _SectionBody extends ConsumerWidget {
             enabled: !scanning,
             onTap: () => addLibraryFolder(context, ref),
           ),
+          if ((ref.watch(removedTracksProvider).value ?? const []).isNotEmpty)
+            SettingsTile(
+              icon: Icons.remove_circle_outline_rounded,
+              title: l10n.removedSongs,
+              subtitle: l10n.removedSongsCount(ref.watch(removedTracksProvider).value!.length),
+              chevron: true,
+              onTap: () => showRemovedSongs(context),
+            ),
         ],
       ),
       const _AutoFindGroup(),
@@ -440,6 +454,22 @@ class _SectionBody extends ConsumerWidget {
               subtitle: l10n.vizLiveHint,
               value: settings.visualizerLive,
               onChanged: (v) async {
+                if (v && !await LiveFft.hasPermission() && context.mounted) {
+                  // Say why before Android's own question about the microphone.
+                  final go = await showDialog<bool>(
+                    context: context,
+                    useRootNavigator: true,
+                    builder: (context) => AlertDialog(
+                      title: Text(l10n.vizLiveAskTitle),
+                      content: Text(l10n.vizLiveAskText),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+                        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.privacyContinue)),
+                      ],
+                    ),
+                  );
+                  if (go != true) return;
+                }
                 if (v && !await LiveFft.requestPermission()) {
                   if (context.mounted) {
                     ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(l10n.vizLiveRefused)));
@@ -487,7 +517,7 @@ class _SectionBody extends ConsumerWidget {
             SettingsTile(
               icon: Icons.playlist_add_rounded,
               title: l10n.importPlaylists,
-              subtitle: l10n.fromALinkAFileOr,
+              subtitle: l10n.importOneScreenHint,
               chevron: true,
               onTap: () => context.go(Routes.importPlaylists),
             ),

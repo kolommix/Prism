@@ -1511,7 +1511,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get appleHasNoFreeApiSo =>
-      'У Apple нет бесплатного API, поэтому Prism читает список песен с публичной веб-страницы плейлиста или альбома. Без гарантий: может перестать работать, когда Apple изменит страницу. По умолчанию выключено.';
+      'У Apple нет бесплатного API, поэтому при импорте ссылки Prism читает список песен с публичной веб-страницы плейлиста или альбома. Без гарантий: может перестать работать, когда Apple изменит страницу. Для личного использования.';
 
   @override
   String get personalUseOnly => 'Только для личного использования';
@@ -1886,7 +1886,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get fromSpotifyYoutubeSoundcloudDeezerApple =>
-      'Из Spotify, YouTube, SoundCloud, Deezer, Apple Music или файла';
+      'Из ссылки или файла. Spotify, YouTube, SoundCloud, Яндекс Музыка, Apple Music, Deezer';
 
   @override
   String get smartPlaylists => 'Умные плейлисты';
@@ -3693,7 +3693,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get yandexTermsText =>
-      'Публичного API у Яндекса нет. Prism читает названия песен через закрытый API его приложений (описан сообществом в проекте yandex-music-api), который может измениться или перестать работать без предупреждения и отвечает только из некоторых стран. По умолчанию выключено, для личного использования. Prism никогда не скачивает и не воспроизводит аудио Яндекса. Если перестанет работать, импортируйте экспорт в CSV или JSON.';
+      'Публичного API у Яндекса нет. Prism читает названия песен через закрытый API его приложений (описан сообществом в проекте yandex-music-api), который может измениться или перестать работать без предупреждения и отвечает только из некоторых стран. Публичные ссылки читаются при импорте, аккаунт остаётся выключенным, пока вы его не включите. Для личного использования. Prism никогда не скачивает и не воспроизводит аудио Яндекса. Если перестанет работать, импортируйте экспорт в CSV или JSON.';
 
   @override
   String regionBlocked(Object service) {
@@ -4028,4 +4028,367 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get updateOpen => 'Открыть страницу загрузки';
+
+  @override
+  String get privacy => 'Конфиденциальность';
+
+  @override
+  String get privacyNoLocationTitle =>
+      'Prism не определяет ваше местоположение';
+
+  @override
+  String get privacyNoLocationText =>
+      'Нет аналитики, телеметрии, рекламы и отчётов о сбоях. Нет идентификатора устройства. У Prism нет своих аккаунтов и серверов.';
+
+  @override
+  String get privacyPermsTitle => 'Разрешения Android';
+
+  @override
+  String get privacyPermMusic => 'Музыка и аудиофайлы';
+
+  @override
+  String get privacyPermMusicWhy =>
+      'Чтобы читать вашу музыку. Запрашивается, когда вы добавляете папку.';
+
+  @override
+  String get privacyPermPlayback => 'Воспроизведение в фоне';
+
+  @override
+  String get privacyPermPlaybackWhy =>
+      'Чтобы музыка играла при выключенном экране.';
+
+  @override
+  String get privacyPermNotify => 'Уведомления';
+
+  @override
+  String get privacyPermNotifyWhy => 'Только уведомление плеера с кнопками.';
+
+  @override
+  String get privacyPermInternet => 'Интернет и состояние сети';
+
+  @override
+  String get privacyPermInternetWhy =>
+      'Для запросов из списка ниже и чтобы знать, есть ли сеть.';
+
+  @override
+  String get privacyPermMic => 'Микрофон (только живой визуализатор)';
+
+  @override
+  String get privacyPermMicWhy =>
+      'Android относит свой визуализатор к микрофону. Запрашивается, только когда вы его включаете. Prism ничего не записывает.';
+
+  @override
+  String get privacyPermRingtone =>
+      'Изменение системных настроек (только рингтон)';
+
+  @override
+  String get privacyPermRingtoneWhy =>
+      'Чтобы поставить рингтон из редактора. Вы разрешаете это на системном экране, когда пользуетесь функцией.';
+
+  @override
+  String get privacyPermsFooter =>
+      'Никогда не запрашиваются: местоположение, Bluetooth, данные Wi-Fi, состояние телефона, контакты, аккаунты, рекламный идентификатор.';
+
+  @override
+  String get privacyWindowsTitle => 'Windows';
+
+  @override
+  String get privacyWindowsText =>
+      'Не требует особых разрешений и не использует службу определения местоположения Windows. До версии 1.2 одна библиотека запускала её при старте, поэтому Windows могла показывать, что Prism использует местоположение. Prism не читал и не отправлял результат, эта библиотека удалена.';
+
+  @override
+  String get privacySentTitle => 'Что покидает устройство';
+
+  @override
+  String get privacySentFooter =>
+      'Каждый сервер видит ваш IP-адрес, как при любом запросе в интернет. Prism никогда не выясняет, где находится этот адрес.';
+
+  @override
+  String get privacySentUpdates => 'Проверка обновлений: GitHub';
+
+  @override
+  String get privacySentUpdatesWhat =>
+      'Отправляется версия приложения. Автоматически, отключается в разделе «О программе».';
+
+  @override
+  String get privacySentInfo => 'Недостающие данные: Apple, Deezer';
+
+  @override
+  String get privacySentInfoWhat =>
+      'Отправляются название и исполнитель. Автоматически, отключается в разделе «Библиотека».';
+
+  @override
+  String get privacySentLyrics => 'Тексты песен: LRCLIB';
+
+  @override
+  String get privacySentLyricsWhat =>
+      'Отправляются название, исполнитель, альбом и длина песни, для которой вы открыли текст.';
+
+  @override
+  String get privacySentFonts => 'Шрифт: Google Fonts';
+
+  @override
+  String get privacySentFontsWhat =>
+      'Шрифт приложения скачивается один раз. Ничего о вас и вашей музыке не отправляется.';
+
+  @override
+  String get privacySentImport =>
+      'Импорт: Spotify, YouTube, SoundCloud, Deezer, Apple Music, Яндекс Музыка';
+
+  @override
+  String get privacySentImportWhat =>
+      'Только при импорте: ссылка, которую вы указали. Скопированная ссылка остаётся на устройстве, пока вы не нажмёте «Импорт».';
+
+  @override
+  String get privacySentOnline => 'Онлайн-песни: YouTube, SoundCloud';
+
+  @override
+  String get privacySentOnlineWhat =>
+      'Если вы их включили: поиск песен и то, что вы слушаете.';
+
+  @override
+  String get privacySentFixer =>
+      'Исправление данных: MusicBrainz, Cover Art Archive, Apple, AcoustID';
+
+  @override
+  String get privacySentFixerWhat =>
+      'Когда вы им пользуетесь: название, исполнитель, альбом. AcoustID только с вашим ключом.';
+
+  @override
+  String get privacySentTogether =>
+      'Совместное прослушивание: публичные серверы или ваш Wi-Fi';
+
+  @override
+  String get privacySentTogetherWhat =>
+      'Во время сеанса: что играет и имя, которое вы указали. Без имени вы показываетесь как «Кто-то», а не именем компьютера.';
+
+  @override
+  String get privacySentDiscord => 'Статус в Discord';
+
+  @override
+  String get privacySentDiscordWhat =>
+      'Если Discord запущен на этом компьютере: песня, которую вы слушаете.';
+
+  @override
+  String get privacyFullText => 'Подробнее о конфиденциальности';
+
+  @override
+  String get privacyContinue => 'Продолжить';
+
+  @override
+  String get vizLiveAskTitle => 'Android спросит про микрофон';
+
+  @override
+  String get vizLiveAskText =>
+      'Живой визуализатор использует Visualizer API, который Android относит к микрофону. Prism читает только звук, который играет сам. Ничего не записывается и не отправляется.';
+
+  @override
+  String get removeFromPrism => 'Убрать из Prism';
+
+  @override
+  String get removeFromPrismHint => 'Файл останется на диске';
+
+  @override
+  String removeFromPrismAsk(String title) {
+    return 'Убрать «$title» из Prism?';
+  }
+
+  @override
+  String get removeFromPrismText =>
+      'Песня исчезнет из библиотеки, плейлистов, избранного и статистики Prism. Файл останется на диске, и при сканировании она больше не появится. Вернуть её можно в Настройках → Библиотека.';
+
+  @override
+  String get removeFromPrismDone => 'Убрано из Prism. Файл остался на диске.';
+
+  @override
+  String get undoAction => 'Отменить';
+
+  @override
+  String get removedSongs => 'Убранные песни';
+
+  @override
+  String removedSongsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count песен скрыто в Prism',
+      few: '$count песни скрыты в Prism',
+      one: '$count песня скрыта в Prism',
+      zero: 'Ничего не убрано',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get removedSongsHelp =>
+      'Файлы этих песен остались на диске. «Вернуть» добавит песню в библиотеку при сканировании, которое запустится сразу. Старая статистика и места в плейлистах не вернутся.';
+
+  @override
+  String get restoreAction => 'Вернуть';
+
+  @override
+  String get importSupported =>
+      'Spotify, YouTube, SoundCloud, Яндекс Музыка, Apple Music или Deezer. Публичные ссылки работают без аккаунта.';
+
+  @override
+  String get importFileOrDrop =>
+      'Или перетащите сюда файл: CSV, JSON, M3U, .liner';
+
+  @override
+  String get importFileHint => 'Или выберите файл: CSV, JSON, M3U, .liner';
+
+  @override
+  String get importDropHere => 'Отпустите, чтобы импортировать';
+
+  @override
+  String get importClipboardAsk => 'Импортировать этот плейлист?';
+
+  @override
+  String get importRecent => 'Недавние импорты';
+
+  @override
+  String get importResync => 'Синхронизировать';
+
+  @override
+  String get importSynced => 'Синхронизация с источником';
+
+  @override
+  String get importAccept => 'Песня верная';
+
+  @override
+  String importAcceptAll(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Принять все $count',
+      few: 'Принять все $count',
+      one: 'Принять $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importReview => 'Проверка';
+
+  @override
+  String get importReviewEmpty =>
+      'Проверять нечего. Песни, в которых Prism не уверен, будут ждать здесь.';
+
+  @override
+  String importReviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count песен на проверку',
+      few: '$count песни на проверку',
+      one: '$count песня на проверку',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importReviewHint => 'Одно нажатие, чтобы принять или исправить';
+
+  @override
+  String get importAdvanced => 'Дополнительно: подключить аккаунт';
+
+  @override
+  String get importAdvancedHint =>
+      'Необязательно. Только для личных плейлистов, любимых треков и длинных списков Spotify.';
+
+  @override
+  String get importNotConnected => 'Не подключено';
+
+  @override
+  String get importOneScreenHint => 'Из ссылки или файла, на одном экране';
+
+  @override
+  String get importOnlyLibrarySearched =>
+      'Поиск шёл только по вашей библиотеке. Если включить YouTube, Prism поищет остальное там.';
+
+  @override
+  String get importFindOnYoutube => 'Найти остальное на YouTube';
+
+  @override
+  String get importSearchAgain => 'Снова поискать ненайденные песни';
+
+  @override
+  String get importStepsSpotify =>
+      'Для личных плейлистов и любимых треков. Публичные ссылки уже работают.\n1. Откройте developer.spotify.com/dashboard и создайте приложение с Web API.\n2. Добавьте redirect URI http://127.0.0.1:43821/callback.\n3. Скопируйте Client ID.\n4. В разделе «Онлайн-сервисы» нажмите «Создать файл», вставьте его как spotify.clientId, нажмите «Обновить», затем подключитесь.';
+
+  @override
+  String get importStepsYoutube =>
+      'Для личных плейлистов и понравившихся видео. Публичные ссылки уже работают.\n1. Откройте console.cloud.google.com и создайте проект с YouTube Data API v3.\n2. Добавьте себя тестовым пользователем на экране согласия OAuth.\n3. Создайте OAuth-клиент типа Desktop app.\n4. В разделе «Онлайн-сервисы» нажмите «Создать файл», вставьте youtube.oauthClientId и youtube.oauthClientSecret, нажмите «Обновить», затем подключитесь.';
+
+  @override
+  String get importStepsSoundcloud =>
+      'Ссылкам SoundCloud это нужно, либо экспортируйте плейлист в файл.\n1. Откройте soundcloud.com/you/apps и зарегистрируйте приложение. SoundCloud может потребоваться его одобрить.\n2. Добавьте redirect URI http://127.0.0.1:43822/callback.\n3. В разделе «Онлайн-сервисы» нажмите «Создать файл», вставьте soundcloud.clientId и soundcloud.clientSecret, нажмите «Обновить».';
+
+  @override
+  String get importStepsYandex =>
+      'Для своих плейлистов и любимых треков. Публичные ссылки уже работают там, где отвечает Яндекс.\n1. Откройте «Онлайн-сервисы» и включите Яндекс Музыку.\n2. Нажмите «Подключить» и следуйте шагам, чтобы получить токен.\n3. Вставьте токен. Он хранится в защищённом хранилище этого устройства.';
+
+  @override
+  String get importErrorOffline =>
+      'Похоже, нет интернета. Проверьте подключение и попробуйте снова.';
+
+  @override
+  String importErrorSlowDown(String service) {
+    return '$service просит подождать. Подождите несколько минут и попробуйте снова.';
+  }
+
+  @override
+  String importErrorServer(String service) {
+    return 'У $service сейчас проблемы. Попробуйте позже.';
+  }
+
+  @override
+  String get importErrorPrivate =>
+      'Этот плейлист закрыт или удалён. Сделайте его публичным или экспортируйте в файл и импортируйте его.';
+
+  @override
+  String importErrorRegion(String service) {
+    return '$service не отвечает из вашей страны или сети. Экспортируйте плейлист в файл CSV или JSON и импортируйте его.';
+  }
+
+  @override
+  String importErrorAccount(String service) {
+    return 'Этот список закрыт, поэтому $service нужен ваш аккаунт. Подключите его или экспортируйте файл.';
+  }
+
+  @override
+  String importErrorNeedsKey(String service) {
+    return 'Для ссылок $service нужен бесплатный ключ, либо экспортируйте плейлист в файл.';
+  }
+
+  @override
+  String importErrorCantRead(String service) {
+    return 'Не удалось прочитать страницу $service. Возможно, она изменилась. Экспортируйте плейлист в файл и импортируйте его.';
+  }
+
+  @override
+  String importErrorFile(String problem) {
+    return '$problem Prism читает файлы CSV, JSON, M3U и .liner.';
+  }
+
+  @override
+  String importErrorFileGone(String path) {
+    return 'Файла больше нет по адресу $path. Выберите его снова.';
+  }
+
+  @override
+  String get importErrorUnknown =>
+      'При чтении что-то пошло не так. Попробуйте экспортировать плейлист в файл.';
+
+  @override
+  String importSkipNotFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Пропустить $count ненайденных',
+      few: 'Пропустить $count ненайденные',
+      one: 'Пропустить $count ненайденную',
+    );
+    return '$_temp0';
+  }
 }

@@ -1072,7 +1072,7 @@
   "deezerPublicPlaylistLinks": "Deezer – public playlist links",
   "readsPublicPlaylistsAlbumsAndSongs": "Reads public playlists, albums and songs from Deezer's open API (text only, no login, no audio). Deezer's API terms are for non-commercial use.",
   "appleMusicPublicPageReading": "Apple Music – public page reading",
-  "appleHasNoFreeApiSo": "Apple has no free API, so Prism reads the song list from the public web page of a playlist or album. Best effort: it can stop working whenever Apple changes the page. Off by default.",
+  "appleHasNoFreeApiSo": "Apple has no free API, so Prism reads the song list from the public web page of a playlist or album when you import a link. Best effort: it can stop working whenever Apple changes the page. For personal use.",
   "personalUseOnly": "Personal use only",
   "whatEachServiceAllows": "What each service allows",
   "termsOfServiceLimitsInPlain": "Terms of service limits, in plain words",
@@ -1281,7 +1281,7 @@
   "favorites": "Favorites",
   "yourListeningStats": "Your listening stats",
   "topSongsArtistsAndStreaks": "Top songs, artists and streaks",
-  "fromSpotifyYoutubeSoundcloudDeezerApple": "From Spotify, YouTube, SoundCloud, Deezer, Apple Music or a file",
+  "fromSpotifyYoutubeSoundcloudDeezerApple": "From a link or a file. Spotify, YouTube, SoundCloud, Yandex Music, Apple Music, Deezer",
   "smartPlaylists": "Smart playlists",
   "xNew": "New",
   "renamePlaylist": "Rename playlist",
@@ -2443,7 +2443,7 @@
   "yandexToken": "Token",
   "yandexTokenPrivate": "The token gives access to your Yandex account: don't share it. Prism keeps it in the system's secure storage and sends it only to api.music.yandex.net.",
   "yandexTermsTitle": "Yandex Music – unofficial, import only",
-  "yandexTermsText": "Yandex has no public API. Prism reads song names through the private one its apps use (documented by the community project yandex-music-api), which can change or stop without warning and answers only from some countries. Off by default, for personal use. Prism never downloads or plays Yandex audio. If it stops working, import a CSV or JSON export instead.",
+  "yandexTermsText": "Yandex has no public API. Prism reads song names through the private one its apps use (documented by the community project yandex-music-api), which can change or stop without warning and answers only from some countries. Public links are read when you import them; your account stays off until you turn it on. For personal use. Prism never downloads or plays Yandex audio. If it stops working, import a CSV or JSON export instead.",
   "regionBlocked": "{service} isn't available from your country or network (blocked by the service). Export the playlist to CSV or JSON and import the file instead.",
   "@regionBlocked": {
     "placeholders": {
@@ -2603,5 +2603,186 @@
     }
   },
   "updateHowTo": "Download the new installer or APK and install it over this one. Your library and settings stay.",
-  "updateOpen": "Open download page"
+  "updateOpen": "Open download page",
+  "privacy": "Privacy",
+  "privacyNoLocationTitle": "Prism does not read your location",
+  "privacyNoLocationText": "No analytics, no telemetry, no ads, no crash reports. No device id. Prism has no account or server of its own.",
+  "privacyPermsTitle": "Android permissions",
+  "privacyPermMusic": "Music and audio files",
+  "privacyPermMusicWhy": "Reads your music. Asked when you add a folder.",
+  "privacyPermPlayback": "Background playback",
+  "privacyPermPlaybackWhy": "Keeps music playing with the screen off.",
+  "privacyPermNotify": "Notifications",
+  "privacyPermNotifyWhy": "Only the player notification with its buttons.",
+  "privacyPermInternet": "Internet and network state",
+  "privacyPermInternetWhy": "For the requests listed below, and to know whether you are online.",
+  "privacyPermMic": "Microphone (live visualizer only)",
+  "privacyPermMicWhy": "Android files its visualizer under the microphone. Asked only when you turn it on. Prism records nothing.",
+  "privacyPermRingtone": "Change system settings (ringtones only)",
+  "privacyPermRingtoneWhy": "Sets a ringtone made in the editor. You allow it on a system screen when you use it.",
+  "privacyPermsFooter": "Never asked for: location, Bluetooth, Wi-Fi details, phone state, contacts, accounts, advertising id.",
+  "privacyWindowsTitle": "Windows",
+  "privacyWindowsText": "Needs no special permissions and does not use the Windows location API. Before version 1.2 a library started the Windows location service at launch, so Windows could list Prism as using location. Prism never read or sent the result, and that library is gone.",
+  "privacySentTitle": "What leaves this device",
+  "privacySentFooter": "Every server sees your IP address, like with any internet request. Prism never looks up where that address is.",
+  "privacySentUpdates": "Update check: GitHub",
+  "privacySentUpdatesWhat": "Sends the app version. Automatic, can be turned off in About.",
+  "privacySentInfo": "Missing info: Apple, Deezer",
+  "privacySentInfoWhat": "Sends song title and artist. Automatic, can be turned off in Library.",
+  "privacySentLyrics": "Lyrics: LRCLIB",
+  "privacySentLyricsWhat": "Sends title, artist, album and length of the song you open lyrics for.",
+  "privacySentFonts": "Font: Google Fonts",
+  "privacySentFontsWhat": "Downloads the app font once. Sends nothing about you or your music.",
+  "privacySentImport": "Import: Spotify, YouTube, SoundCloud, Deezer, Apple Music, Yandex Music",
+  "privacySentImportWhat": "Only when you import: the link you gave. A copied link stays on this device until you tap Import.",
+  "privacySentOnline": "Online songs: YouTube, SoundCloud",
+  "privacySentOnlineWhat": "If you turn them on: song searches and the songs you play.",
+  "privacySentFixer": "Song info fixer: MusicBrainz, Cover Art Archive, Apple, AcoustID",
+  "privacySentFixerWhat": "When you use it: title, artist, album. AcoustID only with your own key.",
+  "privacySentTogether": "Listen together: public servers or your Wi-Fi",
+  "privacySentTogetherWhat": "While in a session: what is playing and the name you typed. Without a name you appear as “Someone”, never your computer name.",
+  "privacySentDiscord": "Discord status",
+  "privacySentDiscordWhat": "If Discord runs on this computer: the song you play.",
+  "privacyFullText": "Read the full privacy notes",
+  "privacyContinue": "Continue",
+  "vizLiveAskTitle": "Android will ask about the microphone",
+  "vizLiveAskText": "The live visualizer uses the Visualizer API, which Android files under the microphone. Prism only reads the sound it plays itself. It records nothing and sends nothing.",
+  "removeFromPrism": "Remove from Prism",
+  "removeFromPrismHint": "The file stays on your disk",
+  "removeFromPrismAsk": "Remove “{title}” from Prism?",
+  "@removeFromPrismAsk": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "removeFromPrismText": "It leaves your library, playlists, favorites and stats in Prism. The file stays on your disk and rescans skip it. You can bring it back in Settings → Library.",
+  "removeFromPrismDone": "Removed from Prism. The file is still on your disk.",
+  "undoAction": "Undo",
+  "removedSongs": "Removed songs",
+  "removedSongsCount": "{count, plural, =0{Nothing removed} one{{count} song hidden from Prism} other{{count} songs hidden from Prism}}",
+  "@removedSongsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "removedSongsHelp": "Their files are still on your disk. Restore puts a song back in your library with a scan, which starts right away. Old stats and playlist places do not come back.",
+  "restoreAction": "Restore",
+  "importSupported": "Spotify, YouTube, SoundCloud, Yandex Music, Apple Music or Deezer. Public links work with no account.",
+  "importFileOrDrop": "Or drop a file here: CSV, JSON, M3U, .liner",
+  "importFileHint": "Or pick a file: CSV, JSON, M3U, .liner",
+  "importDropHere": "Drop to import",
+  "importClipboardAsk": "Import this playlist?",
+  "importRecent": "Recent imports",
+  "importResync": "Sync again",
+  "importSynced": "Syncing with the source",
+  "importAccept": "Right song",
+  "importAcceptAll": "{count, plural, one{Accept {count}} other{Accept all {count}}}",
+  "@importAcceptAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importReview": "Review",
+  "importReviewEmpty": "Nothing to check. Songs Prism is unsure about will wait here.",
+  "importReviewCount": "{count, plural, one{{count} song to check} other{{count} songs to check}}",
+  "@importReviewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importReviewHint": "One tap to accept or fix",
+  "importAdvanced": "Advanced: connect an account",
+  "importAdvancedHint": "Optional. Only for private playlists, liked songs and long Spotify lists.",
+  "importNotConnected": "Not connected",
+  "importOneScreenHint": "From a link or a file, on one screen",
+  "importOnlyLibrarySearched": "Only your library was searched. Prism can look for the rest on YouTube if you turn it on.",
+  "importFindOnYoutube": "Find the rest on YouTube",
+  "importSearchAgain": "Search again for songs not found",
+  "importStepsSpotify": "For your private playlists and liked songs. Public links already work.\n1. Open developer.spotify.com/dashboard and create an app with the Web API.\n2. Add the redirect URI http://127.0.0.1:43821/callback.\n3. Copy the Client ID.\n4. In Online services tap Create file, paste it as spotify.clientId, tap Reload, then Connect.",
+  "importStepsYoutube": "For your private playlists and liked videos. Public links already work.\n1. Open console.cloud.google.com and make a project with the YouTube Data API v3.\n2. Add yourself as a test user on the OAuth consent screen.\n3. Create an OAuth client of type Desktop app.\n4. In Online services tap Create file, paste youtube.oauthClientId and youtube.oauthClientSecret, tap Reload, then Connect.",
+  "importStepsSoundcloud": "SoundCloud links need this, or export the playlist to a file.\n1. Open soundcloud.com/you/apps and register an app. SoundCloud may need to approve it.\n2. Add the redirect URI http://127.0.0.1:43822/callback.\n3. In Online services tap Create file, paste soundcloud.clientId and soundcloud.clientSecret, tap Reload.",
+  "importStepsYandex": "For your own playlists and liked songs. Public links already work where Yandex answers.\n1. Open Online services and turn on Yandex Music.\n2. Tap Connect and follow the steps to get your token.\n3. Paste the token. It stays in the secure storage of this device.",
+  "importErrorOffline": "You seem to be offline. Check your connection and try again.",
+  "importErrorSlowDown": "{service} is asking to slow down. Wait a few minutes and try again.",
+  "@importErrorSlowDown": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorServer": "{service} has problems right now. Try again later.",
+  "@importErrorServer": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorPrivate": "This playlist is private or was deleted. Make it public, or export it to a file and import that.",
+  "importErrorRegion": "{service} does not answer from your country or network. Export the playlist to a CSV or JSON file and import that.",
+  "@importErrorRegion": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorAccount": "This list is private, so {service} needs your account. Connect it, or export a file.",
+  "@importErrorAccount": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorNeedsKey": "{service} links need a free key, or export the playlist to a file.",
+  "@importErrorNeedsKey": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorCantRead": "Could not read this {service} page. It may have changed. Export the playlist to a file and import that.",
+  "@importErrorCantRead": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorFile": "{problem} Prism reads CSV, JSON, M3U and .liner files.",
+  "@importErrorFile": {
+    "placeholders": {
+      "problem": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorFileGone": "The file is no longer at {path}. Pick it again.",
+  "@importErrorFileGone": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "importErrorUnknown": "Something went wrong while reading this. Try exporting the playlist to a file.",
+  "importSkipNotFound": "{count, plural, one{Skip {count} not found} other{Skip {count} not found}}",
+  "@importSkipNotFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -4,7 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
-import 'package:permission_handler/permission_handler.dart';
+import '../../../core/platform/android_permissions.dart';
 
 import '../application/library_providers.dart';
 import '../../../l10n/l10n.dart';
@@ -19,14 +19,7 @@ String? defaultMusicFolder() {
 
 /// Android needs runtime permission to read audio files (READ_MEDIA_AUDIO on
 /// 13+, READ_EXTERNAL_STORAGE before). Windows needs nothing.
-Future<bool> ensureAudioPermission() async {
-  if (!Platform.isAndroid) return true;
-  final audio = await Permission.audio.request();
-  if (audio.isGranted) return true;
-  // Older Android versions report `audio` as denied/unsupported → storage.
-  final storage = await Permission.storage.request();
-  return storage.isGranted;
-}
+Future<bool> ensureAudioPermission() => AndroidPermissions.requestAudioFiles();
 
 /// Lets the user pick a folder (or uses [path]) and scans it.
 Future<void> addLibraryFolder(BuildContext context, WidgetRef ref, {String? path}) async {
@@ -35,7 +28,7 @@ Future<void> addLibraryFolder(BuildContext context, WidgetRef ref, {String? path
     messenger?.showSnackBar(
       SnackBar(
         content: Text(l10n.prismNeedsPermissionToReadYour),
-        action: SnackBarAction(label: l10n.settings, onPressed: openAppSettings),
+        action: SnackBarAction(label: l10n.settings, onPressed: AndroidPermissions.openSettings),
       ),
     );
     return;

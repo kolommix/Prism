@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
-import 'package:permission_handler/permission_handler.dart';
+import '../../../core/platform/android_permissions.dart';
 
 import '../domain/beat_detector.dart';
 import '../domain/spectrum.dart';
@@ -41,10 +41,10 @@ class LiveFft implements BandSource {
 
   bool get running => _running;
 
-  static Future<bool> hasPermission() async => Permission.microphone.isGranted;
+  static Future<bool> hasPermission() => AndroidPermissions.hasMicrophone();
 
   /// Asks for the permission; false = refused.
-  static Future<bool> requestPermission() async => (await Permission.microphone.request()).isGranted;
+  static Future<bool> requestPermission() => AndroidPermissions.requestMicrophone();
 
   /// False when there is no session yet or Android refused.
   Future<bool> start() async {

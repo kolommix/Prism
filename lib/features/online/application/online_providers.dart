@@ -54,6 +54,9 @@ final importJobProvider = StreamProvider.family<ImportJob?, int>(
   (ref, id) => ref.watch(importRepositoryProvider).watchJob(id),
 );
 
+/// Songs waiting for a yes or no, across all imports.
+final importReviewProvider = StreamProvider<List<ImportItem>>((ref) => ref.watch(importRepositoryProvider).watchReview());
+
 final importItemsProvider = StreamProvider.family<List<ImportItem>, int>(
   (ref, id) => ref.watch(importRepositoryProvider).watchItems(id),
 );
@@ -158,13 +161,38 @@ class ImportRunner extends Notifier<ImportRun?> {
       }
     }
 
-    await Future.wait([for (var i = 0; i < workers; i++) worker()]);
+    // Songs reach the playlist as they are found, not at the end.
+    var writing = false;
+    final writer = Timer.periodic(const Duration(seconds: 2), (_) async {
+      if (writing) return;
+      writing = true;
+      try {
+        await repo.writePlaylist(jobId, finish: false);
+      } on Object {
+        // The final write below reports nothing either: the job page shows state.
+      } finally {
+        writing = false;
+      }
+    });
+    try {
+      await Future.wait([for (var i = 0; i < workers; i++) worker()]);
+    } finally {
+      writer.cancel();
+    }
+    while (writing) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
     final left = (await repo.pendingItems(jobId)).length;
-    await repo.setState(
-      jobId,
-      left == 0 ? ImportJobState.review : ImportJobState.paused,
-      message: left == 0 ? null : (pauseMessage ?? l10n.pausedSongsLeft(left)),
-    );
+    final saved = await repo.writePlaylist(jobId, finish: false);
+    if (left == 0 && saved != null) {
+      await repo.writePlaylist(jobId);
+    } else {
+      await repo.setState(
+        jobId,
+        left == 0 ? ImportJobState.review : ImportJobState.paused,
+        message: left == 0 ? null : (pauseMessage ?? l10n.pausedSongsLeft(left)),
+      );
+    }
     state = ImportRun(jobId: jobId, done: done, total: total, running: false);
   }
 }

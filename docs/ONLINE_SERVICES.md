@@ -7,9 +7,13 @@ broken or not set up, everything else keeps working.
 
 | What | Needs | Status |
 |---|---|---|
-| Import from files: CSV (Exportify, TuneMyMusic, any title/artist columns), JSON, M3U/M3U8 | nothing | ✅ |
+| Import from files: CSV (Exportify, TuneMyMusic, any title/artist columns), JSON, M3U/M3U8, `.liner` | nothing | ✅ |
+| Import public Spotify links (the public embed page, about 100 songs at most) | nothing | ✅ best effort, *personal use* |
+| Import public YouTube / YouTube Music links (playlist page, oEmbed for one video) | nothing | ✅ best effort, *personal use* |
 | Import Deezer playlist/album links | nothing | ✅ |
-| Import Apple Music playlist/album links | switch on (reads the public web page) | ✅ best effort, *personal use* |
+| Import Apple Music playlist/album links (reads the public web page) | nothing | ✅ best effort, *personal use* |
+| Import public Yandex Music links | nothing, only where Yandex answers (HTTP 451 elsewhere) | ✅ best effort, *personal use* |
+| Import SoundCloud links | `soundcloud.clientId` (its pages hold almost no songs without a key) or a file | needs your key |
 | YouTube / YouTube Music: search, playlist links, **playback**, offline copies | switch on **YouTube extractor** | ✅ *personal use* |
 | YouTube search/playlists via the official API | `youtube.apiKey` | needs your key |
 | Your YouTube playlists + liked videos | Google OAuth client | needs your key |

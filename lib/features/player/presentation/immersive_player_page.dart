@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:window_manager/window_manager.dart';
 
 import '../../../core/motion/spring_button.dart';
 import '../../../core/theme/prism_theme_extensions.dart';
@@ -13,6 +12,7 @@ import '../../background/presentation/prism_background.dart';
 import '../../lyrics/presentation/lyrics_view.dart';
 import '../../visualizer/presentation/visualizer.dart';
 import '../application/player_providers.dart';
+import '../platform/windows_fullscreen.dart';
 import 'player_extras.dart';
 import 'widgets/track_text.dart';
 import 'widgets/transport_controls.dart';
@@ -54,13 +54,16 @@ class _ImmersivePlayerPageState extends ConsumerState<ImmersivePlayerPage> {
       } else {
         unawaited(_readFullScreen());
       }
+    } else if (Platform.isAndroid) {
+      // Hides the status and navigation bars; a swipe shows them for a moment.
+      unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
     }
   }
 
   /// The window may already be full screen when the page opens in-app.
   Future<void> _readFullScreen() async {
     try {
-      final on = await windowManager.isFullScreen();
+      final on = await WindowsFullScreen.isOn();
       if (mounted && on) setState(() => _fullScreen = true);
     } on Object {
       // No window manager (tests).
@@ -69,11 +72,11 @@ class _ImmersivePlayerPageState extends ConsumerState<ImmersivePlayerPage> {
 
   Future<void> _enterFullScreen() async {
     try {
-      if (await windowManager.isFullScreen()) {
+      if (await WindowsFullScreen.isOn()) {
         if (mounted) setState(() => _fullScreen = true);
         return;
       }
-      await windowManager.setFullScreen(true);
+      await WindowsFullScreen.set(true);
       _weEnteredFullScreen = true;
       if (mounted) setState(() => _fullScreen = true);
     } on Object {
@@ -84,7 +87,7 @@ class _ImmersivePlayerPageState extends ConsumerState<ImmersivePlayerPage> {
   Future<void> _toggleFullScreen() async {
     try {
       final next = !_fullScreen;
-      await windowManager.setFullScreen(next);
+      await WindowsFullScreen.set(next);
       _weEnteredFullScreen = next;
       if (mounted) setState(() => _fullScreen = next);
     } on Object {
@@ -97,7 +100,7 @@ class _ImmersivePlayerPageState extends ConsumerState<ImmersivePlayerPage> {
     _closing = true;
     if (_weEnteredFullScreen) {
       try {
-        await windowManager.setFullScreen(false);
+        await WindowsFullScreen.set(false);
       } on Object {
         // ignore
       }
@@ -108,7 +111,8 @@ class _ImmersivePlayerPageState extends ConsumerState<ImmersivePlayerPage> {
   @override
   void dispose() {
     // Left another way (e.g. a route change): still restore the window.
-    if (_weEnteredFullScreen && !_closing) unawaited(windowManager.setFullScreen(false).catchError((_) {}));
+    if (Platform.isAndroid) unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
+    if (_weEnteredFullScreen && !_closing) unawaited(WindowsFullScreen.set(false).catchError((_) {}));
     super.dispose();
   }
 

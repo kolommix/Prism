@@ -36,11 +36,6 @@ class PlaylistsPage extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         title: Text(l10n.playlists2, style: TextStyle(fontWeight: FontWeight.w600)),
         actions: [
-          IconButton(
-            tooltip: l10n.importPlaylists,
-            icon: const Icon(Icons.download_rounded),
-            onPressed: () => context.go(Routes.importPlaylists),
-          ),
           IconButton(tooltip: l10n.newPlaylist, icon: const Icon(Icons.add_rounded), onPressed: () => _create(context, ref)),
         ],
       ),

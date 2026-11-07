@@ -32,6 +32,10 @@ CloseApplications=yes
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Shortcuts:"
 
+[InstallDelete]
+; Older versions shipped a Windows plugin that started the location service (docs/PRIVACY.md).
+Type: files; Name: "{app}\permission_handler_windows_plugin.dll"
+
 [Files]
 Source: "{#BuildDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 

@@ -121,6 +121,10 @@ class ImportJobs extends Table {
   TextColumn get origin => text()();
   TextColumn get sourceUrl => text().nullable()();
 
+  /// Track ids this import last put in its playlist (JSON list), so a re-sync
+  /// leaves songs the user added by hand alone (schema v8).
+  TextColumn get writtenTrackIds => text().withDefault(const Constant('[]'))();
+
   /// Prism playlist created from this import (null until created).
   IntColumn get playlistId => integer().nullable().references(Playlists, #id, onDelete: KeyAction.setNull)();
 
@@ -186,6 +190,18 @@ class PlaylistEntries extends Table {
   IntColumn get position => integer()();
 }
 
+/// Songs removed from Prism on purpose: the file stays, scans skip it (schema v8).
+@DataClassName('RemovedTrackRow')
+class RemovedTracks extends Table {
+  TextColumn get uri => text()();
+  TextColumn get title => text().withDefault(const Constant(''))();
+  TextColumn get artist => text().withDefault(const Constant(''))();
+  DateTimeColumn get removedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {uri};
+}
+
 /// User themes (stored as the same JSON used for export/import).
 class SavedThemes extends Table {
   IntColumn get id => integer().autoIncrement()();
@@ -212,6 +228,7 @@ class SavedThemes extends Table {
     LyricsCache,
     ImportJobs,
     ImportItems,
+    RemovedTracks,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -221,7 +238,7 @@ class AppDatabase extends _$AppDatabase {
   static QueryExecutor _openDefault() => driftDatabase(name: 'prism');
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -285,6 +302,10 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(playlists, playlists.sortMode);
             // Stats and smart playlists ask for one song's plays in a time window.
             await customStatement('CREATE INDEX IF NOT EXISTS idx_plays_track_time ON plays (track_id, played_at)');
+          }
+          if (from < 8) {
+            await m.createTable(removedTracks);
+            await m.addColumn(importJobs, importJobs.writtenTrackIds);
           }
         },
         beforeOpen: (details) async {

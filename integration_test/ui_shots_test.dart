@@ -84,7 +84,7 @@ void main() {
       await shot('$tag-playlists');
       go(Routes.settings);
       await wait(200);
-      for (final s in [SettingsSection.library, SettingsSection.appearance, SettingsSection.windows, SettingsSection.together]) {
+      for (final s in [SettingsSection.library, SettingsSection.appearance, SettingsSection.windows, SettingsSection.together, SettingsSection.privacy]) {
         c().read(selectedSettingsSectionProvider.notifier).select(s);
         await shot('$tag-settings-${s.name}');
       }
@@ -127,6 +127,7 @@ void main() {
       ('eq', Routes.equalizer),
       ('online', Routes.onlineServices),
       ('import', Routes.importPlaylists),
+      ('import-review', Routes.importReview),
       ('duplicates', Routes.duplicates),
       ('metadata', firstSong == null ? Routes.duplicates : Routes.metadata([firstSong.id])),
     ]) {

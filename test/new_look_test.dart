@@ -336,7 +336,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       final calls = <String>[];
-      const channel = MethodChannel('window_manager');
+      const channel = MethodChannel('prism/window');
       tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (c) async {
         calls.add(c.method);
         return c.method == 'isFullScreen' ? false : null;

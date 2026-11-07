@@ -15,6 +15,7 @@ import '../domain/external_track.dart';
 import '../domain/online_error.dart';
 import '../services/link_only/link_modules.dart';
 import '../services/music_service_module.dart';
+import '../services/public_links/public_readers.dart';
 import '../services/soundcloud/soundcloud_module.dart';
 import '../services/spotify/spotify_module.dart';
 import '../services/youtube/data_api_backend.dart';
@@ -203,6 +204,20 @@ class OnlineHub {
   MusicServiceModule? module(OnlineService s) => _modules[s];
 
   Iterable<MusicServiceModule> get modules => _modules.values;
+
+  /// What opens a pasted link. A public link needs no key, login or switch: a
+  /// person pasting it is asking for it. Only reads names, plays nothing.
+  /// Throws [OnlineException] when the service can't be read at all yet.
+  MusicServiceModule linkReader(OnlineService s) => switch (s) {
+        OnlineService.spotify => SpotifyLinkReader(SpotifyPublicReader(http), _modules[s]),
+        OnlineService.youtube => _modules[s] ?? YoutubePublicReader(http),
+        OnlineService.deezer => _modules[s] ?? DeezerModule(http),
+        OnlineService.appleMusic => _modules[s] ?? AppleMusicModule(http),
+        OnlineService.yandex => _modules[s] ?? YandexModule(http, tokens),
+        // Its pages hold almost nothing without a key, and that key is not ours to take.
+        OnlineService.soundcloud => _modules[s] ?? (throw OnlineException(OnlineErrorKind.notConfigured, service: s)),
+        OnlineService.file => throw OnlineException(OnlineErrorKind.unsupported, service: s),
+      };
 
   /// Modules that can search *and* play (used by matching and search).
   List<MusicServiceModule> get playable => [

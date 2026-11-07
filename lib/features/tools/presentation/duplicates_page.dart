@@ -57,7 +57,7 @@ class DuplicatesPage extends ConsumerWidget {
                                   case 'play':
                                     await ref.read(playerControllerProvider).playTracks([t]);
                                   case 'remove':
-                                    await ref.read(backupServiceProvider).library.deleteByUris([t.uri]);
+                                    await ref.read(backupServiceProvider).library.removeFromLibrary([t]);
                                   case 'delete':
                                     if (await confirmDelete(context, l10n.theFile(t.uri))) await deleteTrackFile(ref, t);
                                 }

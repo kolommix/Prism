@@ -9,9 +9,11 @@ import '../../../core/widgets/artwork.dart';
 import '../../library/domain/track.dart';
 import '../../library/presentation/widgets/library_widgets.dart';
 import '../../player/presentation/widgets/waveform_seek_bar.dart';
+import '../application/import_flow.dart';
 import '../application/match_service.dart';
 import '../application/online_providers.dart';
 import '../data/import_repository.dart';
+import '../domain/import_intake.dart';
 import '../domain/matching.dart';
 import '../domain/online_error.dart';
 import 'import_page.dart';
@@ -46,23 +48,18 @@ class ImportJobPage extends ConsumerStatefulWidget {
 
 class _ImportJobPageState extends ConsumerState<ImportJobPage> {
   _Filter _filter = _Filter.all;
-  bool _saving = false;
+  bool _syncing = false;
 
-  Future<void> _save(ImportJob job) async {
-    setState(() => _saving = true);
+  Future<void> _resync(ImportJob job) async {
+    setState(() => _syncing = true);
     try {
-      final id = await ref.read(importRepositoryProvider).writePlaylist(job.id);
-      if (!mounted) return;
-      // The snackbar outlives this page: keep the router, not the context.
-      final router = GoRouter.maybeOf(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(job.playlistId == null ? l10n.playlistCreated : l10n.playlistUpdated),
-          action: SnackBarAction(label: l10n.open, onPressed: () => router?.go(Routes.playlist(id))),
-        ),
-      );
+      await ref.read(importFlowProvider).resync(job);
+    } on Object catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(importProblemFor(e).message)));
+      }
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) setState(() => _syncing = false);
     }
   }
 
@@ -100,6 +97,12 @@ class _ImportJobPageState extends ConsumerState<ImportJobPage> {
         backgroundColor: Colors.transparent,
         title: Text(job.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [
+          if (ImportFlow.canResync(job))
+            IconButton(
+              tooltip: l10n.importResync,
+              icon: const Icon(Icons.sync_rounded),
+              onPressed: _syncing || running ? null : () => _resync(job),
+            ),
           if (job.playlistId != null)
             IconButton(
               tooltip: l10n.openPlaylist,
@@ -150,16 +153,19 @@ class _ImportJobPageState extends ConsumerState<ImportJobPage> {
                       icon: const Icon(Icons.play_arrow_rounded),
                       label: Text(l10n.resumeMatchingLeft(job.pending)),
                     ),
-                  ] else
-                    FilledButton.icon(
-                      onPressed: _saving || job.matched == 0 ? null : () => _save(job),
-                      icon: Icon(job.playlistId == null ? Icons.playlist_add_rounded : Icons.sync_rounded),
-                      label: Text(
-                        job.playlistId == null
-                            ? l10n.createPlaylistN(job.matched)
-                            : l10n.updatePlaylistWithFixes,
+                  ] else ...[
+                    // Imports from before songs went in by themselves.
+                    if (job.playlistId == null && job.matched > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: FilledButton.icon(
+                          onPressed: () => ref.read(importRepositoryProvider).writePlaylist(job.id),
+                          icon: const Icon(Icons.playlist_add_rounded),
+                          label: Text(l10n.createPlaylistN(job.matched)),
+                        ),
                       ),
-                    ),
+                    if (unmatched > 0) FindTheRest(jobIds: [job.id]),
+                  ],
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 6,
@@ -252,7 +258,71 @@ class _ItemTile extends ConsumerWidget {
       onTap: t == null ? null : () => playTracksAnywhere(ref, [t]),
       trailing: item.status == ImportItemStatus.pending
           ? null
-          : TextButton(onPressed: () => showFixMatchSheet(context, ref, item), child: Text(l10n.fix)),
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (item.needsReview && item.status == ImportItemStatus.matched)
+                  IconButton(
+                    tooltip: l10n.importAccept,
+                    icon: const Icon(Icons.check_rounded),
+                    onPressed: () async {
+                      final repo = ref.read(importRepositoryProvider);
+                      await repo.acceptMatch(item.id);
+                      await repo.refreshPlaylistOfItem(item.id);
+                    },
+                  ),
+                TextButton(onPressed: () => showFixMatchSheet(context, ref, item), child: Text(l10n.fix)),
+              ],
+            ),
+    );
+  }
+}
+
+/// Nothing was found for some songs: search again, or first turn on a place to
+/// find them. YouTube stays off until someone says yes to its terms.
+class FindTheRest extends ConsumerWidget {
+  const FindTheRest({super.key, required this.jobIds});
+  final List<int> jobIds;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hub = ref.watch(onlineHubProvider);
+    final text = Theme.of(context).textTheme;
+    final noneOnline = hub.playable.isEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (noneOnline)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text(l10n.importOnlyLibrarySearched, style: text.bodySmall),
+          ),
+        FilledButton.tonalIcon(
+          icon: const Icon(Icons.travel_explore_rounded),
+          label: Text(noneOnline ? l10n.importFindOnYoutube : l10n.importSearchAgain),
+          onPressed: () async {
+            if (noneOnline) {
+              final ok = await showDialog<bool>(
+                context: context,
+                useRootNavigator: true,
+                builder: (c) => AlertDialog(
+                  title: Text(l10n.turnOnTheYoutubeExtractor),
+                  content: Text(l10n.thisPlaysYoutubeAudioInsidePrism),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(c, false), child: Text(l10n.cancel)),
+                    FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(l10n.iUnderstandTurnOn)),
+                  ],
+                ),
+              );
+              if (ok != true) return;
+              await hub.setFlags(hub.flags.copyWith(youtubeExtractor: true));
+            }
+            for (final id in jobIds) {
+              await ref.read(importFlowProvider).retryUnmatched(id);
+            }
+          },
+        ),
+      ],
     );
   }
 }
@@ -300,9 +370,9 @@ class _FixMatchSheetState extends ConsumerState<_FixMatchSheet> {
 
   Future<void> _choose(ScoredCandidate c) async {
     final t = await ref.read(remoteTrackStoreProvider).ensure(c.track);
-    await ref
-        .read(importRepositoryProvider)
-        .saveMatch(widget.item.id, trackId: t.id, confidence: c.score.value, source: 'manual');
+    final repo = ref.read(importRepositoryProvider);
+    await repo.saveMatch(widget.item.id, trackId: t.id, confidence: c.score.value, source: manualSource);
+    await repo.refreshPlaylistOfItem(widget.item.id);
     if (mounted) Navigator.pop(context);
   }
 
@@ -324,15 +394,9 @@ class _FixMatchSheetState extends ConsumerState<_FixMatchSheet> {
                 ),
                 trailing: TextButton(
                   onPressed: () async {
-                    await ref
-                        .read(importRepositoryProvider)
-                        .saveMatch(
-                          widget.item.id,
-                          trackId: null,
-                          confidence: 0,
-                          source: 'manual',
-                          note: l10n.markedAsNoMatch,
-                        );
+                    final repo = ref.read(importRepositoryProvider);
+                    await repo.rejectMatch(widget.item.id);
+                    await repo.refreshPlaylistOfItem(widget.item.id);
                     if (context.mounted) Navigator.pop(context);
                   },
                   child: Text(l10n.noMatch),

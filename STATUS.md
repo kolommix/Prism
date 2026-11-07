@@ -1,6 +1,15 @@
 # Prism - status (2026-11-07)
 
-## Latest: the big feature round, version 1.1.0 (2026-11-07)
+## Latest: privacy + easier import, version 1.2.0 (2026-11-07), not released yet
+- **Location report solved**: `permission_handler_windows` created a Windows `Geolocator` and subscribed to it in its constructor, at every launch, in every version so far. Nothing read or sent the result. Prism now links only `permission_handler_android`. Android never had a location permission. Friends keep seeing it until a new release is out.
+- Also: computer name no longer used as the default listen-together name, `RECEIVE_BOOT_COMPLETED` removed, Settings → Privacy, `docs/PRIVACY.md`, CI check (`tool/privacy_check.dart`, `.github/workflows/privacy.yml`, never run on GitHub yet).
+- **Full screen**: own code in `flutter_window.cpp` (`prism/window`), because window_manager keeps the title bar on a maximized window. `integration_test/fullscreen_test.dart` measures it.
+- **Remove from Prism**: track menu, file stays, undo, rescans skip it (schema v8 `removed_tracks`), Settings → Library → Removed songs.
+- **Import**: one screen, details in `docs/PROGRESS.md` block 15. `ImportFlow`, `import_intake.dart`, `public_readers.dart`, `import_review_page.dart`, `drop_bridge.cpp`, Android SEND filters (launchMode is now singleTask).
+- **Limits**: SoundCloud links need a key or a file, Spotify about 100 songs without a login, Yandex only where it answers. Without YouTube turned on, matching only searches the library; the job and Review pages offer to turn it on, with its terms.
+- **NOT verified**: drag and drop by hand, Android share target and immersive mode on a device, re-sync against a real changed playlist, the GitHub workflow.
+
+## Before that: the big feature round, version 1.1.0 (2026-11-07)
 Checklist with a status per block: `docs/PROGRESS.md`. Short version:
 - **Languages**: everything through ARB, English + Russian, 1050 keys, system language or manual switch, plurals, dates, numbers, tray menu.
 - **Editor rebuilt**: waveform pyramid cached on disk, minimap, snap (zero crossing, beats, silence), delete vs ripple delete,

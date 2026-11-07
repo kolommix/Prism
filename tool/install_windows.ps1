@@ -25,6 +25,9 @@ Get-Process prism -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "
 
 if ($Uninstall) {
     Remove-Item $startMenu, $desktop -ErrorAction SilentlyContinue
+    foreach ($key in 'liner', '.liner', 'Prism.SharedPlaylist') {
+        Remove-Item -Recurse -Force "HKCU:\Software\Classes\$key" -ErrorAction SilentlyContinue
+    }
     if (Test-Path $target) { Remove-Item -Recurse -Force $target }
     Write-Host 'Prism removed (your library data is kept).'
     return
@@ -52,6 +55,19 @@ foreach ($path in $links) {
     $s.Description = 'Prism music player'
     $s.Save()
 }
+# Same as the installer: liner:// links and .liner files open in Prism.
+$classes = 'HKCU:\Software\Classes'
+$command = '"' + $exe + '" "%1"'
+New-Item -Force "$classes\liner\shell\open\command" | Out-Null
+Set-ItemProperty "$classes\liner" -Name '(default)' -Value 'URL:Prism shared playlist'
+Set-ItemProperty "$classes\liner" -Name 'URL Protocol' -Value ''
+Set-ItemProperty "$classes\liner\shell\open\command" -Name '(default)' -Value $command
+New-Item -Force "$classes\.liner" | Out-Null
+Set-ItemProperty "$classes\.liner" -Name '(default)' -Value 'Prism.SharedPlaylist'
+New-Item -Force "$classes\Prism.SharedPlaylist\shell\open\command" | Out-Null
+Set-ItemProperty "$classes\Prism.SharedPlaylist" -Name '(default)' -Value 'Prism shared playlist'
+Set-ItemProperty "$classes\Prism.SharedPlaylist\shell\open\command" -Name '(default)' -Value $command
+
 Write-Host "Prism installed to $target"
 Write-Host 'Start it from the Start menu or the Desktop shortcut.'
 

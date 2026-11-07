@@ -11,6 +11,7 @@ import '../../features/library/presentation/library_page.dart';
 import '../../features/library/presentation/search_page.dart';
 import '../../features/online/presentation/import_job_page.dart';
 import '../../features/online/presentation/import_page.dart';
+import '../../features/online/presentation/import_review_page.dart';
 import '../../features/online/presentation/online_settings_page.dart';
 import '../../features/player/presentation/immersive_player_page.dart';
 import '../../features/player/presentation/now_playing_page.dart';
@@ -56,6 +57,7 @@ abstract final class Routes {
   static const onlineServices = '$settings/online';
   static const importPlaylists = '$playlists/import';
   static String importJob(int id) => '$playlists/import/$id';
+  static const importReview = '$playlists/import/review';
   static String editor(int trackId) => '/editor/$trackId';
 
   /// Song info fixer for one or more songs.
@@ -122,6 +124,8 @@ GoRouter buildRouter() => GoRouter(
                   path: 'import',
                   builder: (_, _) => const ImportPage(),
                   routes: [
+                    // Before ':job' so "review" isn't read as a job id.
+                    GoRoute(path: 'review', builder: (_, _) => const ImportReviewPage()),
                     GoRoute(
                       path: ':job',
                       builder: (_, s) => ImportJobPage(jobId: int.tryParse(s.pathParameters['job'] ?? '') ?? -1),

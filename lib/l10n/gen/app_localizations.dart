@@ -2205,7 +2205,7 @@ abstract class AppLocalizations {
   /// No description provided for @appleHasNoFreeApiSo.
   ///
   /// In en, this message translates to:
-  /// **'Apple has no free API, so Prism reads the song list from the public web page of a playlist or album. Best effort: it can stop working whenever Apple changes the page. Off by default.'**
+  /// **'Apple has no free API, so Prism reads the song list from the public web page of a playlist or album when you import a link. Best effort: it can stop working whenever Apple changes the page. For personal use.'**
   String get appleHasNoFreeApiSo;
 
   /// No description provided for @personalUseOnly.
@@ -2859,7 +2859,7 @@ abstract class AppLocalizations {
   /// No description provided for @fromSpotifyYoutubeSoundcloudDeezerApple.
   ///
   /// In en, this message translates to:
-  /// **'From Spotify, YouTube, SoundCloud, Deezer, Apple Music or a file'**
+  /// **'From a link or a file. Spotify, YouTube, SoundCloud, Yandex Music, Apple Music, Deezer'**
   String get fromSpotifyYoutubeSoundcloudDeezerApple;
 
   /// No description provided for @smartPlaylists.
@@ -5925,7 +5925,7 @@ abstract class AppLocalizations {
   /// No description provided for @yandexTermsText.
   ///
   /// In en, this message translates to:
-  /// **'Yandex has no public API. Prism reads song names through the private one its apps use (documented by the community project yandex-music-api), which can change or stop without warning and answers only from some countries. Off by default, for personal use. Prism never downloads or plays Yandex audio. If it stops working, import a CSV or JSON export instead.'**
+  /// **'Yandex has no public API. Prism reads song names through the private one its apps use (documented by the community project yandex-music-api), which can change or stop without warning and answers only from some countries. Public links are read when you import them; your account stays off until you turn it on. For personal use. Prism never downloads or plays Yandex audio. If it stops working, import a CSV or JSON export instead.'**
   String get yandexTermsText;
 
   /// No description provided for @regionBlocked.
@@ -6425,6 +6425,546 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open download page'**
   String get updateOpen;
+
+  /// No description provided for @privacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get privacy;
+
+  /// No description provided for @privacyNoLocationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prism does not read your location'**
+  String get privacyNoLocationTitle;
+
+  /// No description provided for @privacyNoLocationText.
+  ///
+  /// In en, this message translates to:
+  /// **'No analytics, no telemetry, no ads, no crash reports. No device id. Prism has no account or server of its own.'**
+  String get privacyNoLocationText;
+
+  /// No description provided for @privacyPermsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Android permissions'**
+  String get privacyPermsTitle;
+
+  /// No description provided for @privacyPermMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Music and audio files'**
+  String get privacyPermMusic;
+
+  /// No description provided for @privacyPermMusicWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads your music. Asked when you add a folder.'**
+  String get privacyPermMusicWhy;
+
+  /// No description provided for @privacyPermPlayback.
+  ///
+  /// In en, this message translates to:
+  /// **'Background playback'**
+  String get privacyPermPlayback;
+
+  /// No description provided for @privacyPermPlaybackWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps music playing with the screen off.'**
+  String get privacyPermPlaybackWhy;
+
+  /// No description provided for @privacyPermNotify.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get privacyPermNotify;
+
+  /// No description provided for @privacyPermNotifyWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the player notification with its buttons.'**
+  String get privacyPermNotifyWhy;
+
+  /// No description provided for @privacyPermInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet and network state'**
+  String get privacyPermInternet;
+
+  /// No description provided for @privacyPermInternetWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'For the requests listed below, and to know whether you are online.'**
+  String get privacyPermInternetWhy;
+
+  /// No description provided for @privacyPermMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone (live visualizer only)'**
+  String get privacyPermMic;
+
+  /// No description provided for @privacyPermMicWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Android files its visualizer under the microphone. Asked only when you turn it on. Prism records nothing.'**
+  String get privacyPermMicWhy;
+
+  /// No description provided for @privacyPermRingtone.
+  ///
+  /// In en, this message translates to:
+  /// **'Change system settings (ringtones only)'**
+  String get privacyPermRingtone;
+
+  /// No description provided for @privacyPermRingtoneWhy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets a ringtone made in the editor. You allow it on a system screen when you use it.'**
+  String get privacyPermRingtoneWhy;
+
+  /// No description provided for @privacyPermsFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Never asked for: location, Bluetooth, Wi-Fi details, phone state, contacts, accounts, advertising id.'**
+  String get privacyPermsFooter;
+
+  /// No description provided for @privacyWindowsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows'**
+  String get privacyWindowsTitle;
+
+  /// No description provided for @privacyWindowsText.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs no special permissions and does not use the Windows location API. Before version 1.2 a library started the Windows location service at launch, so Windows could list Prism as using location. Prism never read or sent the result, and that library is gone.'**
+  String get privacyWindowsText;
+
+  /// No description provided for @privacySentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What leaves this device'**
+  String get privacySentTitle;
+
+  /// No description provided for @privacySentFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'Every server sees your IP address, like with any internet request. Prism never looks up where that address is.'**
+  String get privacySentFooter;
+
+  /// No description provided for @privacySentUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Update check: GitHub'**
+  String get privacySentUpdates;
+
+  /// No description provided for @privacySentUpdatesWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends the app version. Automatic, can be turned off in About.'**
+  String get privacySentUpdatesWhat;
+
+  /// No description provided for @privacySentInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing info: Apple, Deezer'**
+  String get privacySentInfo;
+
+  /// No description provided for @privacySentInfoWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends song title and artist. Automatic, can be turned off in Library.'**
+  String get privacySentInfoWhat;
+
+  /// No description provided for @privacySentLyrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics: LRCLIB'**
+  String get privacySentLyrics;
+
+  /// No description provided for @privacySentLyricsWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends title, artist, album and length of the song you open lyrics for.'**
+  String get privacySentLyricsWhat;
+
+  /// No description provided for @privacySentFonts.
+  ///
+  /// In en, this message translates to:
+  /// **'Font: Google Fonts'**
+  String get privacySentFonts;
+
+  /// No description provided for @privacySentFontsWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads the app font once. Sends nothing about you or your music.'**
+  String get privacySentFontsWhat;
+
+  /// No description provided for @privacySentImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import: Spotify, YouTube, SoundCloud, Deezer, Apple Music, Yandex Music'**
+  String get privacySentImport;
+
+  /// No description provided for @privacySentImportWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'Only when you import: the link you gave. A copied link stays on this device until you tap Import.'**
+  String get privacySentImportWhat;
+
+  /// No description provided for @privacySentOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online songs: YouTube, SoundCloud'**
+  String get privacySentOnline;
+
+  /// No description provided for @privacySentOnlineWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'If you turn them on: song searches and the songs you play.'**
+  String get privacySentOnlineWhat;
+
+  /// No description provided for @privacySentFixer.
+  ///
+  /// In en, this message translates to:
+  /// **'Song info fixer: MusicBrainz, Cover Art Archive, Apple, AcoustID'**
+  String get privacySentFixer;
+
+  /// No description provided for @privacySentFixerWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'When you use it: title, artist, album. AcoustID only with your own key.'**
+  String get privacySentFixerWhat;
+
+  /// No description provided for @privacySentTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen together: public servers or your Wi-Fi'**
+  String get privacySentTogether;
+
+  /// No description provided for @privacySentTogetherWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'While in a session: what is playing and the name you typed. Without a name you appear as “Someone”, never your computer name.'**
+  String get privacySentTogetherWhat;
+
+  /// No description provided for @privacySentDiscord.
+  ///
+  /// In en, this message translates to:
+  /// **'Discord status'**
+  String get privacySentDiscord;
+
+  /// No description provided for @privacySentDiscordWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'If Discord runs on this computer: the song you play.'**
+  String get privacySentDiscordWhat;
+
+  /// No description provided for @privacyFullText.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the full privacy notes'**
+  String get privacyFullText;
+
+  /// No description provided for @privacyContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get privacyContinue;
+
+  /// No description provided for @vizLiveAskTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Android will ask about the microphone'**
+  String get vizLiveAskTitle;
+
+  /// No description provided for @vizLiveAskText.
+  ///
+  /// In en, this message translates to:
+  /// **'The live visualizer uses the Visualizer API, which Android files under the microphone. Prism only reads the sound it plays itself. It records nothing and sends nothing.'**
+  String get vizLiveAskText;
+
+  /// No description provided for @removeFromPrism.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from Prism'**
+  String get removeFromPrism;
+
+  /// No description provided for @removeFromPrismHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The file stays on your disk'**
+  String get removeFromPrismHint;
+
+  /// No description provided for @removeFromPrismAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove “{title}” from Prism?'**
+  String removeFromPrismAsk(String title);
+
+  /// No description provided for @removeFromPrismText.
+  ///
+  /// In en, this message translates to:
+  /// **'It leaves your library, playlists, favorites and stats in Prism. The file stays on your disk and rescans skip it. You can bring it back in Settings → Library.'**
+  String get removeFromPrismText;
+
+  /// No description provided for @removeFromPrismDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from Prism. The file is still on your disk.'**
+  String get removeFromPrismDone;
+
+  /// No description provided for @undoAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undoAction;
+
+  /// No description provided for @removedSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed songs'**
+  String get removedSongs;
+
+  /// No description provided for @removedSongsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing removed} one{{count} song hidden from Prism} other{{count} songs hidden from Prism}}'**
+  String removedSongsCount(int count);
+
+  /// No description provided for @removedSongsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Their files are still on your disk. Restore puts a song back in your library with a scan, which starts right away. Old stats and playlist places do not come back.'**
+  String get removedSongsHelp;
+
+  /// No description provided for @restoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreAction;
+
+  /// No description provided for @importSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Spotify, YouTube, SoundCloud, Yandex Music, Apple Music or Deezer. Public links work with no account.'**
+  String get importSupported;
+
+  /// No description provided for @importFileOrDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Or drop a file here: CSV, JSON, M3U, .liner'**
+  String get importFileOrDrop;
+
+  /// No description provided for @importFileHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Or pick a file: CSV, JSON, M3U, .liner'**
+  String get importFileHint;
+
+  /// No description provided for @importDropHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop to import'**
+  String get importDropHere;
+
+  /// No description provided for @importClipboardAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Import this playlist?'**
+  String get importClipboardAsk;
+
+  /// No description provided for @importRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent imports'**
+  String get importRecent;
+
+  /// No description provided for @importResync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync again'**
+  String get importResync;
+
+  /// No description provided for @importSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Syncing with the source'**
+  String get importSynced;
+
+  /// No description provided for @importAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Right song'**
+  String get importAccept;
+
+  /// No description provided for @importAcceptAll.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Accept {count}} other{Accept all {count}}}'**
+  String importAcceptAll(int count);
+
+  /// No description provided for @importReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get importReview;
+
+  /// No description provided for @importReviewEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to check. Songs Prism is unsure about will wait here.'**
+  String get importReviewEmpty;
+
+  /// No description provided for @importReviewCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} song to check} other{{count} songs to check}}'**
+  String importReviewCount(int count);
+
+  /// No description provided for @importReviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One tap to accept or fix'**
+  String get importReviewHint;
+
+  /// No description provided for @importAdvanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced: connect an account'**
+  String get importAdvanced;
+
+  /// No description provided for @importAdvancedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Only for private playlists, liked songs and long Spotify lists.'**
+  String get importAdvancedHint;
+
+  /// No description provided for @importNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get importNotConnected;
+
+  /// No description provided for @importOneScreenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'From a link or a file, on one screen'**
+  String get importOneScreenHint;
+
+  /// No description provided for @importOnlyLibrarySearched.
+  ///
+  /// In en, this message translates to:
+  /// **'Only your library was searched. Prism can look for the rest on YouTube if you turn it on.'**
+  String get importOnlyLibrarySearched;
+
+  /// No description provided for @importFindOnYoutube.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the rest on YouTube'**
+  String get importFindOnYoutube;
+
+  /// No description provided for @importSearchAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Search again for songs not found'**
+  String get importSearchAgain;
+
+  /// No description provided for @importStepsSpotify.
+  ///
+  /// In en, this message translates to:
+  /// **'For your private playlists and liked songs. Public links already work.\n1. Open developer.spotify.com/dashboard and create an app with the Web API.\n2. Add the redirect URI http://127.0.0.1:43821/callback.\n3. Copy the Client ID.\n4. In Online services tap Create file, paste it as spotify.clientId, tap Reload, then Connect.'**
+  String get importStepsSpotify;
+
+  /// No description provided for @importStepsYoutube.
+  ///
+  /// In en, this message translates to:
+  /// **'For your private playlists and liked videos. Public links already work.\n1. Open console.cloud.google.com and make a project with the YouTube Data API v3.\n2. Add yourself as a test user on the OAuth consent screen.\n3. Create an OAuth client of type Desktop app.\n4. In Online services tap Create file, paste youtube.oauthClientId and youtube.oauthClientSecret, tap Reload, then Connect.'**
+  String get importStepsYoutube;
+
+  /// No description provided for @importStepsSoundcloud.
+  ///
+  /// In en, this message translates to:
+  /// **'SoundCloud links need this, or export the playlist to a file.\n1. Open soundcloud.com/you/apps and register an app. SoundCloud may need to approve it.\n2. Add the redirect URI http://127.0.0.1:43822/callback.\n3. In Online services tap Create file, paste soundcloud.clientId and soundcloud.clientSecret, tap Reload.'**
+  String get importStepsSoundcloud;
+
+  /// No description provided for @importStepsYandex.
+  ///
+  /// In en, this message translates to:
+  /// **'For your own playlists and liked songs. Public links already work where Yandex answers.\n1. Open Online services and turn on Yandex Music.\n2. Tap Connect and follow the steps to get your token.\n3. Paste the token. It stays in the secure storage of this device.'**
+  String get importStepsYandex;
+
+  /// No description provided for @importErrorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'You seem to be offline. Check your connection and try again.'**
+  String get importErrorOffline;
+
+  /// No description provided for @importErrorSlowDown.
+  ///
+  /// In en, this message translates to:
+  /// **'{service} is asking to slow down. Wait a few minutes and try again.'**
+  String importErrorSlowDown(String service);
+
+  /// No description provided for @importErrorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'{service} has problems right now. Try again later.'**
+  String importErrorServer(String service);
+
+  /// No description provided for @importErrorPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'This playlist is private or was deleted. Make it public, or export it to a file and import that.'**
+  String get importErrorPrivate;
+
+  /// No description provided for @importErrorRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'{service} does not answer from your country or network. Export the playlist to a CSV or JSON file and import that.'**
+  String importErrorRegion(String service);
+
+  /// No description provided for @importErrorAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'This list is private, so {service} needs your account. Connect it, or export a file.'**
+  String importErrorAccount(String service);
+
+  /// No description provided for @importErrorNeedsKey.
+  ///
+  /// In en, this message translates to:
+  /// **'{service} links need a free key, or export the playlist to a file.'**
+  String importErrorNeedsKey(String service);
+
+  /// No description provided for @importErrorCantRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read this {service} page. It may have changed. Export the playlist to a file and import that.'**
+  String importErrorCantRead(String service);
+
+  /// No description provided for @importErrorFile.
+  ///
+  /// In en, this message translates to:
+  /// **'{problem} Prism reads CSV, JSON, M3U and .liner files.'**
+  String importErrorFile(String problem);
+
+  /// No description provided for @importErrorFileGone.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is no longer at {path}. Pick it again.'**
+  String importErrorFileGone(String path);
+
+  /// No description provided for @importErrorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while reading this. Try exporting the playlist to a file.'**
+  String get importErrorUnknown;
+
+  /// No description provided for @importSkipNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Skip {count} not found} other{Skip {count} not found}}'**
+  String importSkipNotFound(int count);
 }
 
 class _AppLocalizationsDelegate

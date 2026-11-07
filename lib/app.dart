@@ -21,8 +21,8 @@ import 'features/player/platform/windows_desktop_integration.dart';
 import 'features/settings/application/settings_controller.dart';
 import 'l10n/l10n.dart';
 
+import 'features/online/domain/import_intake.dart';
 import 'features/playlists/application/share_inbox.dart';
-import 'features/playlists/domain/playlist_share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'core/providers.dart';
 import 'features/update/update_check.dart';
@@ -56,7 +56,7 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      DeepLinks(_onSharedText).start(widget.startArgs);
+      DeepLinks(_onImportRequest).start(widget.startArgs);
       _quietUpdateCheck();
     });
     // A streamed song that can't play (offline, removed video, service off)
@@ -87,15 +87,12 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     ));
   }
 
-  /// A `liner://` link or `.liner` file from outside: to the import screen.
-  void _onSharedText(String text) {
+  /// A link or file from outside (share sheet, drag and drop, `liner://`): to the
+  /// import screen, which takes it from the inbox and shows any problem.
+  void _onImportRequest(ImportRequest request) {
     if (!mounted) return;
-    try {
-      ref.read(shareInboxProvider.notifier).put(decodeSharedPlaylist(text));
-      _router.go(Routes.importPlaylists);
-    } on ShareFormatException catch (e) {
-      _messenger.currentState?.showSnackBar(SnackBar(content: Text(e.message)));
-    }
+    ref.read(importInboxProvider.notifier).put(request);
+    _router.go(Routes.importPlaylists);
   }
 
   @override
@@ -189,7 +186,12 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
                   input.pointer = e.position;
                   input.burst(e.position, strength: 0.5);
                 },
-                child: BackdropGroup(child: child ?? const SizedBox.shrink()),
+                child: BackdropGroup(
+                  child: Stack(
+                    fit: StackFit.passthrough,
+                    children: [child ?? const SizedBox.shrink(), const DropOverlay()],
+                  ),
+                ),
               ),
             ),
     );

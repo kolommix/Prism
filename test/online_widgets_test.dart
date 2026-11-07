@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prism/core/db/app_database.dart';
@@ -22,6 +23,7 @@ import 'package:prism/features/online/data/stream_cache.dart';
 import 'package:prism/features/online/domain/external_track.dart';
 import 'package:prism/features/online/presentation/import_job_page.dart';
 import 'package:prism/features/online/presentation/import_page.dart';
+import 'package:prism/features/online/presentation/import_review_page.dart';
 import 'package:prism/features/online/presentation/online_settings_page.dart';
 import 'package:prism/features/player/application/player_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -115,60 +117,143 @@ void main() {
     await finish(tester);
   });
 
-  testWidgets('import box: recognises a pasted link and offers set-up for off services', (tester) async {
+  /// What the system clipboard holds in these tests.
+  void clipboard(WidgetTester tester, String? text) {
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (c) async {
+      if (c.method == 'Clipboard.getData') return text == null ? null : {'text': text};
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+  }
+
+  testWidgets('import box: works out the service, public links need no set-up', (tester) async {
     bigScreen(tester);
+    clipboard(tester, null);
     await tester.pumpWidget(app(const ImportPage()));
     await tester.pumpAndSettle();
     final import = find.widgetWithText(FilledButton, 'Import');
     expect(tester.widget<FilledButton>(import).onPressed, isNull, reason: 'nothing pasted yet');
+    expect(find.textContaining('Public links work with no account'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).first, 'hello');
     await tester.pump();
     expect(find.text('Not a link Prism can read'), findsOneWidget);
+    expect(tester.widget<FilledButton>(import).onPressed, isNull);
 
-    await tester.enterText(find.byType(TextField).first, 'https://www.deezer.com/playlist/908622995');
-    await tester.pump();
-    expect(find.text('Deezer playlist'), findsOneWidget, reason: 'Deezer works without keys');
-    expect(tester.widget<FilledButton>(import).onPressed, isNotNull);
-
-    // Apple Music is off by default: still clickable, the hint says why.
-    await tester.enterText(find.byType(TextField).first, 'https://music.apple.com/us/album/x/1440857781');
-    await tester.pump();
-    expect(find.textContaining('needs to be set up first'), findsOneWidget);
+    for (final (url, label) in [
+      ('https://www.deezer.com/playlist/908622995', 'Deezer playlist'),
+      ('https://music.apple.com/us/album/x/1440857781', 'Apple Music album'),
+      ('https://open.spotify.com/playlist/37i9', 'Spotify playlist'),
+      ('https://www.youtube.com/playlist?list=PL1', 'YouTube playlist'),
+      ('https://music.yandex.ru/users/me/playlists/1', 'Yandex Music playlist'),
+    ]) {
+      await tester.enterText(find.byType(TextField).first, 'Listen: $url');
+      await tester.pump();
+      expect(find.text(label), findsOneWidget, reason: url);
+      expect(tester.widget<FilledButton>(import).onPressed, isNotNull, reason: url);
+    }
     await finish(tester);
   });
 
-  testWidgets('import preview: duplicates, match button, creates a job', (tester) async {
+  testWidgets('import box: a SoundCloud link without a key says what to do', (tester) async {
     bigScreen(tester);
-    final list = ImportedList(
-      name: 'Road trip',
-      origin: OnlineService.file,
-      sourceUrl: '/x.csv#Road trip',
-      tracks: const [
-        ExternalTrack(service: OnlineService.file, title: 'One', artists: ['A'], durationMs: 200000),
-        ExternalTrack(service: OnlineService.file, title: 'Two', artists: ['A']),
-        ExternalTrack(service: OnlineService.file, title: 'One (Remastered)', artists: ['A'], durationMs: 201000),
-      ],
-    );
-    await tester.pumpWidget(app(ImportPreviewPage(lists: [list])));
+    clipboard(tester, null);
+    await tester.pumpWidget(app(const ImportPage()));
     await tester.pumpAndSettle();
-    expect(find.text('Skip 1 duplicate'), findsOneWidget);
-    expect(find.text('Match 3 songs'), findsOneWidget);
-    expect(find.textContaining('duplicate of #1'), findsOneWidget);
-    expect(find.text('Only your library will be searched'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, 'https://soundcloud.com/a/sets/b');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Import'));
+    await settleDb(tester);
+    expect(find.text('Set up'), findsOneWidget);
+    expect(find.textContaining('links need a free key'), findsWidgets);
     await finish(tester);
   });
 
-  testWidgets('import job: confidence, filters, fix sheet, create playlist', (tester) async {
+  testWidgets('clipboard: a copied playlist is offered, one song is not, no is remembered', (tester) async {
+    bigScreen(tester);
+    clipboard(tester, 'https://open.spotify.com/playlist/clip1?si=x');
+    await tester.pumpWidget(app(const ImportPage()));
+    await settleDb(tester);
+    expect(find.text('Import this playlist?'), findsOneWidget);
+    expect(find.text('Spotify playlist'), findsOneWidget);
+    expect(find.byType(TextField), findsOneWidget);
+    expect(tester.widget<TextField>(find.byType(TextField)).controller!.text, isEmpty, reason: 'offered, not pasted');
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+    expect(find.text('Import this playlist?'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(app(const ImportPage()));
+    await settleDb(tester);
+    expect(find.text('Import this playlist?'), findsNothing, reason: 'said no already');
+    await tester.pumpWidget(const SizedBox());
+
+    clipboard(tester, 'https://youtu.be/one-song');
+    await tester.pumpWidget(app(const ImportPage()));
+    await settleDb(tester);
+    expect(find.text('Import this playlist?'), findsNothing);
+    await finish(tester);
+  });
+
+  testWidgets('file: starts right away, no preview, recent imports list it', (tester) async {
+    bigScreen(tester);
+    clipboard(tester, null);
+    final repo = ImportRepository(db);
+    await tester.runAsync(
+      () => repo.createJob(
+        const ImportedList(
+          name: 'Earlier',
+          origin: OnlineService.spotify,
+          sourceUrl: 'https://open.spotify.com/playlist/9',
+          tracks: [ExternalTrack(service: OnlineService.spotify, title: 'One', artists: ['A'])],
+        ),
+      ),
+    );
+    await tester.pumpWidget(app(const ImportPage()));
+    await settleDb(tester);
+    expect(find.text('Recent imports'), findsOneWidget);
+    expect(find.text('Earlier'), findsOneWidget);
+    expect(find.byTooltip('Sync again'), findsOneWidget);
+    await finish(tester);
+  });
+
+  testWidgets('review: one tap to accept, the list empties, the playlist follows', (tester) async {
     bigScreen(tester);
     final repo = ImportRepository(db);
+    final id = (await tester.runAsync(() => _seedJob(db)))!;
+    await tester.pumpWidget(app(const ImportReviewPage()));
+    await settleDb(tester);
+    expect(find.textContaining('Unsure'), findsOneWidget);
+    expect(find.textContaining('Missing'), findsOneWidget);
+    expect(find.textContaining('Good – A'), findsNothing, reason: 'sure matches are not asked about');
+    expect(find.text('Accept 1'), findsOneWidget);
+    expect(find.text('Skip 1 not found'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Right song'));
+    await settleDb(tester);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Unsure'), findsNothing);
+    final job = (await tester.runAsync(() => repo.watchJob(id).first))!;
+    expect(job.playlistId, isNotNull, reason: 'decisions reach the playlist right away');
+
+    await tester.tap(find.byTooltip('No match'));
+    await settleDb(tester);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Nothing to check'), findsOneWidget);
+    await finish(tester);
+  });
+
+  testWidgets('import job: confidence, filters, fix sheet, no save step', (tester) async {
+    bigScreen(tester);
     final id = (await tester.runAsync(() => _seedJob(db)))!;
     await tester.pumpWidget(app(ImportJobPage(jobId: id)));
     await tester.pumpAndSettle();
     expect(find.textContaining('High 93%'), findsOneWidget);
     expect(find.textContaining('Low – check it 55%'), findsOneWidget);
     expect(find.text('No match'), findsOneWidget);
+    // Imports from before songs went in by themselves can still be saved.
     expect(find.text('Create playlist (2 songs)'), findsOneWidget);
+    expect(find.text('Find the rest on YouTube'), findsOneWidget);
 
     await tester.tap(find.text('Check 2'));
     await tester.pumpAndSettle();
@@ -183,16 +268,7 @@ void main() {
     await tester.tap(find.text('No match').last);
     await settleDb(tester);
     await tester.pumpAndSettle();
-
-    await tester.tap(find.text('All 3'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Create playlist (1 song)'));
-    await settleDb(tester);
-    await tester.pumpAndSettle();
-    final job = (await tester.runAsync(() => repo.watchJob(id).first))!;
-    expect(job.playlistId, isNotNull);
-    expect(job.state, ImportJobState.done);
-    expect(find.text('Update playlist with fixes'), findsOneWidget);
+    expect(find.text('Unsure – A'), findsNothing, reason: 'decided');
     await finish(tester);
   });
 

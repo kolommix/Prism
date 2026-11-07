@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +22,33 @@ import '../../../../l10n/l10n.dart';
 void _toast(BuildContext context, String msg) =>
     ScaffoldMessenger.maybeOf(context)
         ?.showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 2)));
+
+/// Asks, removes the song from Prism (never the file), offers undo.
+Future<void> removeTrackFromPrism(BuildContext context, WidgetRef ref, Track track) async {
+  final repo = ref.read(libraryRepositoryProvider);
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final ok = await showDialog<bool>(
+    context: context,
+    useRootNavigator: true,
+    builder: (context) => AlertDialog(
+      title: Text(l10n.removeFromPrismAsk(track.title)),
+      content: Text(l10n.removeFromPrismText),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.cancel)),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.removeFromPrism)),
+      ],
+    ),
+  );
+  if (ok != true) return;
+  final undo = await repo.removeFromLibrary([track]);
+  messenger?.showSnackBar(
+    SnackBar(
+      content: Text(l10n.removeFromPrismDone),
+      duration: const Duration(seconds: 8),
+      action: SnackBarAction(label: l10n.undoAction, onPressed: undo),
+    ),
+  );
+}
 
 /// Bottom sheet with everything you can do with a song.
 ///
@@ -181,6 +210,16 @@ Future<void> showTrackActions(
                   onTap: () {
                     close();
                     ref.read(playlistRepositoryProvider).removeEntry(playlistId, playlistEntryId);
+                  },
+                ),
+              if (isLocal)
+                ListTile(
+                  leading: const Icon(Icons.remove_circle_outline_rounded),
+                  title: Text(l10n.removeFromPrism),
+                  subtitle: Text(l10n.removeFromPrismHint),
+                  onTap: () {
+                    close();
+                    unawaited(removeTrackFromPrism(context, ref, t));
                   },
                 ),
               if (isLocal && track.album.isNotEmpty)

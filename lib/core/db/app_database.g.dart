@@ -4130,6 +4130,18 @@ class $ImportJobsTable extends ImportJobs
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _writtenTrackIdsMeta = const VerificationMeta(
+    'writtenTrackIds',
+  );
+  @override
+  late final GeneratedColumn<String> writtenTrackIds = GeneratedColumn<String>(
+    'written_track_ids',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
   static const VerificationMeta _playlistIdMeta = const VerificationMeta(
     'playlistId',
   );
@@ -4195,6 +4207,7 @@ class $ImportJobsTable extends ImportJobs
     name,
     origin,
     sourceUrl,
+    writtenTrackIds,
     playlistId,
     state,
     message,
@@ -4236,6 +4249,15 @@ class $ImportJobsTable extends ImportJobs
       context.handle(
         _sourceUrlMeta,
         sourceUrl.isAcceptableOrUnknown(data['source_url']!, _sourceUrlMeta),
+      );
+    }
+    if (data.containsKey('written_track_ids')) {
+      context.handle(
+        _writtenTrackIdsMeta,
+        writtenTrackIds.isAcceptableOrUnknown(
+          data['written_track_ids']!,
+          _writtenTrackIdsMeta,
+        ),
       );
     }
     if (data.containsKey('playlist_id')) {
@@ -4293,6 +4315,10 @@ class $ImportJobsTable extends ImportJobs
         DriftSqlType.string,
         data['${effectivePrefix}source_url'],
       ),
+      writtenTrackIds: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}written_track_ids'],
+      )!,
       playlistId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}playlist_id'],
@@ -4330,6 +4356,10 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
   final String origin;
   final String? sourceUrl;
 
+  /// Track ids this import last put in its playlist (JSON list), so a re-sync
+  /// leaves songs the user added by hand alone (schema v8).
+  final String writtenTrackIds;
+
   /// Prism playlist created from this import (null until created).
   final int? playlistId;
 
@@ -4345,6 +4375,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
     required this.name,
     required this.origin,
     this.sourceUrl,
+    required this.writtenTrackIds,
     this.playlistId,
     required this.state,
     this.message,
@@ -4360,6 +4391,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
     if (!nullToAbsent || sourceUrl != null) {
       map['source_url'] = Variable<String>(sourceUrl);
     }
+    map['written_track_ids'] = Variable<String>(writtenTrackIds);
     if (!nullToAbsent || playlistId != null) {
       map['playlist_id'] = Variable<int>(playlistId);
     }
@@ -4380,6 +4412,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
       sourceUrl: sourceUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(sourceUrl),
+      writtenTrackIds: Value(writtenTrackIds),
       playlistId: playlistId == null && nullToAbsent
           ? const Value.absent()
           : Value(playlistId),
@@ -4402,6 +4435,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
       name: serializer.fromJson<String>(json['name']),
       origin: serializer.fromJson<String>(json['origin']),
       sourceUrl: serializer.fromJson<String?>(json['sourceUrl']),
+      writtenTrackIds: serializer.fromJson<String>(json['writtenTrackIds']),
       playlistId: serializer.fromJson<int?>(json['playlistId']),
       state: serializer.fromJson<String>(json['state']),
       message: serializer.fromJson<String?>(json['message']),
@@ -4417,6 +4451,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
       'name': serializer.toJson<String>(name),
       'origin': serializer.toJson<String>(origin),
       'sourceUrl': serializer.toJson<String?>(sourceUrl),
+      'writtenTrackIds': serializer.toJson<String>(writtenTrackIds),
       'playlistId': serializer.toJson<int?>(playlistId),
       'state': serializer.toJson<String>(state),
       'message': serializer.toJson<String?>(message),
@@ -4430,6 +4465,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
     String? name,
     String? origin,
     Value<String?> sourceUrl = const Value.absent(),
+    String? writtenTrackIds,
     Value<int?> playlistId = const Value.absent(),
     String? state,
     Value<String?> message = const Value.absent(),
@@ -4440,6 +4476,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
     name: name ?? this.name,
     origin: origin ?? this.origin,
     sourceUrl: sourceUrl.present ? sourceUrl.value : this.sourceUrl,
+    writtenTrackIds: writtenTrackIds ?? this.writtenTrackIds,
     playlistId: playlistId.present ? playlistId.value : this.playlistId,
     state: state ?? this.state,
     message: message.present ? message.value : this.message,
@@ -4452,6 +4489,9 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
       name: data.name.present ? data.name.value : this.name,
       origin: data.origin.present ? data.origin.value : this.origin,
       sourceUrl: data.sourceUrl.present ? data.sourceUrl.value : this.sourceUrl,
+      writtenTrackIds: data.writtenTrackIds.present
+          ? data.writtenTrackIds.value
+          : this.writtenTrackIds,
       playlistId: data.playlistId.present
           ? data.playlistId.value
           : this.playlistId,
@@ -4469,6 +4509,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
           ..write('name: $name, ')
           ..write('origin: $origin, ')
           ..write('sourceUrl: $sourceUrl, ')
+          ..write('writtenTrackIds: $writtenTrackIds, ')
           ..write('playlistId: $playlistId, ')
           ..write('state: $state, ')
           ..write('message: $message, ')
@@ -4484,6 +4525,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
     name,
     origin,
     sourceUrl,
+    writtenTrackIds,
     playlistId,
     state,
     message,
@@ -4498,6 +4540,7 @@ class ImportJobRow extends DataClass implements Insertable<ImportJobRow> {
           other.name == this.name &&
           other.origin == this.origin &&
           other.sourceUrl == this.sourceUrl &&
+          other.writtenTrackIds == this.writtenTrackIds &&
           other.playlistId == this.playlistId &&
           other.state == this.state &&
           other.message == this.message &&
@@ -4510,6 +4553,7 @@ class ImportJobsCompanion extends UpdateCompanion<ImportJobRow> {
   final Value<String> name;
   final Value<String> origin;
   final Value<String?> sourceUrl;
+  final Value<String> writtenTrackIds;
   final Value<int?> playlistId;
   final Value<String> state;
   final Value<String?> message;
@@ -4520,6 +4564,7 @@ class ImportJobsCompanion extends UpdateCompanion<ImportJobRow> {
     this.name = const Value.absent(),
     this.origin = const Value.absent(),
     this.sourceUrl = const Value.absent(),
+    this.writtenTrackIds = const Value.absent(),
     this.playlistId = const Value.absent(),
     this.state = const Value.absent(),
     this.message = const Value.absent(),
@@ -4531,6 +4576,7 @@ class ImportJobsCompanion extends UpdateCompanion<ImportJobRow> {
     required String name,
     required String origin,
     this.sourceUrl = const Value.absent(),
+    this.writtenTrackIds = const Value.absent(),
     this.playlistId = const Value.absent(),
     this.state = const Value.absent(),
     this.message = const Value.absent(),
@@ -4543,6 +4589,7 @@ class ImportJobsCompanion extends UpdateCompanion<ImportJobRow> {
     Expression<String>? name,
     Expression<String>? origin,
     Expression<String>? sourceUrl,
+    Expression<String>? writtenTrackIds,
     Expression<int>? playlistId,
     Expression<String>? state,
     Expression<String>? message,
@@ -4554,6 +4601,7 @@ class ImportJobsCompanion extends UpdateCompanion<ImportJobRow> {
       if (name != null) 'name': name,
       if (origin != null) 'origin': origin,
       if (sourceUrl != null) 'source_url': sourceUrl,
+      if (writtenTrackIds != null) 'written_track_ids': writtenTrackIds,
       if (playlistId != null) 'playlist_id': playlistId,
       if (state != null) 'state': state,
       if (message != null) 'message': message,
@@ -4567,6 +4615,7 @@ class ImportJobsCompanion extends UpdateCompanion<ImportJobRow> {
     Value<String>? name,
     Value<String>? origin,
     Value<String?>? sourceUrl,
+    Value<String>? writtenTrackIds,
     Value<int?>? playlistId,
     Value<String>? state,
     Value<String?>? message,
@@ -4578,6 +4627,7 @@ class ImportJobsCompanion extends UpdateCompanion<ImportJobRow> {
       name: name ?? this.name,
       origin: origin ?? this.origin,
       sourceUrl: sourceUrl ?? this.sourceUrl,
+      writtenTrackIds: writtenTrackIds ?? this.writtenTrackIds,
       playlistId: playlistId ?? this.playlistId,
       state: state ?? this.state,
       message: message ?? this.message,
@@ -4600,6 +4650,9 @@ class ImportJobsCompanion extends UpdateCompanion<ImportJobRow> {
     }
     if (sourceUrl.present) {
       map['source_url'] = Variable<String>(sourceUrl.value);
+    }
+    if (writtenTrackIds.present) {
+      map['written_track_ids'] = Variable<String>(writtenTrackIds.value);
     }
     if (playlistId.present) {
       map['playlist_id'] = Variable<int>(playlistId.value);
@@ -4626,6 +4679,7 @@ class ImportJobsCompanion extends UpdateCompanion<ImportJobRow> {
           ..write('name: $name, ')
           ..write('origin: $origin, ')
           ..write('sourceUrl: $sourceUrl, ')
+          ..write('writtenTrackIds: $writtenTrackIds, ')
           ..write('playlistId: $playlistId, ')
           ..write('state: $state, ')
           ..write('message: $message, ')
@@ -5250,6 +5304,309 @@ class ImportItemsCompanion extends UpdateCompanion<ImportItemRow> {
   }
 }
 
+class $RemovedTracksTable extends RemovedTracks
+    with TableInfo<$RemovedTracksTable, RemovedTrackRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RemovedTracksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uriMeta = const VerificationMeta('uri');
+  @override
+  late final GeneratedColumn<String> uri = GeneratedColumn<String>(
+    'uri',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _artistMeta = const VerificationMeta('artist');
+  @override
+  late final GeneratedColumn<String> artist = GeneratedColumn<String>(
+    'artist',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _removedAtMeta = const VerificationMeta(
+    'removedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> removedAt = GeneratedColumn<DateTime>(
+    'removed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [uri, title, artist, removedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'removed_tracks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RemovedTrackRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uri')) {
+      context.handle(
+        _uriMeta,
+        uri.isAcceptableOrUnknown(data['uri']!, _uriMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uriMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('artist')) {
+      context.handle(
+        _artistMeta,
+        artist.isAcceptableOrUnknown(data['artist']!, _artistMeta),
+      );
+    }
+    if (data.containsKey('removed_at')) {
+      context.handle(
+        _removedAtMeta,
+        removedAt.isAcceptableOrUnknown(data['removed_at']!, _removedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uri};
+  @override
+  RemovedTrackRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RemovedTrackRow(
+      uri: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uri'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      artist: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}artist'],
+      )!,
+      removedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}removed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RemovedTracksTable createAlias(String alias) {
+    return $RemovedTracksTable(attachedDatabase, alias);
+  }
+}
+
+class RemovedTrackRow extends DataClass implements Insertable<RemovedTrackRow> {
+  final String uri;
+  final String title;
+  final String artist;
+  final DateTime removedAt;
+  const RemovedTrackRow({
+    required this.uri,
+    required this.title,
+    required this.artist,
+    required this.removedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uri'] = Variable<String>(uri);
+    map['title'] = Variable<String>(title);
+    map['artist'] = Variable<String>(artist);
+    map['removed_at'] = Variable<DateTime>(removedAt);
+    return map;
+  }
+
+  RemovedTracksCompanion toCompanion(bool nullToAbsent) {
+    return RemovedTracksCompanion(
+      uri: Value(uri),
+      title: Value(title),
+      artist: Value(artist),
+      removedAt: Value(removedAt),
+    );
+  }
+
+  factory RemovedTrackRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RemovedTrackRow(
+      uri: serializer.fromJson<String>(json['uri']),
+      title: serializer.fromJson<String>(json['title']),
+      artist: serializer.fromJson<String>(json['artist']),
+      removedAt: serializer.fromJson<DateTime>(json['removedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uri': serializer.toJson<String>(uri),
+      'title': serializer.toJson<String>(title),
+      'artist': serializer.toJson<String>(artist),
+      'removedAt': serializer.toJson<DateTime>(removedAt),
+    };
+  }
+
+  RemovedTrackRow copyWith({
+    String? uri,
+    String? title,
+    String? artist,
+    DateTime? removedAt,
+  }) => RemovedTrackRow(
+    uri: uri ?? this.uri,
+    title: title ?? this.title,
+    artist: artist ?? this.artist,
+    removedAt: removedAt ?? this.removedAt,
+  );
+  RemovedTrackRow copyWithCompanion(RemovedTracksCompanion data) {
+    return RemovedTrackRow(
+      uri: data.uri.present ? data.uri.value : this.uri,
+      title: data.title.present ? data.title.value : this.title,
+      artist: data.artist.present ? data.artist.value : this.artist,
+      removedAt: data.removedAt.present ? data.removedAt.value : this.removedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RemovedTrackRow(')
+          ..write('uri: $uri, ')
+          ..write('title: $title, ')
+          ..write('artist: $artist, ')
+          ..write('removedAt: $removedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(uri, title, artist, removedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RemovedTrackRow &&
+          other.uri == this.uri &&
+          other.title == this.title &&
+          other.artist == this.artist &&
+          other.removedAt == this.removedAt);
+}
+
+class RemovedTracksCompanion extends UpdateCompanion<RemovedTrackRow> {
+  final Value<String> uri;
+  final Value<String> title;
+  final Value<String> artist;
+  final Value<DateTime> removedAt;
+  final Value<int> rowid;
+  const RemovedTracksCompanion({
+    this.uri = const Value.absent(),
+    this.title = const Value.absent(),
+    this.artist = const Value.absent(),
+    this.removedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RemovedTracksCompanion.insert({
+    required String uri,
+    this.title = const Value.absent(),
+    this.artist = const Value.absent(),
+    this.removedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : uri = Value(uri);
+  static Insertable<RemovedTrackRow> custom({
+    Expression<String>? uri,
+    Expression<String>? title,
+    Expression<String>? artist,
+    Expression<DateTime>? removedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uri != null) 'uri': uri,
+      if (title != null) 'title': title,
+      if (artist != null) 'artist': artist,
+      if (removedAt != null) 'removed_at': removedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RemovedTracksCompanion copyWith({
+    Value<String>? uri,
+    Value<String>? title,
+    Value<String>? artist,
+    Value<DateTime>? removedAt,
+    Value<int>? rowid,
+  }) {
+    return RemovedTracksCompanion(
+      uri: uri ?? this.uri,
+      title: title ?? this.title,
+      artist: artist ?? this.artist,
+      removedAt: removedAt ?? this.removedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uri.present) {
+      map['uri'] = Variable<String>(uri.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (artist.present) {
+      map['artist'] = Variable<String>(artist.value);
+    }
+    if (removedAt.present) {
+      map['removed_at'] = Variable<DateTime>(removedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RemovedTracksCompanion(')
+          ..write('uri: $uri, ')
+          ..write('title: $title, ')
+          ..write('artist: $artist, ')
+          ..write('removedAt: $removedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5267,6 +5624,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LyricsCacheTable lyricsCache = $LyricsCacheTable(this);
   late final $ImportJobsTable importJobs = $ImportJobsTable(this);
   late final $ImportItemsTable importItems = $ImportItemsTable(this);
+  late final $RemovedTracksTable removedTracks = $RemovedTracksTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5284,6 +5642,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     lyricsCache,
     importJobs,
     importItems,
+    removedTracks,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -8988,6 +9347,7 @@ typedef $$ImportJobsTableCreateCompanionBuilder = ImportJobsCompanion Function({
   required String name,
   required String origin,
   Value<String?> sourceUrl,
+  Value<String> writtenTrackIds,
   Value<int?> playlistId,
   Value<String> state,
   Value<String?> message,
@@ -8999,6 +9359,7 @@ typedef $$ImportJobsTableUpdateCompanionBuilder = ImportJobsCompanion Function({
   Value<String> name,
   Value<String> origin,
   Value<String?> sourceUrl,
+  Value<String> writtenTrackIds,
   Value<int?> playlistId,
   Value<String> state,
   Value<String?> message,
@@ -9072,6 +9433,11 @@ class $$ImportJobsTableFilterComposer
 
   ColumnFilters<String> get sourceUrl => $composableBuilder(
     column: $table.sourceUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get writtenTrackIds => $composableBuilder(
+    column: $table.writtenTrackIds,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9173,6 +9539,11 @@ class $$ImportJobsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get writtenTrackIds => $composableBuilder(
+    column: $table.writtenTrackIds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get state => $composableBuilder(
     column: $table.state,
     builder: (column) => ColumnOrderings(column),
@@ -9237,6 +9608,11 @@ class $$ImportJobsTableAnnotationComposer
 
   GeneratedColumn<String> get sourceUrl =>
       $composableBuilder(column: $table.sourceUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get writtenTrackIds => $composableBuilder(
+    column: $table.writtenTrackIds,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get state =>
       $composableBuilder(column: $table.state, builder: (column) => column);
@@ -9331,6 +9707,7 @@ class $$ImportJobsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> origin = const Value.absent(),
                 Value<String?> sourceUrl = const Value.absent(),
+                Value<String> writtenTrackIds = const Value.absent(),
                 Value<int?> playlistId = const Value.absent(),
                 Value<String> state = const Value.absent(),
                 Value<String?> message = const Value.absent(),
@@ -9341,6 +9718,7 @@ class $$ImportJobsTableTableManager
                 name: name,
                 origin: origin,
                 sourceUrl: sourceUrl,
+                writtenTrackIds: writtenTrackIds,
                 playlistId: playlistId,
                 state: state,
                 message: message,
@@ -9353,6 +9731,7 @@ class $$ImportJobsTableTableManager
                 required String name,
                 required String origin,
                 Value<String?> sourceUrl = const Value.absent(),
+                Value<String> writtenTrackIds = const Value.absent(),
                 Value<int?> playlistId = const Value.absent(),
                 Value<String> state = const Value.absent(),
                 Value<String?> message = const Value.absent(),
@@ -9363,6 +9742,7 @@ class $$ImportJobsTableTableManager
                 name: name,
                 origin: origin,
                 sourceUrl: sourceUrl,
+                writtenTrackIds: writtenTrackIds,
                 playlistId: playlistId,
                 state: state,
                 message: message,
@@ -9952,6 +10332,196 @@ typedef $$ImportItemsTableProcessedTableManager =
       ImportItemRow,
       PrefetchHooks Function({bool jobId, bool trackId})
     >;
+typedef $$RemovedTracksTableCreateCompanionBuilder =
+    RemovedTracksCompanion Function({
+      required String uri,
+      Value<String> title,
+      Value<String> artist,
+      Value<DateTime> removedAt,
+      Value<int> rowid,
+    });
+typedef $$RemovedTracksTableUpdateCompanionBuilder =
+    RemovedTracksCompanion Function({
+      Value<String> uri,
+      Value<String> title,
+      Value<String> artist,
+      Value<DateTime> removedAt,
+      Value<int> rowid,
+    });
+
+class $$RemovedTracksTableFilterComposer
+    extends Composer<_$AppDatabase, $RemovedTracksTable> {
+  $$RemovedTracksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uri => $composableBuilder(
+    column: $table.uri,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get artist => $composableBuilder(
+    column: $table.artist,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get removedAt => $composableBuilder(
+    column: $table.removedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RemovedTracksTableOrderingComposer
+    extends Composer<_$AppDatabase, $RemovedTracksTable> {
+  $$RemovedTracksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uri => $composableBuilder(
+    column: $table.uri,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get artist => $composableBuilder(
+    column: $table.artist,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get removedAt => $composableBuilder(
+    column: $table.removedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RemovedTracksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RemovedTracksTable> {
+  $$RemovedTracksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uri =>
+      $composableBuilder(column: $table.uri, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get artist =>
+      $composableBuilder(column: $table.artist, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get removedAt =>
+      $composableBuilder(column: $table.removedAt, builder: (column) => column);
+}
+
+class $$RemovedTracksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RemovedTracksTable,
+          RemovedTrackRow,
+          $$RemovedTracksTableFilterComposer,
+          $$RemovedTracksTableOrderingComposer,
+          $$RemovedTracksTableAnnotationComposer,
+          $$RemovedTracksTableCreateCompanionBuilder,
+          $$RemovedTracksTableUpdateCompanionBuilder,
+          (
+            RemovedTrackRow,
+            BaseReferences<_$AppDatabase, $RemovedTracksTable, RemovedTrackRow>,
+          ),
+          RemovedTrackRow,
+          PrefetchHooks Function()
+        > {
+  $$RemovedTracksTableTableManager(_$AppDatabase db, $RemovedTracksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RemovedTracksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RemovedTracksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RemovedTracksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uri = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> artist = const Value.absent(),
+                Value<DateTime> removedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RemovedTracksCompanion(
+                uri: uri,
+                title: title,
+                artist: artist,
+                removedAt: removedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uri,
+                Value<String> title = const Value.absent(),
+                Value<String> artist = const Value.absent(),
+                Value<DateTime> removedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RemovedTracksCompanion.insert(
+                uri: uri,
+                title: title,
+                artist: artist,
+                removedAt: removedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$RemovedTracksTable, RemovedTrackRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $RemovedTracksTable,
+                    RemovedTrackRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RemovedTracksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RemovedTracksTable,
+      RemovedTrackRow,
+      $$RemovedTracksTableFilterComposer,
+      $$RemovedTracksTableOrderingComposer,
+      $$RemovedTracksTableAnnotationComposer,
+      $$RemovedTracksTableCreateCompanionBuilder,
+      $$RemovedTracksTableUpdateCompanionBuilder,
+      (
+        RemovedTrackRow,
+        BaseReferences<_$AppDatabase, $RemovedTracksTable, RemovedTrackRow>,
+      ),
+      RemovedTrackRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9980,4 +10550,6 @@ class $AppDatabaseManager {
       $$ImportJobsTableTableManager(_db, _db.importJobs);
   $$ImportItemsTableTableManager get importItems =>
       $$ImportItemsTableTableManager(_db, _db.importItems);
+  $$RemovedTracksTableTableManager get removedTracks =>
+      $$RemovedTracksTableTableManager(_db, _db.removedTracks);
 }
