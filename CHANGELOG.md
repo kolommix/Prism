@@ -3,6 +3,17 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (`.github/workflows/release.yml` reads it), so add one before tagging.
 
+## 1.2.4 (2026-11-09)
+
+- **Sharper covers**: each cover is drawn at the size it is shown (the big player cover was stuck at 600 px),
+  and online covers come in the largest size the service has (YouTube, Deezer, SoundCloud, Apple Music).
+- **Duplicates, the easy way**: the Library shows how many duplicate songs you have; one tap opens them. Prism
+  marks the best copy of each (lossless, then quality, then cover and tags), you can pick another, and one
+  button cleans up: playlists, likes and listens move to the copy you keep, and the extra files can go to the
+  Recycle Bin. It also finds copies named like "Artist - Song (Official Video)" without tags.
+- **Artists are links**: tap a name under the song ("Rat Boy, IBDY" is two links) to see every song in your
+  library with that artist, also songs they share with others.
+
 ## 1.2.3 (2026-11-09)
 
 ### Imports

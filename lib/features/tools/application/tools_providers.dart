@@ -14,6 +14,7 @@ import '../../stats/application/stats_providers.dart';
 import '../data/backup_service.dart';
 import '../data/tag_writer.dart';
 import '../domain/track_matching.dart';
+import 'duplicate_cleaner.dart';
 
 final tagWriterProvider = FutureProvider<TagWriter>((ref) async {
   final support = await getApplicationSupportDirectory();
@@ -46,9 +47,4 @@ Future<void> saveTags(WidgetRef ref, Track track, TagEdit edit) async {
   PaintingBinding.instance.imageCache.clear();
 }
 
-/// Deletes a duplicate file from disk and the library.
-Future<void> deleteTrackFile(WidgetRef ref, Track t) async {
-  final f = File(t.uri);
-  if (await f.exists()) await f.delete();
-  await ref.read(libraryRepositoryProvider).deleteByUris([t.uri]);
-}
+final duplicateCleanerProvider = Provider<DuplicateCleaner>((ref) => DuplicateCleaner(ref.watch(libraryRepositoryProvider)));

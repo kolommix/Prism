@@ -2842,25 +2842,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get duplicateFinder => 'Duplicate finder';
 
   @override
-  String get noDuplicatesFound => 'No duplicates found 🎉';
-
-  @override
-  String nGroupsHint(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other:
-          '$count groups. Keep the best copy; removing from the library leaves the file on disk.',
-      one:
-          '$count group. Keep the best copy; removing from the library leaves the file on disk.',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String theFile(Object uri) {
-    return 'the file\n$uri';
-  }
+  String get noDuplicatesFound => 'No duplicates found';
 
   @override
   String get removeFromLibrary => 'Remove from library';
@@ -4409,4 +4391,91 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get bgStylesSubtitle =>
       'Moving or still, from the cover to a starfield. Can react to the music';
+
+  @override
+  String dupSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs have copies.',
+      one: '1 song has copies.',
+    );
+    return '$_temp0 The best copy of each is marked: tap another copy to keep that one instead.';
+  }
+
+  @override
+  String dupCleanUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Clean up $count extra copies',
+      one: 'Clean up 1 extra copy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dupMoveNote =>
+      'Playlists, likes and listens move to the copy you keep. The extras leave Prism and aren\'t scanned in again.';
+
+  @override
+  String get dupDeleteFiles => 'Also delete the extra files';
+
+  @override
+  String get dupDeleteFilesWindows =>
+      'They go to the Recycle Bin, so you can still get them back.';
+
+  @override
+  String get dupDeleteFilesAndroid =>
+      'Only songs Prism saved itself can be deleted. Other files stay on the phone; Prism just stops showing them.';
+
+  @override
+  String dupCleanedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removed $count extra copies',
+      one: 'Removed 1 extra copy',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dupFilesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count files stay on the phone',
+      one: '1 file stays on the phone',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dupInLibrary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duplicates',
+      one: '1 duplicate',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dupKept => 'Kept';
+
+  @override
+  String get dupKeepThis => 'Keep this copy';
+
+  @override
+  String dupCleanUpAsk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Clean up $count extra copies?',
+      one: 'Clean up 1 extra copy?',
+    );
+    return '$_temp0';
+  }
 }

@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 
 import '../../../core/db/app_database.dart';
+import '../domain/artist_names.dart';
 import '../domain/library_models.dart';
 import '../domain/track.dart';
 import 'search_text.dart';
@@ -186,7 +187,27 @@ class LibraryRepository {
     return q.map(rowToTrack).watch();
   }
 
+  /// Every song [artist] is on: alone, or as one of several ("Rat Boy, IBDY"
+  /// is on the pages of Rat Boy and of IBDY), also as album artist.
   Stream<List<Track>> watchArtistTracks(String artist) {
+    if (artist.trim().isEmpty) return _watchExactArtist(artist);
+    final like = '%${_escapeLike(artist.trim())}%';
+    final q = _db.select(_db.tracks)
+      ..where((t) =>
+          t.sourceId.equals(_local) &
+          (t.artist.like(like, escapeChar: '\\') | t.albumArtist.like(like, escapeChar: '\\')))
+      ..orderBy([
+        (t) => OrderingTerm(expression: t.album),
+        (t) => OrderingTerm(expression: t.discNumber),
+        (t) => OrderingTerm(expression: t.trackNumber),
+      ]);
+    // LIKE also finds "Rat Boy" inside "Pirate Boys": keep only real name matches.
+    return q.map(rowToTrack).watch().map(
+          (list) => [for (final t in list) if (hasArtist(t.artist, artist) || hasArtist(t.albumArtist, artist)) t],
+        );
+  }
+
+  Stream<List<Track>> _watchExactArtist(String artist) {
     final q = _db.select(_db.tracks)
       ..where((t) => t.sourceId.equals(_local) & t.artist.equals(artist))
       ..orderBy([
@@ -409,6 +430,48 @@ class LibraryRepository {
                 }
               });
             });
+      });
+
+  /// Keeps [keep] and takes the other copies of the same song out of the
+  /// library. Their place in playlists, likes, listens and imports moves to
+  /// [keep] first, so nothing is lost; a playlist that already had [keep]
+  /// doesn't get it twice. Rescans skip the extras (like "Remove from Prism").
+  Future<void> mergeDuplicates(Track keep, List<Track> extras) => _db.transaction(() async {
+        final ids = [for (final t in extras) if (t.id != keep.id) t.id];
+        if (ids.isEmpty) return;
+        final withKeep = {
+          for (final e in await (_db.select(_db.playlistEntries)..where((e) => e.trackId.equals(keep.id))).get()) e.playlistId,
+        };
+        final entries = await (_db.select(_db.playlistEntries)..where((e) => e.trackId.isIn(ids))).get();
+        for (final e in entries) {
+          if (withKeep.add(e.playlistId)) {
+            await (_db.update(_db.playlistEntries)..where((x) => x.id.equals(e.id)))
+                .write(PlaylistEntriesCompanion(trackId: Value(keep.id)));
+          } else {
+            await (_db.delete(_db.playlistEntries)..where((x) => x.id.equals(e.id))).go();
+          }
+        }
+        await (_db.update(_db.plays)..where((x) => x.trackId.isIn(ids))).write(PlaysCompanion(trackId: Value(keep.id)));
+        final liked = await (_db.select(_db.favorites)..where((x) => x.trackId.isIn(ids))).get();
+        if (liked.isNotEmpty) {
+          await _db.into(_db.favorites).insert(
+                FavoritesCompanion.insert(trackId: Value(keep.id), addedAt: Value(liked.first.addedAt)),
+                mode: InsertMode.insertOrIgnore,
+              );
+        }
+        await (_db.update(_db.importItems)..where((x) => x.trackId.isIn(ids)))
+            .write(ImportItemsCompanion(trackId: Value(keep.id)));
+        await _db.batch((b) {
+          for (final t in extras) {
+            if (t.id == keep.id) continue;
+            b.insert(
+              _db.removedTracks,
+              RemovedTracksCompanion.insert(uri: t.uri, title: Value(t.title), artist: Value(t.artist)),
+              mode: InsertMode.insertOrReplace,
+            );
+          }
+        });
+        await (_db.delete(_db.tracks)..where((t) => t.id.isIn(ids))).go();
       });
 
   /// A song saved by an import becomes a normal library song. Returns its id.

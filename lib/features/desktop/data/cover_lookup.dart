@@ -81,7 +81,7 @@ List<(Track, CoverInfo)> parseITunes(String body) {
           ),
           CoverInfo(
             // The API offers 100 px; the same URL serves any size.
-            coverUrl: (r['artworkUrl100'] as String).replaceFirst('100x100bb', '512x512bb'),
+            coverUrl: (r['artworkUrl100'] as String).replaceFirst('100x100bb', '1200x1200bb'),
             title: r['trackName'] as String,
             artist: r['artistName'] as String?,
             album: r['collectionName'] as String?,
@@ -111,7 +111,7 @@ List<(Track, CoverInfo)> parseDeezer(String body) {
             durationMs: ((r['duration'] as num?)?.toInt() ?? 0) * 1000,
           ),
           CoverInfo(
-            coverUrl: (r['album'] as Map)['cover_big'] as String,
+            coverUrl: ((r['album'] as Map)['cover_xl'] ?? (r['album'] as Map)['cover_big']) as String,
             title: r['title'] as String,
             artist: (r['artist'] as Map?)?['name'] as String?,
             album: (r['album'] as Map)['title'] as String?,

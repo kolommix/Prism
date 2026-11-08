@@ -82,6 +82,10 @@ windows/third_party/
 
 # Local notes for the coding assistant
 CLAUDE.md
+# Working notes for Claude, kept on this PC only
+STATUS.md
+docs/PROGRESS.md
+_archive/
 .claude/
 
 # Gradle output

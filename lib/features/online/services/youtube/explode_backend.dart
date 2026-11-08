@@ -91,6 +91,7 @@ class ExplodeBackend extends YoutubeBackend {
     title: v.title,
     channel: v.author,
     durationMs: v.duration?.inMilliseconds ?? 0,
+    // The middle size always exists; covers ask for the largest when shown.
     thumbnailUrl: v.thumbnails.mediumResUrl,
   );
 

@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import '../../../core/motion/smooth_scroll.dart';
 import '../../../core/router/app_router.dart';
 import '../../player/application/player_providers.dart';
+import '../../tools/application/tools_providers.dart';
 import '../application/library_providers.dart';
 import '../data/library_repository.dart';
 import '../domain/track.dart';
@@ -83,6 +84,7 @@ class _SongsTab extends ConsumerWidget {
                   child: Row(
                     children: [
                       Text(l10n.nSongs(list.length), style: Theme.of(context).textTheme.labelLarge),
+                      const _DuplicatesHint(),
                       const Spacer(),
                       PlayShuffleButtons(tracks: list),
                     ],
@@ -93,6 +95,27 @@ class _SongsTab extends ConsumerWidget {
             ])),
         SliverPadding(padding: EdgeInsets.only(bottom: bottomInset(context))),
       ],
+    );
+  }
+}
+
+/// "3 duplicates" next to the song count, only when there are some: one tap
+/// to the cleanup.
+class _DuplicatesHint extends ConsumerWidget {
+  const _DuplicatesHint();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final groups = ref.watch(duplicatesProvider).value ?? const [];
+    final extras = groups.fold<int>(0, (n, g) => n + g.length - 1);
+    if (extras == 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 8),
+      child: TextButton.icon(
+        onPressed: () => context.go(Routes.duplicates),
+        icon: const Icon(Icons.layers_outlined, size: 16),
+        label: Text(l10n.dupInLibrary(extras)),
+      ),
     );
   }
 }

@@ -3,14 +3,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../theme/prism_theme_extensions.dart';
+import 'cover_urls.dart';
 
 /// Hero tag shared by the mini-player cover and the full player cover.
 const nowPlayingArtHeroTag = 'now-playing-artwork';
 
 /// Square cover image with a pretty placeholder for songs without art.
 ///
-/// Images are decoded at the size they are shown ([cacheSize] in physical
-/// pixels), which keeps memory low and scrolling smooth in long lists.
+/// Images are decoded at the size they are shown, in physical pixels: small
+/// list covers stay light, and the big player cover is as sharp as the
+/// picture allows (it used to be decoded at a fixed 600 px). Online covers
+/// are asked for in the service's largest size ([sharperCoverUrl]).
 class Artwork extends StatelessWidget {
   const Artwork({
     super.key,
@@ -32,47 +35,61 @@ class Artwork extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? context.shape.small;
-    final dpr = MediaQuery.devicePixelRatioOf(context);
-    final cacheSize = size == null ? 600 : (size! * dpr).round();
-    final p = path;
-    Widget child;
-    if (p == null) {
-      child = _Placeholder(seed: seed, icon: icon);
-    } else {
-      Widget frame(BuildContext context, Widget child, int? frame, bool sync) {
-        if (sync) return child;
-        return AnimatedOpacity(
-          opacity: frame == null ? 0 : 1,
-          duration: context.motion.d(PrismMotion.medium),
-          child: child,
-        );
-      }
-
-      // Streamed songs (YouTube, SoundCloud) have an https cover.
-      child = p.startsWith('http')
-          ? Image.network(
-              p,
-              fit: BoxFit.cover,
-              cacheWidth: cacheSize,
-              gaplessPlayback: true,
-              filterQuality: FilterQuality.medium,
-              errorBuilder: (_, _, _) => _Placeholder(seed: seed, icon: icon),
-              frameBuilder: frame,
-            )
-          : Image.file(
-              File(p),
-              fit: BoxFit.cover,
-              cacheWidth: cacheSize,
-              gaplessPlayback: true,
-              filterQuality: FilterQuality.medium,
-              errorBuilder: (_, _, _) => _Placeholder(seed: seed, icon: icon),
-              frameBuilder: frame,
-            );
-    }
+    final fixed = size;
+    final Widget child = fixed != null
+        ? _image(context, fixed)
+        // No size given (the big covers): measure, so it decodes at its real size.
+        : LayoutBuilder(builder: (context, c) => _image(context, c.biggest.shortestSide.isFinite ? c.biggest.shortestSide : 600));
     return ClipRRect(
       borderRadius: radius,
       child: SizedBox(width: size, height: size, child: AspectRatio(aspectRatio: 1, child: child)),
     );
+  }
+
+  Widget _image(BuildContext context, double logical) {
+    final p = path;
+    if (p == null) return _Placeholder(seed: seed, icon: icon);
+    // Rounded up to steps of 64 px, so a cover that grows a little while a
+    // panel animates isn't decoded again for every pixel.
+    final px = ((logical * MediaQuery.devicePixelRatioOf(context)) / 64).ceil() * 64;
+    final cacheSize = px.clamp(64, 2048);
+    // Big covers get the better (slower) scaling; list thumbnails don't need it.
+    final quality = logical >= 160 ? FilterQuality.high : FilterQuality.medium;
+    Widget frame(BuildContext context, Widget child, int? frame, bool sync) {
+      if (sync) return child;
+      return AnimatedOpacity(
+        opacity: frame == null ? 0 : 1,
+        duration: context.motion.d(PrismMotion.medium),
+        child: child,
+      );
+    }
+
+    Widget placeholder(BuildContext _, Object _, StackTrace? _) => _Placeholder(seed: seed, icon: icon);
+    if (!p.startsWith('http')) {
+      return Image.file(
+        File(p),
+        fit: BoxFit.cover,
+        cacheWidth: cacheSize,
+        gaplessPlayback: true,
+        filterQuality: quality,
+        errorBuilder: placeholder,
+        frameBuilder: frame,
+      );
+    }
+    // Streamed and imported songs have an https cover.
+    Widget network(String url, ImageErrorWidgetBuilder onError) => Image.network(
+          url,
+          fit: BoxFit.cover,
+          cacheWidth: cacheSize,
+          gaplessPlayback: true,
+          filterQuality: quality,
+          errorBuilder: onError,
+          frameBuilder: frame,
+        );
+    final sharp = sharperCoverUrl(p);
+    final fallback = fallbackCoverUrl(p) ?? p;
+    if (sharp == p) return network(p, placeholder);
+    return network(sharp, (context, _, _) => network(fallback, placeholder));
   }
 }
 

@@ -243,7 +243,8 @@ class _CoverColumn extends ConsumerWidget {
         children: [
           coverBox,
           const SizedBox(height: 14),
-          TrackText(track: track, center: true),
+          // Full screen: a link would leave it behind the window state.
+          TrackText(track: track, center: true, linkArtists: false),
           const SizedBox(height: 8),
           const TransportControls(big: false),
         ],
@@ -259,7 +260,7 @@ class _CoverColumn extends ConsumerWidget {
             const SizedBox(height: 36),
             Row(
               children: [
-                Expanded(child: TrackText(track: track)),
+                Expanded(child: TrackText(track: track, linkArtists: false)),
                 const FavoriteButton(size: 26),
               ],
             ),

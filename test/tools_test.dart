@@ -44,6 +44,41 @@ void main() {
         [1, 2],
       ]);
     });
+
+    test('web files: "Artist - Title (Official Video)" without tags is the tagged song', () {
+      final groups = findDuplicates([
+        tr(1, 'BUTCHER VANITY', 'Yi Xi', 185000, uri: '/m/a.m4a'),
+        tr(2, 'Yi Xi - BUTCHER VANITY (Official Video)', '', 186500, uri: '/m/b.mp3'),
+        tr(3, 'BUTCHER_VANITY', '', 184000, uri: '/m/c.mp3'),
+        tr(4, 'Streetcat', 'FLAVOR FOLEY', 214000, uri: '/m/d.m4a'),
+        tr(5, 'Streetcat', 'VILLIAN, FLAVOR FOLEY', 213000, uri: '/m/e.m4a'),
+      ]);
+      expect(groups.map((g) => g.map((t) => t.id).toSet()), [
+        {1, 2, 3},
+        {4, 5},
+      ]);
+    });
+
+    test('a song without an artist never joins two different artists', () {
+      final groups = findDuplicates([
+        tr(1, 'Home', 'Band A', 200000),
+        tr(2, 'Home', 'Band B', 200500),
+        tr(3, 'Home', '', 200200),
+        tr(4, 'Home (Live)', 'Band A', 200000),
+      ]);
+      expect(groups, isEmpty, reason: 'unknown fits both, so it joins neither; live is another recording');
+    });
+
+    test('keeps the best copy: lossless, then bitrate, then cover and tags', () {
+      final mp3 = tr(1, 'S', 'A', 200000, uri: '/m/s.mp3');
+      final flac = tr(2, 'S', 'A', 200000, uri: '/m/s.flac');
+      final m4a = tr(3, 'S', 'A', 200000, uri: '/m/s.m4a');
+      final sizes = {1: 8000000, 2: 20000000, 3: 3200000};
+      expect(bestCopy([mp3, flac, m4a], (t) => sizes[t.id]!).id, 2);
+      expect(bestCopy([m4a, mp3], (t) => sizes[t.id]!).id, 1, reason: '320 kbps beats 128');
+      final tagged = mp3.copyWith(id: 9, artworkPath: '/c.jpg');
+      expect(bestCopy([mp3, tagged], (_) => 8000000).id, 9);
+    });
   });
 
   group('track matching', () {

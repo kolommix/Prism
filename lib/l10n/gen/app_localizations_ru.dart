@@ -2908,29 +2908,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get duplicateFinder => 'Поиск дубликатов';
 
   @override
-  String get noDuplicatesFound => 'Дубликатов нет 🎉';
-
-  @override
-  String nGroupsHint(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other:
-          '$count группы. Оставьте лучшую копию; удаление из библиотеки не трогает файл на диске.',
-      many:
-          '$count групп. Оставьте лучшую копию; удаление из библиотеки не трогает файл на диске.',
-      few:
-          '$count группы. Оставьте лучшую копию; удаление из библиотеки не трогает файл на диске.',
-      one:
-          '$count группа. Оставьте лучшую копию; удаление из библиотеки не трогает файл на диске.',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String theFile(Object uri) {
-    return 'файл\n$uri';
-  }
+  String get noDuplicatesFound => 'Дубликатов нет';
 
   @override
   String get removeFromLibrary => 'Убрать из библиотеки';
@@ -4504,4 +4482,103 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get bgStylesSubtitle =>
       'Живые или спокойные, от обложки до звёздного неба. Могут реагировать на музыку';
+
+  @override
+  String dupSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'У $count песни есть копии.',
+      many: 'У $count песен есть копии.',
+      few: 'У $count песен есть копии.',
+      one: 'У $count песни есть копии.',
+    );
+    return '$_temp0 Лучшая копия каждой отмечена: нажмите на другую, чтобы оставить её.';
+  }
+
+  @override
+  String dupCleanUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Убрать $count лишней копии',
+      many: 'Убрать $count лишних копий',
+      few: 'Убрать $count лишние копии',
+      one: 'Убрать $count лишнюю копию',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dupMoveNote =>
+      'Плейлисты, лайки и прослушивания переходят к копии, которую вы оставляете. Лишние уходят из Prism и больше не сканируются.';
+
+  @override
+  String get dupDeleteFiles => 'Ещё и удалить лишние файлы';
+
+  @override
+  String get dupDeleteFilesWindows =>
+      'Они попадут в Корзину, их можно будет вернуть.';
+
+  @override
+  String get dupDeleteFilesAndroid =>
+      'Удалить можно только песни, которые сохранил сам Prism. Остальные файлы останутся на телефоне, Prism просто перестанет их показывать.';
+
+  @override
+  String dupCleanedUp(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Убрано $count лишней копии',
+      many: 'Убрано $count лишних копий',
+      few: 'Убраны $count лишние копии',
+      one: 'Убрана $count лишняя копия',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dupFilesKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count файла остались на телефоне',
+      many: '$count файлов остались на телефоне',
+      few: '$count файла остались на телефоне',
+      one: '$count файл остался на телефоне',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dupInLibrary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count дубликата',
+      many: '$count дубликатов',
+      few: '$count дубликата',
+      one: '$count дубликат',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dupKept => 'Оставлена';
+
+  @override
+  String get dupKeepThis => 'Оставить эту копию';
+
+  @override
+  String dupCleanUpAsk(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Убрать $count лишней копии?',
+      many: 'Убрать $count лишних копий?',
+      few: 'Убрать $count лишние копии?',
+      one: 'Убрать $count лишнюю копию?',
+    );
+    return '$_temp0';
+  }
 }

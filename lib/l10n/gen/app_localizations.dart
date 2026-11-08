@@ -4581,20 +4581,8 @@ abstract class AppLocalizations {
   /// No description provided for @noDuplicatesFound.
   ///
   /// In en, this message translates to:
-  /// **'No duplicates found 🎉'**
+  /// **'No duplicates found'**
   String get noDuplicatesFound;
-
-  /// No description provided for @nGroupsHint.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{{count} group. Keep the best copy; removing from the library leaves the file on disk.} other{{count} groups. Keep the best copy; removing from the library leaves the file on disk.}}'**
-  String nGroupsHint(int count);
-
-  /// No description provided for @theFile.
-  ///
-  /// In en, this message translates to:
-  /// **'the file\n{uri}'**
-  String theFile(Object uri);
 
   /// No description provided for @removeFromLibrary.
   ///
@@ -7121,6 +7109,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Moving or still, from the cover to a starfield. Can react to the music'**
   String get bgStylesSubtitle;
+
+  /// No description provided for @dupSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 song has copies.} other{{count} songs have copies.}} The best copy of each is marked: tap another copy to keep that one instead.'**
+  String dupSummary(int count);
+
+  /// No description provided for @dupCleanUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Clean up 1 extra copy} other{Clean up {count} extra copies}}'**
+  String dupCleanUp(int count);
+
+  /// No description provided for @dupMoveNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists, likes and listens move to the copy you keep. The extras leave Prism and aren\'t scanned in again.'**
+  String get dupMoveNote;
+
+  /// No description provided for @dupDeleteFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Also delete the extra files'**
+  String get dupDeleteFiles;
+
+  /// No description provided for @dupDeleteFilesWindows.
+  ///
+  /// In en, this message translates to:
+  /// **'They go to the Recycle Bin, so you can still get them back.'**
+  String get dupDeleteFilesWindows;
+
+  /// No description provided for @dupDeleteFilesAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'Only songs Prism saved itself can be deleted. Other files stay on the phone; Prism just stops showing them.'**
+  String get dupDeleteFilesAndroid;
+
+  /// No description provided for @dupCleanedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Removed 1 extra copy} other{Removed {count} extra copies}}'**
+  String dupCleanedUp(int count);
+
+  /// No description provided for @dupFilesKept.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 file stays on the phone} other{{count} files stay on the phone}}'**
+  String dupFilesKept(int count);
+
+  /// No description provided for @dupInLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 duplicate} other{{count} duplicates}}'**
+  String dupInLibrary(int count);
+
+  /// No description provided for @dupKept.
+  ///
+  /// In en, this message translates to:
+  /// **'Kept'**
+  String get dupKept;
+
+  /// No description provided for @dupKeepThis.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this copy'**
+  String get dupKeepThis;
+
+  /// No description provided for @dupCleanUpAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Clean up 1 extra copy?} other{Clean up {count} extra copies?}}'**
+  String dupCleanUpAsk(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -549,7 +549,7 @@ void main() {
       );
       const song = Track(id: 7, uri: 'x', title: '30_Black_Knife_DELTARUNE_Chapter_3+4_Soundtrack_Toby_Fox', durationMs: 121000);
       final info = await lookup.find(song);
-      expect((info?.title, info?.artist, info?.coverUrl), ('Black Knife', 'Toby Fox', 'https://x/512x512bb.jpg'));
+      expect((info?.title, info?.artist, info?.coverUrl), ('Black Knife', 'Toby Fox', 'https://x/1200x1200bb.jpg'));
       expect(asked.length, 3, reason: 'Apple + Deezer with the full name, then Apple with the short one');
       await lookup.find(song);
       expect(asked.length, 3, reason: 'cached');
@@ -562,7 +562,7 @@ void main() {
         '"artworkUrl100":"https://x/100x100bb.jpg","trackViewUrl":"https://music.apple.com/s"},{"wrapperType":"other"}]}',
       );
       expect(apple.length, 1);
-      expect(apple.first.$2.coverUrl, 'https://x/512x512bb.jpg');
+      expect(apple.first.$2.coverUrl, 'https://x/1200x1200bb.jpg');
       final deezer = parseDeezer('{"data":[{"title":"Song","duration":10,"artist":{"name":"Band"},'
           '"album":{"title":"LP","cover_big":"https://y/c.jpg"},"link":"https://deezer.com/t"}]}');
       expect((deezer.first.$1.artist, deezer.first.$1.durationMs, deezer.first.$2.coverUrl), ('Band', 10000, 'https://y/c.jpg'));

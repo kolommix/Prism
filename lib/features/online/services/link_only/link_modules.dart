@@ -92,7 +92,7 @@ class DeezerModule extends MusicServiceModule {
           name: '$album – ${(a['artist'] as Map?)?['name'] ?? ''}',
           origin: service,
           sourceUrl: link.url.toString(),
-          tracks: [for (final t in rows) ?_track(t, album: album, art: a['cover_medium'] as String?)],
+          tracks: [for (final t in rows) ?_track(t, album: album, art: (a['cover_xl'] ?? a['cover_medium']) as String?)],
         );
       case LinkKind.track:
         final t = _track(await _get('/track/${link.id}'));
@@ -129,7 +129,7 @@ class DeezerModule extends MusicServiceModule {
       externalId: '${t['id']}',
       isrc: t['isrc'] as String?,
       url: t['link'] as String?,
-      artworkUrl: art ?? al?['cover_medium'] as String?,
+      artworkUrl: art ?? (al?['cover_xl'] ?? al?['cover_medium']) as String?,
     );
   }
 }

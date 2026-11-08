@@ -35,7 +35,7 @@ class MiniOverlay extends ConsumerWidget {
                   Artwork(path: track?.artworkPath, size: 64, seed: track?.album),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: track == null ? Text(l10n.nothingPlaying) : TrackText(track: track, dense: true),
+                    child: track == null ? Text(l10n.nothingPlaying) : TrackText(track: track, dense: true, linkArtists: false),
                   ),
                   SpringIconButton(icon: const Icon(Icons.skip_previous_rounded), size: 22, onPressed: player.skipPrevious),
                   const PlayPauseButton(size: 22, filled: false),

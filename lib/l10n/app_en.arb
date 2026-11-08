@@ -1957,23 +1957,7 @@
   },
   "tagsDidNotStickFileRestored": "Tags did not stick (file restored)",
   "duplicateFinder": "Duplicate finder",
-  "noDuplicatesFound": "No duplicates found 🎉",
-  "nGroupsHint": "{count, plural, one{{count} group. Keep the best copy; removing from the library leaves the file on disk.} other{{count} groups. Keep the best copy; removing from the library leaves the file on disk.}}",
-  "@nGroupsHint": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "theFile": "the file\n{uri}",
-  "@theFile": {
-    "placeholders": {
-      "uri": {
-        "type": "Object"
-      }
-    }
-  },
+  "noDuplicatesFound": "No duplicates found",
   "removeFromLibrary": "Remove from library",
   "deleteFile": "Delete file…",
   "mb": "{mb} MB",
@@ -2841,5 +2825,59 @@
   "bgTouch": "Touch",
   "tapsAlsoSendAWaveMusic": "Taps also send a wave. Music reaction analyses each song once, the first time it plays.",
   "touchAndTapTheScreen": "Touch and tap the screen",
-  "bgStylesSubtitle": "Moving or still, from the cover to a starfield. Can react to the music"
+  "bgStylesSubtitle": "Moving or still, from the cover to a starfield. Can react to the music",
+  "dupSummary": "{count, plural, one{1 song has copies.} other{{count} songs have copies.}} The best copy of each is marked: tap another copy to keep that one instead.",
+  "@dupSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dupCleanUp": "{count, plural, one{Clean up 1 extra copy} other{Clean up {count} extra copies}}",
+  "@dupCleanUp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dupMoveNote": "Playlists, likes and listens move to the copy you keep. The extras leave Prism and aren't scanned in again.",
+  "dupDeleteFiles": "Also delete the extra files",
+  "dupDeleteFilesWindows": "They go to the Recycle Bin, so you can still get them back.",
+  "dupDeleteFilesAndroid": "Only songs Prism saved itself can be deleted. Other files stay on the phone; Prism just stops showing them.",
+  "dupCleanedUp": "{count, plural, one{Removed 1 extra copy} other{Removed {count} extra copies}}",
+  "@dupCleanedUp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dupFilesKept": "{count, plural, one{1 file stays on the phone} other{{count} files stay on the phone}}",
+  "@dupFilesKept": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dupInLibrary": "{count, plural, one{1 duplicate} other{{count} duplicates}}",
+  "@dupInLibrary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dupKept": "Kept",
+  "dupKeepThis": "Keep this copy",
+  "dupCleanUpAsk": "{count, plural, one{Clean up 1 extra copy?} other{Clean up {count} extra copies?}}",
+  "@dupCleanUpAsk": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
