@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../online/services/youtube/ytdlp.dart';
 import '../application/player_controller.dart';
 import '../../../l10n/l10n.dart';
 
@@ -58,6 +60,9 @@ class WindowsDesktopIntegration with WindowListener {
         await _tray.invokeMethod('show', {
           'tooltip': track == null ? 'Prism' : 'Prism – ${track.title} · ${track.displayArtist}',
           'playing': s.playing,
+          'title': track?.title ?? '',
+          'artist': track?.displayArtist ?? '',
+          'artPath': track?.artworkPath,
           'labels': [l10n.trayShow, l10n.pause, l10n.play, l10n.previous, l10n.next, l10n.trayQuit],
         });
       }
@@ -119,15 +124,23 @@ class WindowsDesktopIntegration with WindowListener {
     }
   }
 
+  /// Quits at once. Stopping the audio engine and shutting Flutter down
+  /// politely took seconds (mpv winds down its threads), and nothing needs
+  /// it: the window goes away first, the session and the tray icon are
+  /// handled with a time limit, then the process ends (which also stops the
+  /// sound and lets Discord clear the status). The database commits every
+  /// change as it happens, so nothing is lost.
   Future<void> quit() async {
-    await _player.stop();
+    const limit = Duration(milliseconds: 800);
+    YtDlp.stopAll();
+    await windowManager.hide().timeout(limit, onTimeout: () {});
+    await _player.saveSession().timeout(limit, onTimeout: () {}).catchError((Object _) {});
     try {
-      await _tray.invokeMethod('hide');
-    } on MissingPluginException {
-      // ignore
+      await _tray.invokeMethod('hide').timeout(limit);
+    } on Object {
+      // Not there, or slow: Windows removes the icon when the process ends.
     }
-    await windowManager.setPreventClose(false);
-    await windowManager.destroy();
+    exit(0);
   }
 
 

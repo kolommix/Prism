@@ -1360,7 +1360,6 @@
   "sendsOnlyTitleArtistAlbumAnd": "Sends only title, artist, album and length to lrclib.net. Local .lrc files always work.",
   "findLyricsOnline": "Find lyrics online",
   "theme": "Theme",
-  "matrixConstellationRippleReactsToThe": "Matrix, Constellation, Ripple. Reacts to the mouse and the music",
   "shownInTheFullPlayer": "Shown in the full player",
   "reduceMotion": "Reduce motion",
   "turnsOffDecorativeAnimations": "Turns off decorative animations",
@@ -2025,12 +2024,7 @@
   "couldNotAnalyseThisSong": "Could not analyse this song",
   "theVisualizerNeedsFfmpegWhichIs": "The visualizer needs FFmpeg, which is missing on this device",
   "bars": "Bars",
-  "mirror": "Mirror",
-  "radial": "Radial",
   "wave": "Wave",
-  "vuMeters": "VU meters",
-  "waterfall": "Waterfall",
-  "ledMatrix": "LED matrix",
   "low": "Low",
   "thisDeviceSEqualizerHasBands": "This device's Equalizer has {n} bands ({freqs} Hz, ±{db} dB); the 10-band curve is sampled at those frequencies.Bass boost uses the system BassBoost effect; its exact curve depends on the phone.Some phones (or other EQ apps like Wavelet) can override or block audio effects.",
   "@thisDeviceSEqualizerHasBands": {
@@ -2396,9 +2390,6 @@
   },
   "lyricsOffsetTitle": "Lyrics timing",
   "lyricsOffsetHint": "Plus shows the lines earlier, minus later. Saved for this song.",
-  "vizRibbon": "Ribbon",
-  "vizParticles": "Particles",
-  "vizGlow": "Glow",
   "vizSensitivity": "Sensitivity",
   "vizLowPower": "Low-power visualizer",
   "vizLowPowerHint": "30 frames per second and fewer details",
@@ -2798,7 +2789,7 @@
   "seekBarTimes": "Show the time",
   "seekBarReset": "Reset the seek bar",
   "importDownloadAsk": "Download the songs into Prism?",
-  "importDownloadTerms": "Prism finds each song on YouTube and saves its audio as a file in the app, so it stays in your library and plays offline. This goes against YouTube's Terms: use it only for yourself, don't share the files. It can stop working at any time.",
+  "importDownloadTerms": "Prism finds each song on YouTube and saves its audio as a file in the app, so it stays in your library and plays offline. This goes against YouTube's Terms: use it only for yourself, don't share the files. It can stop working at any time. On Windows Prism saves with yt-dlp (a free open-source tool, shipped with Prism) and fetches a newer copy from its official GitHub page when YouTube changes something.",
   "importOnlyLibrary": "Only search my library",
   "importDownloadSwitch": "Download songs into Prism",
   "importDownloadSwitchHint": "From YouTube, automatically. Personal use only.",
@@ -2840,5 +2831,15 @@
         "type": "int"
       }
     }
-  }
+  },
+  "youtubeBlocksThisSong": "YouTube blocks saving this song, and no other upload of it could be saved.",
+  "vizRing": "Ring",
+  "windowMinimize": "Minimize",
+  "windowMaximize": "Maximize",
+  "windowRestore": "Restore down",
+  "ytdlpCheckFailed": "The downloaded yt-dlp did not match its official checksum, so Prism did not use it.",
+  "bgTouch": "Touch",
+  "tapsAlsoSendAWaveMusic": "Taps also send a wave. Music reaction analyses each song once, the first time it plays.",
+  "touchAndTapTheScreen": "Touch and tap the screen",
+  "bgStylesSubtitle": "Moving or still, from the cover to a starfield. Can react to the music"
 }

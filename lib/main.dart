@@ -72,7 +72,15 @@ Future<void> main([List<String> args = const []]) async {
     // The runner shows the window on Flutter's first frame (flutter_window.cpp);
     // showing it here as well would flash an empty window first.
     await windowManager.waitUntilReadyToShow(
-      const WindowOptions(title: 'Prism', minimumSize: Size(420, 640), center: true),
+      // No Windows title bar: the app draws its own strip (WindowCaption), so
+      // the whole window is one surface.
+      const WindowOptions(
+        title: 'Prism',
+        minimumSize: Size(420, 640),
+        center: true,
+        titleBarStyle: TitleBarStyle.hidden,
+        windowButtonVisibility: false,
+      ),
     );
     WidgetsBinding.instance.addPostFrameCallback((_) => windowManager.focus());
   }

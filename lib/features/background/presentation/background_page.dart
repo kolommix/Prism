@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p_;
@@ -313,11 +315,11 @@ class BackgroundPage extends ConsumerWidget {
             if (reacts)
               SettingsGroup(
                 title: l10n.reactions,
-                footer: l10n.clicksAlsoSendAWaveMusic,
+                footer: _touch ? l10n.tapsAlsoSendAWaveMusic : l10n.clicksAlsoSendAWaveMusic,
                 children: [
                   _SliderRow(
-                    icon: Icons.mouse_outlined,
-                    title: l10n.mouse,
+                    icon: _touch ? Icons.touch_app_outlined : Icons.mouse_outlined,
+                    title: _touch ? l10n.bgTouch : l10n.mouse,
                     value: p.mouse,
                     min: 0,
                     max: 2,
@@ -446,6 +448,9 @@ class BackgroundPage extends ConsumerWidget {
   }
 }
 
+/// Phones and tablets: no mouse, no Esc key; the words say touch and tap.
+bool get _touch => Platform.isAndroid || Platform.isIOS;
+
 /// Only the background, with no panels on top. Esc or a button closes it.
 Future<void> showBackgroundPreview(BuildContext context) =>
     Navigator.of(context, rootNavigator: true).push(
@@ -479,13 +484,14 @@ class _FullPreview extends ConsumerWidget {
                 style: cfg.current,
                 params: cfg.paramsFor(cfg.current),
               ),
+              // Below the status bar on phones and below the window buttons on Windows.
               Positioned(
-                top: 12,
+                top: 12 + MediaQuery.paddingOf(context).top,
                 right: 12,
                 child: FilledButton.tonalIcon(
                   onPressed: close,
                   icon: const Icon(Icons.close_rounded),
-                  label: Text(l10n.closeEsc),
+                  label: Text(_touch ? l10n.close : l10n.closeEsc),
                 ),
               ),
               Positioned(
@@ -494,7 +500,7 @@ class _FullPreview extends ConsumerWidget {
                 right: 0,
                 child: IgnorePointer(
                   child: Text(
-                    l10n.moveTheMouseAndClick,
+                    _touch ? l10n.touchAndTapTheScreen : l10n.moveTheMouseAndClick,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: scheme.onSurfaceVariant),
                   ),

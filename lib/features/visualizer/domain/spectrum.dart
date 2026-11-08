@@ -32,11 +32,15 @@ class Spectrum implements BandSource {
     }
   }
 
+  /// Version 2: levelled per song and band (see [analyzePcm16]). Older
+  /// caches are analysed again.
+  static const version = 2;
+
   /// File format: 'PSPC' magic, version, bands, fps, then raw frames.
   Uint8List encode() {
     final header = ByteData(16)
       ..setUint32(0, 0x50535043)
-      ..setUint32(4, 1)
+      ..setUint32(4, version)
       ..setUint32(8, bands)
       ..setUint32(12, fps);
     return Uint8List.fromList([...header.buffer.asUint8List(), ...data]);
@@ -45,7 +49,7 @@ class Spectrum implements BandSource {
   static Spectrum? decode(Uint8List bytes) {
     if (bytes.length < 16) return null;
     final h = ByteData.sublistView(bytes, 0, 16);
-    if (h.getUint32(0) != 0x50535043 || h.getUint32(4) != 1) return null;
+    if (h.getUint32(0) != 0x50535043 || h.getUint32(4) != version) return null;
     return Spectrum(data: Uint8List.sublistView(bytes, 16), bands: h.getUint32(8), fps: h.getUint32(12));
   }
 }
@@ -90,41 +94,103 @@ void fft(Float64List re, Float64List im) {
 
 /// Analyses mono 16-bit PCM into log-spaced bands (pure; run in an isolate).
 ///
-/// Window 2048 (Hann), [fps] frames per second, bands from 40 Hz to Nyquist,
-/// levels mapped from −70..−10 dBFS to 0..255.
-Spectrum analyzePcm16(Uint8List pcm, {required int sampleRate, int bands = 48, int fps = 30}) {
-  const n = 2048;
+/// Window 4096 (Hann) so the bass bands are not all the same FFT bin, [fps]
+/// frames per second, bands from 40 Hz to 16 kHz (or Nyquist). Each band is
+/// the mean power of its bins (narrow bass bands read the spectrum between
+/// bins), tilted +3 dB per octave so highs are not always lower than lows.
+///
+/// Then it is levelled for this song: every band gets its own range, from
+/// its loud moments (95th percentile) down 36 dB, blended half with the whole
+/// song's range. So every band moves with the music instead of the bass
+/// always sitting at the top and the highs at the bottom.
+Spectrum analyzePcm16(Uint8List pcm, {required int sampleRate, int bands = 64, int fps = 30}) {
+  const n = 4096;
   final samples = Int16List.sublistView(pcm, 0, pcm.length ~/ 2 * 2);
   final hop = sampleRate ~/ fps;
   final frames = math.max(0, (samples.length - 1) ~/ hop + 1);
-  final out = Uint8List(frames * bands);
   final window = Float64List.fromList(List.generate(n, (i) => 0.5 - 0.5 * math.cos(2 * math.pi * i / (n - 1))));
-  final re = Float64List(n), im = Float64List(n);
-  // Band edges in FFT bins, log-spaced.
-  final nyquist = sampleRate / 2;
-  final edges = List<int>.generate(bands + 1, (b) {
-    final hz = 40 * math.pow(nyquist / 40, b / bands);
-    return (hz / sampleRate * n).round().clamp(1, n ~/ 2);
-  });
-  const floorDb = -70.0, ceilDb = -10.0;
+  final re = Float64List(n), im = Float64List(n), power = Float64List(n ~/ 2 + 1);
+  final binHz = sampleRate / n;
+  final top = math.min(16000.0, sampleRate / 2);
+  // Band edges in Hz, log-spaced.
+  final edges = List<double>.generate(bands + 1, (b) => 40 * math.pow(top / 40, b / bands).toDouble());
+  final tilt = [for (var b = 0; b < bands; b++) 3 * math.log(math.sqrt(edges[b] * edges[b + 1]) / 1000) / math.ln2];
+  // A full-scale sine gives |X| ≈ n/4 with a Hann window.
+  final ref = (n / 4) * (n / 4);
+  const silent = -200.0;
+  final db = Float32List(frames * bands);
+
   for (var f = 0; f < frames; f++) {
     final start = f * hop - n ~/ 2;
+    var energy = 0.0;
     for (var i = 0; i < n; i++) {
       final s = start + i;
-      re[i] = s >= 0 && s < samples.length ? samples[s] / 32768.0 * window[i] : 0;
+      final v = s >= 0 && s < samples.length ? samples[s] / 32768.0 : 0.0;
+      energy += v * v;
+      re[i] = v * window[i];
       im[i] = 0;
     }
-    fft(re, im);
-    for (var b = 0; b < bands; b++) {
-      final lo = edges[b], hi = math.max(edges[b + 1], lo + 1);
-      var peak = 0.0;
-      for (var k = lo; k < hi; k++) {
-        final m = re[k] * re[k] + im[k] * im[k];
-        if (m > peak) peak = m;
+    if (energy < 1e-7) {
+      // Digital silence stays silent (also after levelling).
+      for (var b = 0; b < bands; b++) {
+        db[f * bands + b] = silent;
       }
-      // Normalise: a full-scale sine gives |X| ≈ n/4 with a Hann window.
-      final db = 10 * math.log(peak / ((n / 4) * (n / 4)) + 1e-12) / math.ln10;
-      out[f * bands + b] = (((db - floorDb) / (ceilDb - floorDb)).clamp(0.0, 1.0) * 255).round();
+      continue;
+    }
+    fft(re, im);
+    for (var k = 0; k < power.length; k++) {
+      power[k] = re[k] * re[k] + im[k] * im[k];
+    }
+    for (var b = 0; b < bands; b++) {
+      final lo = edges[b] / binHz, hi = edges[b + 1] / binHz;
+      double p;
+      if (hi - lo < 1) {
+        // Narrower than a bin: read between the two nearest bins.
+        final c = (lo + hi) / 2, k = c.floor().clamp(0, power.length - 2), w = c - k;
+        p = power[k] * (1 - w) + power[k + 1] * w;
+      } else {
+        var sum = 0.0;
+        final a = lo.ceil(), z = math.min(hi.floor(), power.length - 1);
+        for (var k = a; k <= z; k++) {
+          sum += power[k];
+        }
+        p = sum / math.max(1, z - a + 1);
+      }
+      db[f * bands + b] = (10 * math.log(p / ref + 1e-12) / math.ln10 + tilt[b]).toDouble();
+    }
+  }
+
+  // Levelling: loud moments of each band, and of the whole song.
+  const range = 36.0;
+  double percentile(List<double> v, double q) {
+    if (v.isEmpty) return 0;
+    v.sort();
+    return v[((v.length - 1) * q).round()];
+  }
+
+  final everything = <double>[];
+  final bandTop = Float64List(bands);
+  for (var b = 0; b < bands; b++) {
+    final v = <double>[
+      for (var f = 0; f < frames; f++)
+        if (db[f * bands + b] > silent) db[f * bands + b],
+    ];
+    everything.addAll(v);
+    bandTop[b] = percentile(v, 0.95);
+  }
+  final songTop = percentile(everything, 0.97);
+  final out = Uint8List(frames * bands);
+  for (var b = 0; b < bands; b++) {
+    // Half the band's own range, half the song's: a band that is quiet all
+    // song still moves, but stays a little lower than the loud ones.
+    final ceil = (bandTop[b] + songTop) / 2 + 3;
+    final floor = ceil - range;
+    for (var f = 0; f < frames; f++) {
+      final v = db[f * bands + b];
+      if (v <= silent) continue;
+      final x = ((v - floor) / range).clamp(0.0, 1.0);
+      // A gentle curve: quiet stays low, hits stand out.
+      out[f * bands + b] = (math.pow(x, 1.3) * 255).round();
     }
   }
   return Spectrum(data: out, bands: bands, fps: fps);

@@ -1995,10 +1995,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get theme => 'Theme';
 
   @override
-  String get matrixConstellationRippleReactsToThe =>
-      'Matrix, Constellation, Ripple. Reacts to the mouse and the music';
-
-  @override
   String get shownInTheFullPlayer => 'Shown in the full player';
 
   @override
@@ -2945,22 +2941,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bars => 'Bars';
 
   @override
-  String get mirror => 'Mirror';
-
-  @override
-  String get radial => 'Radial';
-
-  @override
   String get wave => 'Wave';
-
-  @override
-  String get vuMeters => 'VU meters';
-
-  @override
-  String get waterfall => 'Waterfall';
-
-  @override
-  String get ledMatrix => 'LED matrix';
 
   @override
   String get low => 'Low';
@@ -3502,15 +3483,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get lyricsOffsetHint =>
       'Plus shows the lines earlier, minus later. Saved for this song.';
-
-  @override
-  String get vizRibbon => 'Ribbon';
-
-  @override
-  String get vizParticles => 'Particles';
-
-  @override
-  String get vizGlow => 'Glow';
 
   @override
   String get vizSensitivity => 'Sensitivity';
@@ -4341,7 +4313,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importDownloadTerms =>
-      'Prism finds each song on YouTube and saves its audio as a file in the app, so it stays in your library and plays offline. This goes against YouTube\'s Terms: use it only for yourself, don\'t share the files. It can stop working at any time.';
+      'Prism finds each song on YouTube and saves its audio as a file in the app, so it stays in your library and plays offline. This goes against YouTube\'s Terms: use it only for yourself, don\'t share the files. It can stop working at any time. On Windows Prism saves with yt-dlp (a free open-source tool, shipped with Prism) and fetches a newer copy from its official GitHub page when YouTube changes something.';
 
   @override
   String get importOnlyLibrary => 'Only search my library';
@@ -4403,4 +4375,38 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get youtubeBlocksThisSong =>
+      'YouTube blocks saving this song, and no other upload of it could be saved.';
+
+  @override
+  String get vizRing => 'Ring';
+
+  @override
+  String get windowMinimize => 'Minimize';
+
+  @override
+  String get windowMaximize => 'Maximize';
+
+  @override
+  String get windowRestore => 'Restore down';
+
+  @override
+  String get ytdlpCheckFailed =>
+      'The downloaded yt-dlp did not match its official checksum, so Prism did not use it.';
+
+  @override
+  String get bgTouch => 'Touch';
+
+  @override
+  String get tapsAlsoSendAWaveMusic =>
+      'Taps also send a wave. Music reaction analyses each song once, the first time it plays.';
+
+  @override
+  String get touchAndTapTheScreen => 'Touch and tap the screen';
+
+  @override
+  String get bgStylesSubtitle =>
+      'Moving or still, from the cover to a starfield. Can react to the music';
 }

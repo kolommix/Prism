@@ -3155,12 +3155,6 @@ abstract class AppLocalizations {
   /// **'Theme'**
   String get theme;
 
-  /// No description provided for @matrixConstellationRippleReactsToThe.
-  ///
-  /// In en, this message translates to:
-  /// **'Matrix, Constellation, Ripple. Reacts to the mouse and the music'**
-  String get matrixConstellationRippleReactsToThe;
-
   /// No description provided for @shownInTheFullPlayer.
   ///
   /// In en, this message translates to:
@@ -4734,41 +4728,11 @@ abstract class AppLocalizations {
   /// **'Bars'**
   String get bars;
 
-  /// No description provided for @mirror.
-  ///
-  /// In en, this message translates to:
-  /// **'Mirror'**
-  String get mirror;
-
-  /// No description provided for @radial.
-  ///
-  /// In en, this message translates to:
-  /// **'Radial'**
-  String get radial;
-
   /// No description provided for @wave.
   ///
   /// In en, this message translates to:
   /// **'Wave'**
   String get wave;
-
-  /// No description provided for @vuMeters.
-  ///
-  /// In en, this message translates to:
-  /// **'VU meters'**
-  String get vuMeters;
-
-  /// No description provided for @waterfall.
-  ///
-  /// In en, this message translates to:
-  /// **'Waterfall'**
-  String get waterfall;
-
-  /// No description provided for @ledMatrix.
-  ///
-  /// In en, this message translates to:
-  /// **'LED matrix'**
-  String get ledMatrix;
 
   /// No description provided for @low.
   ///
@@ -5723,24 +5687,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plus shows the lines earlier, minus later. Saved for this song.'**
   String get lyricsOffsetHint;
-
-  /// No description provided for @vizRibbon.
-  ///
-  /// In en, this message translates to:
-  /// **'Ribbon'**
-  String get vizRibbon;
-
-  /// No description provided for @vizParticles.
-  ///
-  /// In en, this message translates to:
-  /// **'Particles'**
-  String get vizParticles;
-
-  /// No description provided for @vizGlow.
-  ///
-  /// In en, this message translates to:
-  /// **'Glow'**
-  String get vizGlow;
 
   /// No description provided for @vizSensitivity.
   ///
@@ -7047,7 +6993,7 @@ abstract class AppLocalizations {
   /// No description provided for @importDownloadTerms.
   ///
   /// In en, this message translates to:
-  /// **'Prism finds each song on YouTube and saves its audio as a file in the app, so it stays in your library and plays offline. This goes against YouTube\'s Terms: use it only for yourself, don\'t share the files. It can stop working at any time.'**
+  /// **'Prism finds each song on YouTube and saves its audio as a file in the app, so it stays in your library and plays offline. This goes against YouTube\'s Terms: use it only for yourself, don\'t share the files. It can stop working at any time. On Windows Prism saves with yt-dlp (a free open-source tool, shipped with Prism) and fetches a newer copy from its official GitHub page when YouTube changes something.'**
   String get importDownloadTerms;
 
   /// No description provided for @importOnlyLibrary.
@@ -7115,6 +7061,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{minutes, plural, one{Trying again by itself in {minutes} minute.} other{Trying again by itself in {minutes} minutes.}}'**
   String importRetryIn(int minutes);
+
+  /// No description provided for @youtubeBlocksThisSong.
+  ///
+  /// In en, this message translates to:
+  /// **'YouTube blocks saving this song, and no other upload of it could be saved.'**
+  String get youtubeBlocksThisSong;
+
+  /// No description provided for @vizRing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ring'**
+  String get vizRing;
+
+  /// No description provided for @windowMinimize.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimize'**
+  String get windowMinimize;
+
+  /// No description provided for @windowMaximize.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximize'**
+  String get windowMaximize;
+
+  /// No description provided for @windowRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore down'**
+  String get windowRestore;
+
+  /// No description provided for @ytdlpCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The downloaded yt-dlp did not match its official checksum, so Prism did not use it.'**
+  String get ytdlpCheckFailed;
+
+  /// No description provided for @bgTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch'**
+  String get bgTouch;
+
+  /// No description provided for @tapsAlsoSendAWaveMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'Taps also send a wave. Music reaction analyses each song once, the first time it plays.'**
+  String get tapsAlsoSendAWaveMusic;
+
+  /// No description provided for @touchAndTapTheScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch and tap the screen'**
+  String get touchAndTapTheScreen;
+
+  /// No description provided for @bgStylesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving or still, from the cover to a starfield. Can react to the music'**
+  String get bgStylesSubtitle;
 }
 
 class _AppLocalizationsDelegate

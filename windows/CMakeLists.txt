@@ -96,6 +96,12 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libmpv/libmpv-2.dll"
   DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ffmpeg/ffmpeg.exe"
   DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+# yt-dlp.exe (saves imported songs; public domain). Optional: without it Prism
+# fetches it itself on first use. tool/fetch_windows_deps.ps1 puts it here.
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/yt-dlp/yt-dlp.exe")
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/third_party/yt-dlp/yt-dlp.exe"
+    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}" COMPONENT Runtime)
+endif()
 
 # Copy the native assets provided by the build.dart from all packages.
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/windows/")

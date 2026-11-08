@@ -1,6 +1,14 @@
-# Prism - status (2026-11-07)
+# Prism - status (2026-11-09)
 
-## Latest: imports download songs (2026-11-07), installed here, not released
+## Latest: version 1.2.3 (2026-11-09), released
+Details: docs/PROGRESS.md blocks 20-29, CHANGELOG.md.
+- **Open**: the Android background-editor crash the user saw does not happen on the emulator; needs the phone model or its log.
+- **Import saving fixed on Windows with yt-dlp** (shipped next to prism.exe, updates itself from its official release, hash-checked). YouTube refuses Prism's own reader the whole file of most music uploads; yt-dlp saves them in 4-6 s. Android: still the own reader, mostly blocked. Faster matching, no "Check" step.
+- **Library** shows saved songs only (streamed imports were shown for a moment and removed again: they did not play).
+- **Windows**: one Prism at a time; title bar merged into the app; new tray popup; quit takes ~0.1 s.
+- **Visualizer**: 3 styles (Bars, Wave, Ring), new levelled analysis (cache v2). **Volume**: new bar control.
+
+## Before that: imports download songs (2026-11-07), installed here, not released
 - **Import saves real files**: `ImportDownloader` (2 at a time, gives up after 4 failures in a row) saves each song found on YouTube into `<app support>/imported_music` and makes it a normal library song with the imported names, the playlist then plays the file. Uncertain matches wait until accepted. Off by default, asked with the terms at the first import (`OnlineFlags.importDownload`). Soundcloud matches stay streams (its terms). Real song saved and read back by FFmpeg. NOT run: a whole real playlist through the screen. Removing such a song from Prism leaves its file in that folder.
 - **Listen together, small round**: now-playing row, one tap to find missing songs on YouTube, next 3 songs found ahead. Not a rewrite: the user still has to say what feels wrong.
 

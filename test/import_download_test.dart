@@ -29,6 +29,11 @@ class _FakeYoutube extends MusicServiceModule {
   int calls = 0;
   bool refuse = false;
 
+  /// Video ids YouTube won't let us save.
+  final blocked = <String>{};
+  List<Track> results = const [];
+  final saved = <String>[];
+
   @override
   OnlineService get service => OnlineService.youtube;
   @override
@@ -38,9 +43,15 @@ class _FakeYoutube extends MusicServiceModule {
   Future<String> download(Track track, String targetPathWithoutExt) async {
     calls++;
     if (refuse) throw OnlineException(OnlineErrorKind.rateLimited, service: service);
+    final id = Uri.parse(track.uri).queryParameters['v']!;
+    if (blocked.contains(id)) throw OnlineException(OnlineErrorKind.notFound, service: service);
+    saved.add(id);
     await File('$targetPathWithoutExt.m4a').writeAsString('audio');
     return 'm4a';
   }
+
+  @override
+  Future<List<Track>> search(String query, {int limit = 20}) async => results;
 }
 
 void main() {
@@ -146,19 +157,60 @@ void main() {
       expect(c.read(importDownloaderProvider)!.done, 1);
     });
 
-    test('uncertain matches wait until they are accepted', () async {
+    test('a song that only streams stays out of the library until it is saved', () async {
+      final id = await job(1);
+      final item = (await repo.watchItems(id).first).single;
+      await repo.saveMatch(item.id, trackId: (await remote('str')).id, confidence: 0.9, source: 'youtube');
+      expect(await c.read(libraryRepositoryProvider).watchTracks().first, isEmpty);
+    });
+
+    test('uncertain matches are saved too, nothing waits for a check', () async {
       final id = await job(1);
       final item = (await repo.watchItems(id).first).single;
       await repo.saveMatch(item.id, trackId: (await remote('bbb')).id, confidence: 0.55, source: 'youtube');
       c.read(importDownloaderProvider.notifier).poke(id);
       await finished();
-      expect(yt.calls, 0);
-
-      await repo.acceptMatch(item.id);
-      c.read(importDownloaderProvider.notifier).poke(id);
-      await Future<void>.delayed(const Duration(milliseconds: 20));
-      await finished();
       expect(yt.calls, 1);
+      expect(await c.read(libraryRepositoryProvider).watchTracks().first, hasLength(1));
+    });
+
+    test('a blocked upload is replaced by another upload of the same song', () async {
+      yt.blocked.add('blk');
+      yt.results = [
+        Track(id: 0, sourceId: 'youtube', uri: 'https://www.youtube.com/watch?v=blk', title: 'Song 0', artist: 'Band', durationMs: 200000),
+        Track(id: 0, sourceId: 'youtube', uri: 'https://www.youtube.com/watch?v=zzz', title: 'Other thing', artist: 'Nobody', durationMs: 50000),
+        Track(id: 0, sourceId: 'youtube', uri: 'https://www.youtube.com/watch?v=alt', title: 'Band - Song 0', artist: 'Band - Topic', durationMs: 200000),
+      ];
+      final id = await job(1);
+      final item = (await repo.watchItems(id).first).single;
+      await repo.saveMatch(item.id, trackId: (await remote('blk')).id, confidence: 0.9, source: 'youtube');
+      c.read(importDownloaderProvider.notifier).poke(id);
+      await finished();
+      expect(yt.saved, ['alt'], reason: 'the unrelated result is not taken');
+      final library = await c.read(libraryRepositoryProvider).watchTracks().first;
+      expect(library.single.title, 'Song 0', reason: 'keeps the imported names');
+      expect((await repo.watchItems(id).first).single.track?.sourceId, 'local');
+    });
+
+    test('blocked songs do not stop the others, cut-off files are cleaned up', () async {
+      final folder = c.read(importDownloadDirProvider);
+      await folder.create(recursive: true);
+      final stale = File('${folder.path}/Old [x].webm.part')..writeAsStringSync('');
+      // yt-dlp's leftovers of a cut-off save of 'ok': not "already saved".
+      final frag = File('${folder.path}/Song [ok].m4a.part-Frag3')..writeAsStringSync('');
+      final ytdl = File('${folder.path}/Song [ok].m4a.ytdl')..writeAsStringSync('');
+      final id = await job(6);
+      final items = await repo.watchItems(id).first;
+      for (var i = 0; i < items.length; i++) {
+        if (i < 5) yt.blocked.add('b$i');
+        await repo.saveMatch(items[i].id, trackId: (await remote(i < 5 ? 'b$i' : 'ok')).id, confidence: 0.9, source: 'youtube');
+      }
+      c.read(importDownloaderProvider.notifier).poke(id);
+      await finished();
+      expect(stale.existsSync(), isFalse);
+      expect(frag.existsSync() || ytdl.existsSync(), isFalse);
+      expect(yt.saved, ['ok'], reason: 'five blocked in a row is not a refusing service');
+      expect(c.read(importDownloaderProvider)!.failed, 5);
     });
 
     test('the same video is not downloaded twice', () async {

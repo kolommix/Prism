@@ -17,6 +17,8 @@
 // A window that does nothing but host a Flutter view.
 // WM_COPYDATA tag for a shared playlist from a second start of the app.
 constexpr ULONG_PTR kDeepLinkCopyData = 0x4C494E52;  // "LINR"
+// WM_COPYDATA tag from a second start: show the running window.
+constexpr ULONG_PTR kShowWindowCopyData = 0x53484F57;  // "SHOW"
 
 class FlutterWindow : public Win32Window {
  public:

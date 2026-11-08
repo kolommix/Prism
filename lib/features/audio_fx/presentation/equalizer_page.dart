@@ -93,6 +93,8 @@ class EqualizerPage extends ConsumerWidget {
                         label: Text(eqPresetLabel(p.name)),
                         selected: s.enabled && s.presetName == p.name,
                         avatar: p.builtIn ? null : const Icon(Icons.person_rounded, size: 16),
+                        // A checkmark would sit on top of that icon.
+                        showCheckmark: p.builtIn,
                         onSelected: (_) => ctrl.applyPreset(p),
                       ),
                     ),

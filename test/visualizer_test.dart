@@ -32,8 +32,8 @@ int loudestBand(Spectrum s, Duration t) {
   return best;
 }
 
-/// Band index (log scale 40 Hz…Nyquist) that contains [hz].
-int bandOf(double hz, {int bands = 48, double nyquist = 11025}) =>
+/// Band index (log scale 40 Hz…16 kHz or Nyquist) that contains [hz].
+int bandOf(double hz, {int bands = 64, double nyquist = 11025}) =>
     (math.log(hz / 40) / math.log(nyquist / 40) * bands).floor();
 
 void main() {
@@ -53,6 +53,26 @@ void main() {
     expect(s.frames, closeTo(60, 1));
     expect(loudestBand(s, const Duration(milliseconds: 400)), closeTo(bandOf(200), 1));
     expect(loudestBand(s, const Duration(milliseconds: 1600)), closeTo(bandOf(3000), 1));
+  });
+
+  test('a quiet high sound still moves its band fully (levelled per band)', () {
+    // Loud 100 Hz all the time; a 6 kHz tone 30 dB quieter in the second half.
+    const rate = 22050, n = rate * 4;
+    final b = ByteData(n * 2);
+    for (var i = 0; i < n; i++) {
+      var v = math.sin(2 * math.pi * 100 * i / rate) * 0.5;
+      if (i > n / 2) v += math.sin(2 * math.pi * 6000 * i / rate) * 0.5 * 0.0316;
+      b.setInt16(i * 2, (v * 32767).round(), Endian.little);
+    }
+    final s = SpectrumService.analyze(b.buffer.asUint8List());
+    final v = Float32List(s.bands);
+    s.sample(const Duration(milliseconds: 3000), v);
+    final high = v[bandOf(6000)];
+    final bass = v[bandOf(100)];
+    s.sample(const Duration(milliseconds: 1000), v);
+    expect(high, greaterThan(0.6), reason: 'the quiet tone reaches near the top of its band');
+    expect(v[bandOf(6000)], lessThan(0.15), reason: 'and is low when it is not there');
+    expect(bass, greaterThan(0.6));
   });
 
   test('silence is all zeros, encode/decode round trip', () {

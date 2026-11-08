@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/ffmpeg/ffmpeg_runner.dart';
 import '../../../core/sources/track_source.dart';
 import '../../library/domain/track.dart';
 import '../data/oauth.dart';
@@ -22,6 +25,7 @@ import '../services/youtube/data_api_backend.dart';
 import '../services/youtube/explode_backend.dart';
 import '../services/youtube/youtube_backend.dart';
 import '../services/youtube/youtube_module.dart';
+import '../services/youtube/ytdlp.dart';
 import '../../../l10n/l10n.dart';
 
 import '../services/yandex/yandex_module.dart';
@@ -290,7 +294,16 @@ class OnlineHub {
           launch: launch,
         );
       case OnlineService.youtube:
-        final YoutubeBackend? extractor = flags.youtubeExtractor ? ExplodeBackend() : null;
+        final YoutubeBackend? extractor = flags.youtubeExtractor
+            ? ExplodeBackend(
+                saver: YtDlp.supported
+                    ? YtDlp(
+                        toolsDir: Directory(p.join(cache.dir.parent.path, 'tools')),
+                        ffmpeg: ProcessFfmpegRunner.bundledExecutable(),
+                      )
+                    : null,
+              )
+            : null;
         final YoutubeBackend? catalog = config.hasYoutubeApi
             ? DataApiBackend.withKey(config.youtubeApiKey, http)
             : extractor;

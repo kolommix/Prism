@@ -410,7 +410,7 @@ class _SectionBody extends ConsumerWidget {
           SettingsTile(
             icon: Icons.blur_on_rounded,
             title: l10n.background,
-            subtitle: l10n.matrixConstellationRippleReactsToThe,
+            subtitle: l10n.bgStylesSubtitle,
             trailing: SettingsValue(settings.background.current.label),
             chevron: true,
             onTap: () => context.go(Routes.background),

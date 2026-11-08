@@ -239,6 +239,9 @@ class PlayerController {
     await _engine.stop();
   }
 
+  /// Writes the queue and position now (quitting: the next start resumes here).
+  Future<void> saveSession() => _save(force: true);
+
   Future<void> setCrossfade(Duration d) => _engine.setCrossfade(d);
   Future<void> setVolume(double v) => _engine.setVolume(v);
 

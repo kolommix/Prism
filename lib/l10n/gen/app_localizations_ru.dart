@@ -2051,10 +2051,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get theme => 'Тема';
 
   @override
-  String get matrixConstellationRippleReactsToThe =>
-      'Матрица, Созвездие, Рябь. Реагируют на мышь и музыку';
-
-  @override
   String get shownInTheFullPlayer => 'Показывается в полном плеере';
 
   @override
@@ -3015,22 +3011,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get bars => 'Столбцы';
 
   @override
-  String get mirror => 'Зеркало';
-
-  @override
-  String get radial => 'Круг';
-
-  @override
   String get wave => 'Волна';
-
-  @override
-  String get vuMeters => 'VU-метры';
-
-  @override
-  String get waterfall => 'Водопад';
-
-  @override
-  String get ledMatrix => 'LED-матрица';
 
   @override
   String get low => 'НЧ';
@@ -3571,15 +3552,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get lyricsOffsetHint =>
       'Плюс показывает строки раньше, минус позже. Сохраняется для этой песни.';
-
-  @override
-  String get vizRibbon => 'Лента';
-
-  @override
-  String get vizParticles => 'Частицы';
-
-  @override
-  String get vizGlow => 'Свечение';
 
   @override
   String get vizSensitivity => 'Чувствительность';
@@ -4433,7 +4405,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get importDownloadTerms =>
-      'Prism находит каждую песню на YouTube и сохраняет звук в файл внутри приложения, поэтому песня остаётся в библиотеке и играет без интернета. Это нарушает правила YouTube: только для себя, файлы никому не передавайте. Функция может перестать работать в любой момент.';
+      'Prism находит каждую песню на YouTube и сохраняет звук в файл внутри приложения, поэтому песня остаётся в библиотеке и играет без интернета. Это нарушает правила YouTube: только для себя, файлы никому не передавайте. Функция может перестать работать в любой момент. На Windows Prism сохраняет через yt-dlp (бесплатная программа с открытым кодом, идёт вместе с Prism) и берёт новую версию с её официальной страницы на GitHub, когда YouTube что-то меняет.';
 
   @override
   String get importOnlyLibrary => 'Искать только в библиотеке';
@@ -4498,4 +4470,38 @@ class AppLocalizationsRu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get youtubeBlocksThisSong =>
+      'YouTube не даёт сохранить эту песню, и другие загрузки тоже не сохраняются.';
+
+  @override
+  String get vizRing => 'Кольцо';
+
+  @override
+  String get windowMinimize => 'Свернуть';
+
+  @override
+  String get windowMaximize => 'Развернуть';
+
+  @override
+  String get windowRestore => 'Свернуть в окно';
+
+  @override
+  String get ytdlpCheckFailed =>
+      'Скачанный yt-dlp не совпал с официальной контрольной суммой, Prism не стал его использовать.';
+
+  @override
+  String get bgTouch => 'Касание';
+
+  @override
+  String get tapsAlsoSendAWaveMusic =>
+      'Касания тоже запускают волну. Для реакции на музыку каждая песня анализируется один раз, при первом запуске.';
+
+  @override
+  String get touchAndTapTheScreen => 'Касайтесь экрана';
+
+  @override
+  String get bgStylesSubtitle =>
+      'Живые или спокойные, от обложки до звёздного неба. Могут реагировать на музыку';
 }

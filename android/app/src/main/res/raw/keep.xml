@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Release builds drop resources nothing references by id. These are asked for by
+     name from Dart (audio_service: androidNotificationIcon 'drawable/ic_stat_prism'):
+     without this the media notification has no icon and Android rejects it. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_prism" />

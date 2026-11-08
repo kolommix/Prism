@@ -12,6 +12,7 @@ add_executable(${BINARY_NAME} WIN32
   "frame_pump.cpp"
   "smtc_bridge.cpp"
   "tray_bridge.cpp"
+  "tray_popup.cpp"
   "main.cpp"
   "utils.cpp"
   "win32_window.cpp"
@@ -38,6 +39,7 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 # dependencies here.
 target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
+target_link_libraries(${BINARY_NAME} PRIVATE "gdiplus.lib")
 # C++/WinRT for the System Media Transport Controls bridge (smtc_bridge.cpp).
 target_link_libraries(${BINARY_NAME} PRIVATE "WindowsApp.lib")
 target_compile_features(${BINARY_NAME} PRIVATE cxx_std_20)

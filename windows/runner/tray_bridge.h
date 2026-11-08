@@ -10,13 +10,16 @@
 #include <string>
 #include <vector>
 
+#include "tray_popup.h"
+
 // Callback message the notification-area icon sends to our window.
 constexpr UINT kTrayCallbackMessage = WM_APP + 0x52;
 
-// Minimal system tray icon with a playback context menu, exposed to Dart
+// System tray icon with a playback popup (tray_popup.cpp), exposed to Dart
 // through the "prism/tray" method channel.
 //
-// Dart -> native:  "show" {tooltip, playing}   (creates/updates the icon)
+// Dart -> native:  "show" {tooltip, playing, labels, title, artist, artPath}
+//                  (creates/updates the icon and the popup)
 //                  "hide"
 // Native -> Dart:  "action" "open" | "toggle" | "next" | "previous" | "quit"
 class TrayBridge {
@@ -31,16 +34,14 @@ class TrayBridge {
   void HandleTrayMessage(LPARAM lparam);
 
  private:
-  void Show(const std::wstring& tooltip, bool playing);
+  void Show(const std::wstring& tooltip);
   void Hide();
   void ShowMenu();
   void Send(const char* action);
 
   HWND hwnd_;
   bool visible_ = false;
-  bool playing_ = false;
-  // Menu text from Dart: open, pause, play, previous, next, quit.
-  std::vector<std::wstring> labels_ = {L"Open Prism", L"Pause", L"Play", L"Previous", L"Next", L"Quit"};
+  std::unique_ptr<TrayPopup> popup_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
 };
 

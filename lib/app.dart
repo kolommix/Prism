@@ -14,6 +14,7 @@ import 'features/stats/application/stats_providers.dart';
 import 'features/desktop/application/android_widget_sync.dart';
 import 'features/desktop/application/desktop_extras.dart';
 import 'features/desktop/presentation/mini_overlay.dart';
+import 'features/desktop/presentation/window_caption.dart';
 import 'features/player/application/player_providers.dart';
 import 'features/player/engine/playback_engine.dart';
 import 'features/online/domain/online_error.dart';
@@ -191,9 +192,11 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
                   input.burst(e.position, strength: 0.5);
                 },
                 child: BackdropGroup(
-                  child: Stack(
-                    fit: StackFit.passthrough,
-                    children: [child ?? const SizedBox.shrink(), const DropOverlay()],
+                  child: WindowCaption(
+                    child: Stack(
+                      fit: StackFit.passthrough,
+                      children: [child ?? const SizedBox.shrink(), const DropOverlay()],
+                    ),
                   ),
                 ),
               ),

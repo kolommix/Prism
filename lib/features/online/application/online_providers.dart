@@ -106,11 +106,10 @@ class ImportRun {
 class ImportRunner extends Notifier<ImportRun?> {
   bool _stop = false;
 
-  /// One search at a time: YouTube stops answering when searches come fast.
-  static const workers = 1;
-
-  /// Between searches of an online service.
-  static const searchGap = Duration(milliseconds: 1500);
+  /// Two songs at a time: while one waits for an answer the next search is
+  /// already queued. The YouTube extractor spaces its own searches, so this
+  /// doesn't make them come faster than YouTube accepts.
+  static const workers = 2;
 
   Timer? _retry;
   final _attempts = <int, int>{};
@@ -143,7 +142,6 @@ class ImportRunner extends Notifier<ImportRun?> {
     final total = queue.length;
     var done = 0;
     String? pauseMessage;
-    var lastWasLocal = false;
     final retries = <int, int>{};
     state = ImportRun(jobId: jobId, done: 0, total: total);
 
@@ -152,7 +150,6 @@ class ImportRunner extends Notifier<ImportRun?> {
         final item = queue.removeAt(0);
         try {
           final r = await matcher.match(item.wanted);
-          lastWasLocal = r.source == 'local';
           final t = r.track == null ? null : await store.ensure(r.track!);
           await repo.saveMatch(item.id, trackId: t?.id, confidence: r.score.value, source: r.source, note: r.note);
           if (t != null && ref.read(onlineHubProvider).flags.importDownload) {
@@ -176,8 +173,6 @@ class ImportRunner extends Notifier<ImportRun?> {
         }
         done++;
         state = ImportRun(jobId: jobId, done: done, total: total);
-        // Be gentle with the services between searches. Local matches ask nobody.
-        await Future<void>.delayed(lastWasLocal ? const Duration(milliseconds: 20) : searchGap);
       }
     }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -325,6 +326,27 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('Solid panels'), findsNothing, reason: 'Cover has nothing to tune');
       expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(milliseconds: 100));
+    });
+
+    testWidgets('"Try it" keeps Close below the window buttons / status bar', (tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1;
+      // What the Windows title strip (or a phone's status bar) gives the pages.
+      tester.view.padding = const FakeViewPadding(top: 32);
+      addTearDown(tester.view.reset);
+      SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
+      await tester.pumpWidget(_app(
+        const BackgroundPage(),
+        settings: const AppSettings(background: BackgroundConfig(style: 'blobs')),
+        overrides: [settingsStoreProvider.overrideWithValue(SettingsStore(SharedPreferencesAsync()))],
+      ));
+      await tester.pump(const Duration(milliseconds: 100));
+      unawaited(showBackgroundPreview(tester.element(find.byType(BackgroundPage))));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.getTopLeft(find.byIcon(Icons.close_rounded)).dy, greaterThan(32 + 12));
       await tester.pumpWidget(const SizedBox());
       await tester.pump(const Duration(milliseconds: 100));
     });

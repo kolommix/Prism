@@ -60,7 +60,7 @@ Future<T?> _withProgress<T>(BuildContext context, String label, Future<T> Functi
 
 /// The one Import screen: paste a link, or drop or pick a file. The service is
 /// worked out from what you give it. No preview step: the songs start arriving
-/// in a playlist right away and the uncertain ones wait in Review.
+/// in a playlist right away and are saved into the library as they are found.
 class ImportPage extends ConsumerStatefulWidget {
   const ImportPage({super.key});
 
@@ -258,7 +258,6 @@ class _ImportPageState extends ConsumerState<ImportPage> {
     ref.watch(onlineRevisionProvider);
     final hub = ref.watch(onlineHubProvider);
     final jobs = ref.watch(importJobsProvider).value ?? const [];
-    final review = ref.watch(importReviewProvider).value?.length ?? 0;
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     final input = _input;
@@ -466,20 +465,6 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                           ),
                         ],
                       ],
-                    ),
-                  ),
-                ],
-                if (review > 0) ...[
-                  const SizedBox(height: 16),
-                  Material(
-                    type: MaterialType.transparency,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-                      leading: const SizedBox(width: 40, child: Icon(Icons.rule_rounded)),
-                      title: Text(l10n.importReviewCount(review)),
-                      subtitle: Text(l10n.importReviewHint),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () => context.go(Routes.importReview),
                     ),
                   ),
                 ],

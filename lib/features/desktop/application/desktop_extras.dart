@@ -166,7 +166,7 @@ class MiniModeController extends Notifier<bool> {
   Future<void> exit() async {
     if (!state) return;
     await windowManager.setAlwaysOnTop(false);
-    await windowManager.setTitleBarStyle(TitleBarStyle.normal);
+    await windowManager.setTitleBarStyle(TitleBarStyle.hidden, windowButtonVisibility: false);
     await windowManager.setMinimumSize(const Size(420, 640));
     final r = _saved;
     if (r != null) await windowManager.setBounds(r);

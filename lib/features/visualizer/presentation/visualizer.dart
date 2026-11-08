@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,15 +24,6 @@ export 'visualizer_painter.dart' show VisualizerStyle;
 final spectrumServiceProvider = FutureProvider<SpectrumService>((ref) async {
   final cache = await getApplicationCacheDirectory();
   return SpectrumService(ffmpeg: ref.watch(ffmpegRunnerProvider), cacheDir: Directory(p.join(cache.path, 'spectrum')));
-});
-
-/// The glow style's shader; null where shaders can't load (it then falls back).
-final vizGlowShaderProvider = FutureProvider<ui.FragmentProgram?>((ref) async {
-  try {
-    return await ui.FragmentProgram.fromAsset('shaders/viz_glow.frag');
-  } on Object {
-    return null;
-  }
 });
 
 final spectrumProvider = FutureProvider.family<Spectrum?, Track>((ref, t) async {
@@ -110,7 +100,6 @@ class _VisualizerState extends ConsumerState<Visualizer> with SingleTickerProvid
     final scheme = Theme.of(context).colorScheme;
     final muted = TextStyle(color: scheme.onSurfaceVariant);
     final settings = ref.watch(settingsProvider.select((s) => (s.visualizerSensitivity, s.visualizerLowPower, s.visualizerLive)));
-    final shader = style == VisualizerStyle.glow ? ref.watch(vizGlowShaderProvider).value : null;
     _syncLive(settings.$3);
     Widget paint(BandSource source) => RepaintBoundary(
           child: CustomPaint(
@@ -125,7 +114,6 @@ class _VisualizerState extends ConsumerState<Visualizer> with SingleTickerProvid
               reduce: !context.motion.decorative,
               sensitivity: settings.$1,
               lowPower: settings.$2,
-              shader: shader,
             ),
           ),
         );
@@ -159,6 +147,8 @@ class VisualizerStylePicker extends ConsumerWidget {
     return Wrap(spacing: 6, alignment: WrapAlignment.center, children: [
       for (final s in VisualizerStyle.values)
         ChoiceChip(
+          // The icon already says which; a checkmark would sit on top of it.
+          showCheckmark: false,
           avatar: Icon(s.icon, size: 16),
           label: Text(s.label),
           selected: s == current,

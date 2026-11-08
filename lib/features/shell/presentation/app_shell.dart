@@ -146,49 +146,56 @@ class _WideLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final motion = context.motion;
+    // On Windows the top padding is the app's own title bar strip: keep the
+    // panels below it, and don't let the pages inside add it once more.
+    final top = MediaQuery.paddingOf(context).top;
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _Sidebar(index: index, onSelect: onSelect),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: GlassPanel(borderRadius: context.shape.large, border: false, child: content),
-                  ),
-                  AnimatedSwitcher(
-                    duration: motion.d(PrismMotion.long),
-                    switchInCurve: Curves.easeOutCubic,
-                    transitionBuilder: (child, a) => SizeTransition(
-                      sizeFactor: a,
-                      axis: Axis.horizontal,
-                      alignment: AlignmentDirectional.centerStart,
-                      child: FadeTransition(opacity: a, child: child),
+        padding: EdgeInsets.fromLTRB(10, top > 0 ? top : 10, 10, 10),
+        child: MediaQuery.removePadding(
+          context: context,
+          removeTop: true,
+          child: Column(
+            children: [
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _Sidebar(index: index, onSelect: onSelect),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: GlassPanel(borderRadius: context.shape.large, border: false, child: content),
                     ),
-                    child: showPanel && hasTrack
-                        ? const Padding(
-                            key: ValueKey('panel'),
-                            padding: EdgeInsets.only(left: 10),
-                            child: SizedBox(width: 340, child: NowPlayingPanel()),
-                          )
-                        : const SizedBox.shrink(key: ValueKey('none')),
-                  ),
-                ],
+                    AnimatedSwitcher(
+                      duration: motion.d(PrismMotion.long),
+                      switchInCurve: Curves.easeOutCubic,
+                      transitionBuilder: (child, a) => SizeTransition(
+                        sizeFactor: a,
+                        axis: Axis.horizontal,
+                        alignment: AlignmentDirectional.centerStart,
+                        child: FadeTransition(opacity: a, child: child),
+                      ),
+                      child: showPanel && hasTrack
+                          ? const Padding(
+                              key: ValueKey('panel'),
+                              padding: EdgeInsets.only(left: 10),
+                              child: SizedBox(width: 340, child: NowPlayingPanel()),
+                            )
+                          : const SizedBox.shrink(key: ValueKey('none')),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            AnimatedSize(
-              duration: motion.d(PrismMotion.medium),
-              curve: Curves.easeOutCubic,
-              child: hasTrack
-                  ? const Padding(padding: EdgeInsets.only(top: 10), child: DesktopPlayerBar())
-                  : const SizedBox(width: double.infinity),
-            ),
-          ],
+              AnimatedSize(
+                duration: motion.d(PrismMotion.medium),
+                curve: Curves.easeOutCubic,
+                child: hasTrack
+                    ? const Padding(padding: EdgeInsets.only(top: 10), child: DesktopPlayerBar())
+                    : const SizedBox(width: double.infinity),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -284,8 +291,8 @@ class _TogetherEntry extends ConsumerWidget {
     final label = !s.connected
         ? l10n.listenTogether
         : (s.role == TogetherRole.host
-            ? (s.guests == 0 ? l10n.code(s.code ?? '') : l10n.nListening(s.guests + 1))
-            : l10n.xWith(s.hostName ?? l10n.aFriend));
+              ? (s.guests == 0 ? l10n.code(s.code ?? '') : l10n.nListening(s.guests + 1))
+              : l10n.xWith(s.hostName ?? l10n.aFriend));
     return Tooltip(
       message: compact ? label : '',
       child: InkWell(

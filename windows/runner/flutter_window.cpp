@@ -120,9 +120,20 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     if (data && data->dwData == kDeepLinkCopyData && deep_link_) {
       std::string text(static_cast<const char*>(data->lpData), data->cbData);
       deep_link_->InvokeMethod("open", std::make_unique<flutter::EncodableValue>(text));
-      ::ShowWindow(hwnd, SW_RESTORE);
       return TRUE;
     }
+    if (data && data->dwData == kShowWindowCopyData) {
+      // Hidden in the tray, minimized or behind other windows: bring it back.
+      if (!::IsWindowVisible(hwnd)) ::ShowWindow(hwnd, SW_SHOW);
+      if (::IsIconic(hwnd)) ::ShowWindow(hwnd, SW_RESTORE);
+      ::SetForegroundWindow(hwnd);
+      return TRUE;
+    }
+  }
+  // Full screen: the client area is the whole window. Must come before the
+  // plugins, or window_manager's hidden title bar trims 8 px off three sides.
+  if (message == WM_NCCALCSIZE && wparam && full_screen_) {
+    return 0;
   }
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (flutter_controller_) {

@@ -20,7 +20,7 @@ import '../domain/online_error.dart';
 import 'import_page.dart';
 import '../../../l10n/l10n.dart';
 
-enum _Filter { all, review, unmatched, matched, duplicates }
+enum _Filter { all, unmatched, matched, duplicates }
 
 IconData sourceIcon(String? source) => switch (source) {
   'local' => Icons.folder_rounded,
@@ -77,14 +77,12 @@ class _ImportJobPageState extends ConsumerState<ImportJobPage> {
     if (job == null) {
       return Scaffold(body: Center(child: Text(l10n.thisImportWasDeleted)));
     }
-    final review = items.where((i) => i.needsReview).length;
     final unmatched = items.where((i) => i.status == ImportItemStatus.unmatched).length;
     final dupes = items.where((i) => i.status == ImportItemStatus.duplicate).length;
     final shown = items
         .where(
           (i) => switch (_filter) {
             _Filter.all => true,
-            _Filter.review => i.needsReview,
             _Filter.unmatched => i.status == ImportItemStatus.unmatched,
             _Filter.matched => i.status == ImportItemStatus.matched,
             _Filter.duplicates => i.status == ImportItemStatus.duplicate,
@@ -121,7 +119,7 @@ class _ImportJobPageState extends ConsumerState<ImportJobPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${job.origin.label} · ${l10n.matchedOf(job.matched, job.total)}${job.lowConfidence > 0 ? ' · ${l10n.nToCheck(job.lowConfidence)}' : ''}${unmatched > 0 ? ' · ${l10n.nNotFound(unmatched)}' : ''}${dupes > 0 ? ' · ${l10n.nDuplicates(dupes)}' : ''}',
+                    '${job.origin.label} · ${l10n.matchedOf(job.matched, job.total)}${unmatched > 0 ? ' · ${l10n.nNotFound(unmatched)}' : ''}${dupes > 0 ? ' · ${l10n.nDuplicates(dupes)}' : ''}',
                     style: text.bodyMedium,
                   ),
                   const SizedBox(height: 10),
@@ -207,7 +205,6 @@ class _ImportJobPageState extends ConsumerState<ImportJobPage> {
                     children: [
                       for (final (f, label) in [
                         (_Filter.all, l10n.xAll(items.length)),
-                        (_Filter.review, l10n.check(review)),
                         (_Filter.unmatched, l10n.notFound(unmatched)),
                         (_Filter.matched, l10n.matched(job.matched)),
                         if (dupes > 0) (_Filter.duplicates, l10n.duplicates(dupes)),
@@ -281,33 +278,14 @@ class _ItemTile extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           status,
-          if (item.status == ImportItemStatus.matched || item.status == ImportItemStatus.unmatched)
-            Padding(
-              padding: const EdgeInsets.only(top: 3),
-              child: ConfidenceChip(level: item.level, value: item.confidence),
-            ),
         ],
       ),
-      isThreeLine: item.status == ImportItemStatus.matched || item.status == ImportItemStatus.unmatched,
       onTap: t == null ? null : () => playTracksAnywhere(ref, [t]),
       trailing: item.status == ImportItemStatus.pending
           ? null
           : Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (item.needsReview && item.status == ImportItemStatus.matched)
-                  IconButton(
-                    tooltip: l10n.importAccept,
-                    icon: const Icon(Icons.check_rounded),
-                    onPressed: () async {
-                      final repo = ref.read(importRepositoryProvider);
-                      await repo.acceptMatch(item.id);
-                      await repo.refreshPlaylistOfItem(item.id);
-                      if (ref.read(onlineHubProvider).flags.importDownload) {
-                        ref.read(importDownloaderProvider.notifier).poke(item.jobId);
-                      }
-                    },
-                  ),
                 TextButton(onPressed: () => showFixMatchSheet(context, ref, item), child: Text(l10n.fix)),
               ],
             ),

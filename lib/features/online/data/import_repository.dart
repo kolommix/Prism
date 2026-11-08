@@ -223,14 +223,13 @@ class ImportRepository {
     ),
   );
 
-  /// Found on YouTube but not saved yet. Uncertain matches wait for a yes.
+  /// Found on YouTube but not saved yet (every match, nothing waits for a check).
   Future<List<ImportItem>> downloadableItems(int jobId) async {
     final q = _db.select(_db.importItems).join([innerJoin(_db.tracks, _db.tracks.id.equalsExp(_db.importItems.trackId))])
       ..where(
         _db.importItems.jobId.equals(jobId) &
             _db.importItems.status.equals(ImportItemStatus.matched.name) &
-            _db.tracks.sourceId.equals('youtube') &
-            (_db.importItems.confidence.isBiggerOrEqualValue(0.7) | _db.importItems.matchSource.equals(manualSource)),
+            _db.tracks.sourceId.equals('youtube'),
       )
       ..orderBy([OrderingTerm(expression: _db.importItems.position)]);
     final rows = await q.get();

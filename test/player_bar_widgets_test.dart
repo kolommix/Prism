@@ -86,8 +86,26 @@ void main() {
     await tester.pump();
     expect(container.read(playerVolumeProvider), 1, reason: 'unmute restores the level');
     container.read(playerVolumeProvider.notifier).set(0.4);
-    await tester.pump();
-    expect(tester.widget<Slider>(find.byType(Slider)).value, closeTo(0.4, 1e-9));
+    await tester.pumpAndSettle();
+    VolumeBarsPainter bars() => tester
+        .widgetList<CustomPaint>(find.descendant(of: find.byType(VolumeSlider), matching: find.byType(CustomPaint)))
+        .map((p) => p.painter)
+        .whereType<VolumeBarsPainter>()
+        .single;
+    expect(bars().value, closeTo(0.4, 1e-9));
+
+    // Click and drag on the bars set it; arrow keys nudge it.
+    final box = tester.getRect(find.byWidgetPredicate((w) => w is CustomPaint && w.painter is VolumeBarsPainter));
+    await tester.tapAt(Offset(box.left + box.width * 0.75, box.center.dy));
+    await tester.pumpAndSettle();
+    expect(container.read(playerVolumeProvider), closeTo(0.75, 0.02));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await tester.pumpAndSettle();
+    expect(container.read(playerVolumeProvider), closeTo(0.70, 0.02));
+    await tester.dragFrom(Offset(box.left + box.width * 0.7, box.center.dy), Offset(-box.width, 0));
+    await tester.pumpAndSettle();
+    expect(container.read(playerVolumeProvider), 0, reason: 'dragging past the start mutes');
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('seek bar hover shows the time bubble without errors', (tester) async {

@@ -243,32 +243,30 @@ void main() {
     await finish(tester);
   });
 
-  testWidgets('import job: confidence, filters, fix sheet, no save step', (tester) async {
+  testWidgets('import job: no check step, fix sheet, no save step', (tester) async {
     bigScreen(tester);
     final id = (await tester.runAsync(() => _seedJob(db)))!;
     await tester.pumpWidget(app(ImportJobPage(jobId: id)));
     await tester.pumpAndSettle();
-    expect(find.textContaining('High 93%'), findsOneWidget);
-    expect(find.textContaining('Low – check it 55%'), findsOneWidget);
-    expect(find.text('No match'), findsOneWidget);
+    // Every match is just used (and saved): no confidence badges, no Check list.
+    expect(find.textContaining('93%'), findsNothing);
+    expect(find.textContaining('Check'), findsNothing);
+    expect(find.text('Good – A'), findsOneWidget);
+    expect(find.text('Unsure – A'), findsOneWidget);
     // Imports from before songs went in by themselves can still be saved.
     expect(find.text('Create playlist (2 songs)'), findsOneWidget);
     expect(find.text('Download the songs'), findsOneWidget);
 
-    await tester.tap(find.text('Check 2'));
-    await tester.pumpAndSettle();
-    expect(find.text('Good – A'), findsNothing);
-    expect(find.text('Unsure – A'), findsOneWidget);
-
-    // Fix sheet opens with the search prefilled (local search only here).
-    await tester.tap(find.text('Fix').first);
+    // A wrong pick can still be fixed: the sheet opens with the search prefilled.
+    final row = find.ancestor(of: find.text('Unsure – A'), matching: find.byType(ListTile));
+    await tester.tap(find.descendant(of: row, matching: find.text('Fix')));
     await tester.pumpAndSettle();
     expect(find.text('Fix match'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'A unsure'), findsOneWidget);
     await tester.tap(find.text('No match').last);
     await settleDb(tester);
     await tester.pumpAndSettle();
-    expect(find.text('Unsure – A'), findsNothing, reason: 'decided');
+    expect(find.text('Marked as no match'), findsOneWidget);
     await finish(tester);
   });
 

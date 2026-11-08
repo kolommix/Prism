@@ -44,7 +44,8 @@ Do these in order, from this folder.
 
 ## Every release
 
-1. Set the new version in `pubspec.yaml` (`version: 1.2.0+7`).
+1. Set the new version in `pubspec.yaml` (`version: 1.2.0+7`) and in `lib/core/app_version.dart`, and add its section to
+   `CHANGELOG.md` (`## 1.2.0 (date)`). The release notes come from that section; without it the release stops.
 2. Run `flutter analyze`, `flutter test --exclude-tags "audio,network"` and `flutter test --tags audio`.
 3. Commit, then tag and push. The tag must equal the version in `pubspec.yaml`, or the workflow stops:
 
@@ -56,7 +57,7 @@ Do these in order, from this folder.
    git push origin main v1.2.0
    ```
 
-4. Watch it build, then write the release notes on the GitHub page:
+4. Watch it build (the release notes are the CHANGELOG section):
 
    ```bash
    gh run watch
