@@ -101,7 +101,8 @@ for (\$k = 0; \$k -lt 2; \$k++) {
     try {
       final ipc = DiscordIpc(pipeBase: r'\\.\pipe\prism-test-ipc-');
       var ok = false;
-      for (var i = 0; i < 50 && !ok; i++) {
+      // PowerShell can take many seconds to start on a build server.
+      for (var i = 0; i < 300 && !ok; i++) {
         ok = ipc.connect('123456');
         if (!ok) await Future<void>.delayed(const Duration(milliseconds: 100));
       }
