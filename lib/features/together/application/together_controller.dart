@@ -253,9 +253,15 @@ class TogetherController extends Notifier<TogetherState> {
   void _onHostMessage(TogetherLink from, Map<String, dynamic> m) {
     switch (m['t']) {
       case 'ping':
-        final id = m['id'] as String? ?? 'guest';
+        // Anyone with the code can send this: check types, keep it small.
+        final rawId = m['id'], rawName = m['name'];
+        final id = rawId is String && rawId.isNotEmpty && rawId.length <= 64 ? rawId : 'guest';
         final isNew = !_guests.containsKey(id);
-        _guests[id] = (m['name'] as String? ?? l10n.friend, DateTime.now());
+        if (isNew && _guests.length >= 50) return;
+        final name = rawName is String && rawName.trim().isNotEmpty
+            ? (rawName.length > 40 ? rawName.substring(0, 40) : rawName)
+            : l10n.friend;
+        _guests[id] = (name, DateTime.now());
         from.send({'t': 'pong', 'at': m['at'], 'id': id, 'host': DateTime.now().millisecondsSinceEpoch});
         if (isNew) {
           _guestsChanged();
@@ -305,7 +311,7 @@ class TogetherController extends Notifier<TogetherState> {
     _lastSentPlaying = s.playing;
     _lastSentAt = now;
     final (start, end) = sharedWindow(q.index, q.tracks.length);
-    final refs = [for (final t in q.tracks.sublist(start, end)) TrackRef.of(t)];
+    final refs = [for (final t in q.tracks.sublist(start, end)) TrackRef.shared(t)];
     final key = '$start|${refs.map((r) => r.uri).join('|')}';
     final changed = key != _lastQueueKey;
     if (changed) {

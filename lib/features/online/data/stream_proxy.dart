@@ -35,6 +35,15 @@ class StreamProxy {
   HttpServer? _server;
   Future<HttpServer>? _starting;
   final _streams = <String, StreamResolver>{};
+
+  /// Random part of every URL: other programs on this PC (or a web page
+  /// reaching 127.0.0.1) can't guess a stream's address.
+  final String _secret = _randomSecret();
+
+  static String _randomSecret() {
+    final r = math.Random.secure();
+    return List.generate(16, (_) => r.nextInt(256).toRadixString(16).padLeft(2, '0')).join();
+  }
   final _resolved = <String, ProxiedStream>{};
 
   /// Local URL the engine can open for [key] (e.g. `yt:VIDEOID`).
@@ -42,7 +51,7 @@ class StreamProxy {
     final server = await (_starting ??= _start());
     _streams[key] = resolve;
     _resolved.remove(key);
-    return Uri(scheme: 'http', host: '127.0.0.1', port: server.port, path: '/s/${Uri.encodeComponent(key)}');
+    return Uri(scheme: 'http', host: '127.0.0.1', port: server.port, path: '/$_secret/${Uri.encodeComponent(key)}');
   }
 
   Future<HttpServer> _start() async {
@@ -61,8 +70,12 @@ class StreamProxy {
   Future<void> _handle(HttpRequest req) async {
     final res = req.response;
     final seg = req.uri.pathSegments;
-    final key = seg.length == 2 && seg[0] == 's' ? Uri.decodeComponent(seg[1]) : null;
-    if (key == null || !_streams.containsKey(key)) {
+    final key = seg.length == 2 && seg[0] == _secret ? Uri.decodeComponent(seg[1]) : null;
+    // Only addressed as 127.0.0.1 / localhost (a web page using DNS rebinding
+    // would send its own host name).
+    final host = req.headers.host;
+    final local = host == null || host == '127.0.0.1' || host == 'localhost';
+    if (key == null || !local || !_streams.containsKey(key)) {
       res.statusCode = HttpStatus.notFound;
       await res.close();
       return;

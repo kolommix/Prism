@@ -50,8 +50,9 @@ class FakeEngine implements PlaybackEngine {
   Future<void> seek(Duration position) async => _state = _state.copyWith(position: position);
   @override
   Future<void> stop() async => _state = const EngineState();
+  double volume = 1;
   @override
-  Future<void> setVolume(double volume) async {}
+  Future<void> setVolume(double volume) async => this.volume = volume;
   @override
   Future<void> setCrossfade(Duration duration) async {}
   @override
@@ -155,5 +156,26 @@ void main() {
     expect(restored.current!.id, 3);
     expect(engine2.loadedAt, const Duration(seconds: 42));
     expect(engine2.state.playing, isFalse, reason: 'restore must not auto-play');
+  });
+
+
+  test('volume is kept for the next start, the sleep fade is not', () async {
+    await player.playTracks(songs);
+    await player.setVolume(0.3);
+    await player.setFade(0.5);
+    expect(engine.volume, closeTo(0.15, 1e-9));
+    await player.pause();
+
+    final engine2 = FakeEngine();
+    final restored = PlayerController(engine: engine2, store: store);
+    await restored.restore((ids) async => [for (final id in ids) songs.firstWhere((s) => s.id == id)]);
+    expect(restored.volume, 0.3);
+    expect(engine2.volume, 0.3);
+  });
+
+  test('old saved sessions without a volume start at full volume', () {
+    final s = SavedPlayback.fromJson({'ids': [1], 'index': 0});
+    expect(s.volume, 1);
+    expect(SavedPlayback.fromJson({...s.toJson(), 'volume': 0.25}).volume, 0.25);
   });
 }

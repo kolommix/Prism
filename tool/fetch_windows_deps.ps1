@@ -19,17 +19,26 @@ if (-not (Test-Path "$ff\ffmpeg.exe")) {
     gh release download windows-deps --pattern 'ffmpeg.exe' --dir $ff
     if ($LASTEXITCODE -ne 0) { throw 'Could not download ffmpeg.exe: is there a windows-deps release? See docs/RELEASING.md' }
 }
-# yt-dlp.exe (saves imported songs) from yt-dlp's own release, pinned and checked
-# by SHA-256. Bump both lines together; Prism also updates it by itself later.
+# yt-dlp (saves imported songs) from yt-dlp's own release, pinned and checked by
+# SHA-256. The unpacked build (yt-dlp_win.zip: yt-dlp.exe + _internal), not the
+# one-file yt-dlp.exe: that one unpacks Python into %TEMP% on every run, which
+# antivirus programs often block. Bump both lines together; Prism also updates
+# it by itself later.
 $yt = 'windows\third_party\yt-dlp'
 $ytVersion = '2026.10.26'
-$ytSha256 = 'F5389D3698ECDE4EF06F4E6B1CE0294FE9AC1396228C8990B8D3416D6D177A7D'
-New-Item -ItemType Directory -Force $yt | Out-Null
-if (-not (Test-Path "$yt\yt-dlp.exe") -or (Get-FileHash "$yt\yt-dlp.exe" -Algorithm SHA256).Hash -ne $ytSha256) {
-    Invoke-WebRequest "https://github.com/yt-dlp/yt-dlp/releases/download/$ytVersion/yt-dlp.exe" -OutFile "$yt\yt-dlp.exe"
-    if ((Get-FileHash "$yt\yt-dlp.exe" -Algorithm SHA256).Hash -ne $ytSha256) {
-        Remove-Item "$yt\yt-dlp.exe"
-        throw 'yt-dlp.exe does not match its pinned SHA-256'
+$ytSha256 = 'FD51B212CF8380C7A52EE08C0D6BE7F3C59B2F2C832EAF7B45ACFAE6EAB57419'
+$ytStamp = "$yt\version.txt"
+if (-not (Test-Path "$yt\_internal") -or -not (Test-Path $ytStamp) -or (Get-Content $ytStamp) -ne $ytVersion) {
+    if (Test-Path $yt) { Remove-Item -Recurse -Force $yt }
+    New-Item -ItemType Directory -Force $yt | Out-Null
+    $zip = Join-Path $env:TEMP "yt-dlp_win-$ytVersion.zip"
+    Invoke-WebRequest "https://github.com/yt-dlp/yt-dlp/releases/download/$ytVersion/yt-dlp_win.zip" -OutFile $zip
+    if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $ytSha256) {
+        Remove-Item $zip
+        throw 'yt-dlp_win.zip does not match its pinned SHA-256'
     }
+    Expand-Archive $zip $yt -Force
+    Remove-Item $zip
+    Set-Content $ytStamp $ytVersion
 }
 Get-Item "$mpv\libmpv-2.dll", "$ff\ffmpeg.exe", "$yt\yt-dlp.exe" | Select-Object Name, @{ n = 'MB'; e = { [math]::Round($_.Length / 1MB) } } | Format-Table -AutoSize

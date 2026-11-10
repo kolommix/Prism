@@ -20,6 +20,9 @@ class ListenTogetherRelay {
 
   int get port => _server.port;
 
+  static const maxRooms = 500;
+  static const maxGuests = 50;
+
   static Future<ListenTogetherRelay> start({int port = 47800, InternetAddress? address}) async {
     final server = await HttpServer.bind(address ?? InternetAddress.anyIPv4, port, shared: true);
     final relay = ListenTogetherRelay._(server);
@@ -43,19 +46,29 @@ class ListenTogetherRelay {
       (data) {
         if (data is! String || data.length > 512 * 1024) return;
         if (room == null) {
-          final Map<String, dynamic> hello;
+          final Object? hello;
           try {
-            hello = jsonDecode(data) as Map<String, dynamic>;
-          } on FormatException {
+            hello = jsonDecode(data);
+          } on Object {
             ws.close(4000, 'bad hello');
             return;
           }
-          final code = (hello['room'] as String? ?? '').toUpperCase();
-          if (hello['t'] != 'hello' || code.length < 4 || code.length > 12) {
+          final raw = hello is Map ? hello['room'] : null;
+          final code = raw is String ? raw.toUpperCase() : '';
+          if (hello is! Map || hello['t'] != 'hello' || code.length < 4 || code.length > 12) {
             ws.close(4000, 'bad hello');
+            return;
+          }
+          // Limits, so one client can't fill the relay's memory.
+          if (!_rooms.containsKey(code) && _rooms.length >= maxRooms) {
+            ws.close(4002, 'relay full');
             return;
           }
           final r = _rooms.putIfAbsent(code, _Room.new);
+          if (hello['role'] != 'host' && r.guests.length >= maxGuests) {
+            ws.close(4002, 'room full');
+            return;
+          }
           isHost = hello['role'] == 'host';
           if (isHost) {
             if (r.host != null) {

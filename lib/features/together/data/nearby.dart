@@ -101,16 +101,22 @@ class NearbyScanner {
     final Object? json;
     try {
       json = jsonDecode(utf8.decode(d.data));
-    } on FormatException {
+    } on Object {
       return;
     }
     if (json is! Map<String, dynamic> || json['prism'] != 1) return;
     final room = json['room'];
-    if (room is! String || room.isEmpty || room == ignoreRoom) return;
-    _found['${d.address.address}|$room'] = NearbySession(
+    if (room is! String || room.isEmpty || room.length > 12 || room == ignoreRoom) return;
+    // Anyone on the network can send these: check types, cut long text and
+    // keep the list small.
+    String text(Object? v, int max) => v is String ? (v.length > max ? v.substring(0, max) : v) : '';
+    final key = '${d.address.address}|$room';
+    if (!_found.containsKey(key) && _found.length >= 32) return;
+    final name = text(json['name'], 40);
+    _found[key] = NearbySession(
       room: room,
-      name: json['name'] as String? ?? l10n.someone,
-      song: json['song'] as String? ?? '',
+      name: name.isEmpty ? l10n.someone : name,
+      song: text(json['song'], 120),
       address: d.address,
       seen: DateTime.now(),
     );

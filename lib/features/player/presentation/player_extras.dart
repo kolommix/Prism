@@ -66,7 +66,7 @@ class PlayerVolume extends Notifier<double> {
   double _beforeMute = 1;
 
   @override
-  double build() => 1;
+  double build() => ref.read(playerControllerProvider).volume;
 
   void set(double v) {
     state = v.clamp(0.0, 1.0);

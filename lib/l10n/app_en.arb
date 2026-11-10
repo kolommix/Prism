@@ -2822,6 +2822,15 @@
   "windowMaximize": "Maximize",
   "windowRestore": "Restore down",
   "ytdlpCheckFailed": "The downloaded yt-dlp did not match its official checksum, so Prism did not use it.",
+  "ytdlpBlockedByAntivirus": "Your antivirus blocked yt-dlp, the helper Prism saves songs with. Add this folder to its exceptions and try again: {folder}",
+  "@ytdlpBlockedByAntivirus": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "ytdlpCertificateRefused": "A secure connection to YouTube was refused. If your antivirus scans HTTPS, allow Prism and yt-dlp, then try again.",
   "bgTouch": "Touch",
   "tapsAlsoSendAWaveMusic": "Taps also send a wave. Music reaction analyses each song once, the first time it plays.",
   "touchAndTapTheScreen": "Touch and tap the screen",
@@ -2879,5 +2888,33 @@
         "type": "int"
       }
     }
-  }
+  },
+  "tourWelcomeTitle": "Welcome to Prism",
+  "tourWelcomeBody": "A music player for the music you already have. No account, no ads, nothing about you leaves this device.\n\nThis short tour shows the basics. It takes under a minute.",
+  "tourMusicTitle": "Add your music",
+  "tourMusicBody": "Show Prism the folders your songs are in. It finds every song by itself, with covers, albums and artists, and keeps up when you add new files.\n\nYou can add more folders later in Settings, Library.",
+  "tourUseMusicFolder": "Use my Music folder",
+  "tourChooseFolder": "Choose a folder",
+  "tourFolderAdded": "Added: {folder}. Songs are being found now.",
+  "@tourFolderAdded": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "tourPlayerTitle": "The player",
+  "tourPlayerBodyDesktop": "Double-click a song to play it. The bar at the bottom has play, next, shuffle, repeat and volume (your volume is remembered).\n\nOn the right: what plays next and the lyrics. Click the cover for a big view. Right-click the seek bar to change its look. Media keys and the tray icon work too.",
+  "tourPlayerBodyPhone": "Tap a song to play it. Tap the small player at the bottom to open the big one: lyrics, the queue, speed, equalizer and more.\n\nThe lock screen and notification have the controls.",
+  "tourPlaylistsTitle": "Playlists and imports",
+  "tourPlaylistsBody": "Make playlists from the Playlists page, or with a song's menu.\n\nHave playlists on Spotify, YouTube, Deezer or Apple Music? Paste the link in Playlists, Import: Prism finds the songs in your library and online.",
+  "tourYoursTitle": "Make it yours",
+  "tourYoursBodyDesktop": "Settings has themes and colors, moving backgrounds, the equalizer, loudness levelling, Discord status and more. Listen together lets friends hear the same song at the same time.\n\nClosing the window keeps Prism in the tray. You can see this tour again in Settings.",
+  "tourYoursBodyPhone": "Settings has themes and colors, moving backgrounds, the equalizer, loudness levelling and more. Listen together lets friends hear the same song at the same time.\n\nYou can see this tour again in Settings.",
+  "tourSkip": "Skip",
+  "tourBack": "Back",
+  "tourNext": "Next",
+  "tourDone": "Start listening",
+  "tourShowAgain": "Welcome tour",
+  "tourShowAgainHint": "The short introduction from the first start"
 }

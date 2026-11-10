@@ -29,6 +29,7 @@ import 'features/playlists/application/share_inbox.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'core/providers.dart';
 import 'features/update/update_check.dart';
+import 'features/onboarding/presentation/welcome_tour.dart';
 /// Windows integration instance (null on Android / in tests).
 final windowsIntegrationProvider = Provider<WindowsDesktopIntegration?>((ref) => null);
 
@@ -60,6 +61,7 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       DeepLinks(_onImportRequest).start(widget.startArgs);
+      _showTourOnce();
       _quietUpdateCheck();
       // Imports that were still going when the app closed.
       if (ref.read(onlineHubProvider).flags.importDownload) unawaited(ref.read(importFlowProvider).resumeAll());
@@ -76,6 +78,13 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
       _lastErrorAt = now;
       _messenger.currentState?.showSnackBar(SnackBar(content: Text(err.message), duration: const Duration(seconds: 5)));
     });
+  }
+
+  /// First start: the welcome tour, over the app (the router's navigator).
+  Future<void> _showTourOnce() async {
+    final nav = _router.routerDelegate.navigatorKey.currentContext;
+    if (nav == null) return;
+    await WelcomeTour.maybeShow(nav, ref);
   }
 
   Future<void> _quietUpdateCheck() async {

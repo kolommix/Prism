@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:archive/archive.dart';
+import 'package:path/path.dart' as p;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prism/features/online/domain/online_error.dart';
 import 'package:prism/features/online/services/youtube/ytdlp.dart';
@@ -35,7 +38,40 @@ void main() {
     final y = YtDlp(toolsDir: dir);
     addTearDown(y.close);
     expect(await y.executable(), YtDlp.bundled());
-    await File('${dir.path}${Platform.pathSeparator}yt-dlp.exe').writeAsString('x');
-    expect(await y.executable(), endsWith('${dir.path}${Platform.pathSeparator}yt-dlp.exe'));
+    final own = File('${dir.path}/yt-dlp/yt-dlp.exe');
+    await own.create(recursive: true);
+    expect(p.normalize((await y.executable())!), p.normalize(own.path));
+  });
+
+  test('uses Windows certificates (antivirus HTTPS scanning)', () {
+    final args = YtDlp.args('abc', 'out');
+    final i = args.indexOf('--compat-options');
+    expect(args[i + 1], 'no-certifi');
+    expect(args.last, endsWith('watch?v=abc'));
+  });
+
+  test('a refused certificate says what to do', () {
+    final e = YtDlp.describeFailure(1, 'ERROR: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed');
+    expect(e.kind, OnlineErrorKind.badResponse);
+    expect(e.message, contains('antivirus'));
+  });
+
+  test('an antivirus refusing to start it is seen', () {
+    expect(YtDlp.killedFromOutside(225), isTrue);
+    expect(YtDlp.killedFromOutside(-1073741790), isTrue);
+    expect(YtDlp.killedFromOutside(1), isFalse);
+  });
+
+  test('unpacks the yt-dlp zip and never writes outside the folder', () async {
+    final dir = await Directory.systemTemp.createTemp('prism_ytdlp_zip_');
+    addTearDown(() => dir.delete(recursive: true));
+    final zip = Archive()
+      ..add(ArchiveFile.bytes('yt-dlp.exe', [1, 2, 3]))
+      ..add(ArchiveFile.bytes('_internal/python.dll', [4]))
+      ..add(ArchiveFile.bytes('../escape.txt', [5]));
+    await YtDlp.extractZip(ZipEncoder().encode(zip), Directory('${dir.path}/out'));
+    expect(await File('${dir.path}/out/yt-dlp.exe').readAsBytes(), [1, 2, 3]);
+    expect(await File('${dir.path}/out/_internal/python.dll').exists(), isTrue);
+    expect(await File('${dir.path}/escape.txt').exists(), isFalse);
   });
 }

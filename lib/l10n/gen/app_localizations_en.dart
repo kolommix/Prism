@@ -4379,6 +4379,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'The downloaded yt-dlp did not match its official checksum, so Prism did not use it.';
 
   @override
+  String ytdlpBlockedByAntivirus(String folder) {
+    return 'Your antivirus blocked yt-dlp, the helper Prism saves songs with. Add this folder to its exceptions and try again: $folder';
+  }
+
+  @override
+  String get ytdlpCertificateRefused =>
+      'A secure connection to YouTube was refused. If your antivirus scans HTTPS, allow Prism and yt-dlp, then try again.';
+
+  @override
   String get bgTouch => 'Touch';
 
   @override
@@ -4478,4 +4487,76 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tourWelcomeTitle => 'Welcome to Prism';
+
+  @override
+  String get tourWelcomeBody =>
+      'A music player for the music you already have. No account, no ads, nothing about you leaves this device.\n\nThis short tour shows the basics. It takes under a minute.';
+
+  @override
+  String get tourMusicTitle => 'Add your music';
+
+  @override
+  String get tourMusicBody =>
+      'Show Prism the folders your songs are in. It finds every song by itself, with covers, albums and artists, and keeps up when you add new files.\n\nYou can add more folders later in Settings, Library.';
+
+  @override
+  String get tourUseMusicFolder => 'Use my Music folder';
+
+  @override
+  String get tourChooseFolder => 'Choose a folder';
+
+  @override
+  String tourFolderAdded(String folder) {
+    return 'Added: $folder. Songs are being found now.';
+  }
+
+  @override
+  String get tourPlayerTitle => 'The player';
+
+  @override
+  String get tourPlayerBodyDesktop =>
+      'Double-click a song to play it. The bar at the bottom has play, next, shuffle, repeat and volume (your volume is remembered).\n\nOn the right: what plays next and the lyrics. Click the cover for a big view. Right-click the seek bar to change its look. Media keys and the tray icon work too.';
+
+  @override
+  String get tourPlayerBodyPhone =>
+      'Tap a song to play it. Tap the small player at the bottom to open the big one: lyrics, the queue, speed, equalizer and more.\n\nThe lock screen and notification have the controls.';
+
+  @override
+  String get tourPlaylistsTitle => 'Playlists and imports';
+
+  @override
+  String get tourPlaylistsBody =>
+      'Make playlists from the Playlists page, or with a song\'s menu.\n\nHave playlists on Spotify, YouTube, Deezer or Apple Music? Paste the link in Playlists, Import: Prism finds the songs in your library and online.';
+
+  @override
+  String get tourYoursTitle => 'Make it yours';
+
+  @override
+  String get tourYoursBodyDesktop =>
+      'Settings has themes and colors, moving backgrounds, the equalizer, loudness levelling, Discord status and more. Listen together lets friends hear the same song at the same time.\n\nClosing the window keeps Prism in the tray. You can see this tour again in Settings.';
+
+  @override
+  String get tourYoursBodyPhone =>
+      'Settings has themes and colors, moving backgrounds, the equalizer, loudness levelling and more. Listen together lets friends hear the same song at the same time.\n\nYou can see this tour again in Settings.';
+
+  @override
+  String get tourSkip => 'Skip';
+
+  @override
+  String get tourBack => 'Back';
+
+  @override
+  String get tourNext => 'Next';
+
+  @override
+  String get tourDone => 'Start listening';
+
+  @override
+  String get tourShowAgain => 'Welcome tour';
+
+  @override
+  String get tourShowAgainHint => 'The short introduction from the first start';
 }

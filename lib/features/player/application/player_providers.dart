@@ -58,7 +58,7 @@ final currentPaletteProvider = FutureProvider<AlbumPalette?>((ref) {
 
 final sleepTimerProvider = Provider<SleepTimer>((ref) {
   final player = ref.watch(playerControllerProvider);
-  final timer = SleepTimer(onFire: player.pause, setVolume: player.setVolume);
+  final timer = SleepTimer(onFire: player.pause, setVolume: player.setFade);
   final sub = player.events.listen((e) {
     if (e == EngineEvent.advancedToNext || e == EngineEvent.ended) timer.trackEnded();
   });

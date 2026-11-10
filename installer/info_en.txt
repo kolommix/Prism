@@ -1,0 +1,26 @@
+﻿Welcome to Prism, a music player for your own music files.
+
+WHAT YOU GET
+  - Your library: songs, albums, artists and folders, found by themselves in the folders you choose.
+  - Playlists, a queue you can drag around, shuffle and repeat, crossfade and gapless playback.
+  - Equalizer, speed and pitch, loudness levelling, lyrics that follow the song.
+  - A song editor (cut, fade, merge, ringtones) and a song info fixer.
+  - Import playlists from Spotify, YouTube, Deezer, Apple Music and more.
+  - Listen together with friends, statistics, moving backgrounds, Discord status.
+  - Media keys, a tray icon and a small always-on-top player.
+
+WHAT GETS INSTALLED
+  - Prism itself, for you only (no administrator rights needed).
+  - FFmpeg (song editor, analysis) and yt-dlp (saving imported songs), both open source.
+  - Start menu shortcut, and a desktop shortcut if you want one.
+
+YOUR PRIVACY
+  - No account, no ads, no analytics, no location.
+  - Online features (imports, lyrics, song info) only talk to the service they are for.
+  - Everything is listed in Prism under Settings, Privacy.
+
+WHERE YOUR DATA LIVES
+  - Your library, playlists and settings: %APPDATA%\com.kolommix\prism
+  - Prism never changes your music files unless you edit a song yourself (a backup is made first).
+
+If your antivirus asks about yt-dlp.exe: it is the tool Prism saves imported songs with. You can allow the Prism folder.

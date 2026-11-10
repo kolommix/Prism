@@ -7086,6 +7086,18 @@ abstract class AppLocalizations {
   /// **'The downloaded yt-dlp did not match its official checksum, so Prism did not use it.'**
   String get ytdlpCheckFailed;
 
+  /// No description provided for @ytdlpBlockedByAntivirus.
+  ///
+  /// In en, this message translates to:
+  /// **'Your antivirus blocked yt-dlp, the helper Prism saves songs with. Add this folder to its exceptions and try again: {folder}'**
+  String ytdlpBlockedByAntivirus(String folder);
+
+  /// No description provided for @ytdlpCertificateRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'A secure connection to YouTube was refused. If your antivirus scans HTTPS, allow Prism and yt-dlp, then try again.'**
+  String get ytdlpCertificateRefused;
+
   /// No description provided for @bgTouch.
   ///
   /// In en, this message translates to:
@@ -7181,6 +7193,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{Clean up 1 extra copy?} other{Clean up {count} extra copies?}}'**
   String dupCleanUpAsk(int count);
+
+  /// No description provided for @tourWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Prism'**
+  String get tourWelcomeTitle;
+
+  /// No description provided for @tourWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A music player for the music you already have. No account, no ads, nothing about you leaves this device.\n\nThis short tour shows the basics. It takes under a minute.'**
+  String get tourWelcomeBody;
+
+  /// No description provided for @tourMusicTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your music'**
+  String get tourMusicTitle;
+
+  /// No description provided for @tourMusicBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Prism the folders your songs are in. It finds every song by itself, with covers, albums and artists, and keeps up when you add new files.\n\nYou can add more folders later in Settings, Library.'**
+  String get tourMusicBody;
+
+  /// No description provided for @tourUseMusicFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Use my Music folder'**
+  String get tourUseMusicFolder;
+
+  /// No description provided for @tourChooseFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a folder'**
+  String get tourChooseFolder;
+
+  /// No description provided for @tourFolderAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added: {folder}. Songs are being found now.'**
+  String tourFolderAdded(String folder);
+
+  /// No description provided for @tourPlayerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The player'**
+  String get tourPlayerTitle;
+
+  /// No description provided for @tourPlayerBodyDesktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-click a song to play it. The bar at the bottom has play, next, shuffle, repeat and volume (your volume is remembered).\n\nOn the right: what plays next and the lyrics. Click the cover for a big view. Right-click the seek bar to change its look. Media keys and the tray icon work too.'**
+  String get tourPlayerBodyDesktop;
+
+  /// No description provided for @tourPlayerBodyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a song to play it. Tap the small player at the bottom to open the big one: lyrics, the queue, speed, equalizer and more.\n\nThe lock screen and notification have the controls.'**
+  String get tourPlayerBodyPhone;
+
+  /// No description provided for @tourPlaylistsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists and imports'**
+  String get tourPlaylistsTitle;
+
+  /// No description provided for @tourPlaylistsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Make playlists from the Playlists page, or with a song\'s menu.\n\nHave playlists on Spotify, YouTube, Deezer or Apple Music? Paste the link in Playlists, Import: Prism finds the songs in your library and online.'**
+  String get tourPlaylistsBody;
+
+  /// No description provided for @tourYoursTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it yours'**
+  String get tourYoursTitle;
+
+  /// No description provided for @tourYoursBodyDesktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings has themes and colors, moving backgrounds, the equalizer, loudness levelling, Discord status and more. Listen together lets friends hear the same song at the same time.\n\nClosing the window keeps Prism in the tray. You can see this tour again in Settings.'**
+  String get tourYoursBodyDesktop;
+
+  /// No description provided for @tourYoursBodyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings has themes and colors, moving backgrounds, the equalizer, loudness levelling and more. Listen together lets friends hear the same song at the same time.\n\nYou can see this tour again in Settings.'**
+  String get tourYoursBodyPhone;
+
+  /// No description provided for @tourSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get tourSkip;
+
+  /// No description provided for @tourBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get tourBack;
+
+  /// No description provided for @tourNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tourNext;
+
+  /// No description provided for @tourDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Start listening'**
+  String get tourDone;
+
+  /// No description provided for @tourShowAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome tour'**
+  String get tourShowAgain;
+
+  /// No description provided for @tourShowAgainHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The short introduction from the first start'**
+  String get tourShowAgainHint;
 }
 
 class _AppLocalizationsDelegate

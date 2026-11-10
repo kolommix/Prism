@@ -20,6 +20,7 @@ import '../../library/presentation/add_folder.dart';
 import '../../library/presentation/widgets/library_widgets.dart';
 import '../../player/domain/seek_bar_style.dart';
 import '../../player/presentation/widgets/waveform_seek_bar.dart';
+import '../../onboarding/presentation/welcome_tour.dart';
 import '../../shell/presentation/prism_logo.dart';
 import '../../tools/presentation/tools_section.dart';
 import '../../visualizer/presentation/visualizer.dart';
@@ -649,6 +650,13 @@ class _SectionBody extends ConsumerWidget {
       ),
       SettingsGroup(
         children: [
+          SettingsTile(
+            icon: Icons.waving_hand_outlined,
+            title: l10n.tourShowAgain,
+            subtitle: l10n.tourShowAgainHint,
+            chevron: true,
+            onTap: () => WelcomeTour.show(ref.context),
+          ),
           SettingsTile(
             icon: Icons.system_update_alt_rounded,
             title: l10n.updateCheck,

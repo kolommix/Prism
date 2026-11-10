@@ -4470,6 +4470,15 @@ class AppLocalizationsRu extends AppLocalizations {
       'Скачанный yt-dlp не совпал с официальной контрольной суммой, Prism не стал его использовать.';
 
   @override
+  String ytdlpBlockedByAntivirus(String folder) {
+    return 'Антивирус заблокировал yt-dlp, через который Prism сохраняет песни. Добавьте эту папку в исключения и попробуйте снова: $folder';
+  }
+
+  @override
+  String get ytdlpCertificateRefused =>
+      'Защищённое соединение с YouTube отклонено. Если антивирус проверяет HTTPS, разрешите Prism и yt-dlp и попробуйте снова.';
+
+  @override
   String get bgTouch => 'Касание';
 
   @override
@@ -4581,4 +4590,76 @@ class AppLocalizationsRu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get tourWelcomeTitle => 'Добро пожаловать в Prism';
+
+  @override
+  String get tourWelcomeBody =>
+      'Плеер для музыки, которая у вас уже есть. Без аккаунта и рекламы, ничего о вас не покидает это устройство.\n\nЭтот короткий тур покажет главное. Меньше минуты.';
+
+  @override
+  String get tourMusicTitle => 'Добавьте музыку';
+
+  @override
+  String get tourMusicBody =>
+      'Покажите Prism папки с песнями. Он сам найдёт каждую песню, с обложками, альбомами и исполнителями, и будет замечать новые файлы.\n\nДругие папки можно добавить позже: Настройки, Медиатека.';
+
+  @override
+  String get tourUseMusicFolder => 'Взять папку «Музыка»';
+
+  @override
+  String get tourChooseFolder => 'Выбрать папку';
+
+  @override
+  String tourFolderAdded(String folder) {
+    return 'Добавлено: $folder. Песни уже ищутся.';
+  }
+
+  @override
+  String get tourPlayerTitle => 'Плеер';
+
+  @override
+  String get tourPlayerBodyDesktop =>
+      'Двойной щелчок по песне включает её. Внизу: пуск, следующая, перемешивание, повтор и громкость (громкость запоминается).\n\nСправа: что играет дальше и текст песни. Щелчок по обложке открывает большой вид. Правый щелчок по полосе перемотки меняет её вид. Медиаклавиши и значок в трее тоже работают.';
+
+  @override
+  String get tourPlayerBodyPhone =>
+      'Нажмите на песню, чтобы включить её. Нажмите на маленький плеер внизу, чтобы открыть большой: текст, очередь, скорость, эквалайзер и другое.\n\nУправление есть на экране блокировки и в уведомлении.';
+
+  @override
+  String get tourPlaylistsTitle => 'Плейлисты и импорт';
+
+  @override
+  String get tourPlaylistsBody =>
+      'Создавайте плейлисты на странице «Плейлисты» или через меню песни.\n\nЕсть плейлисты в Spotify, YouTube, Deezer или Apple Music? Вставьте ссылку в «Плейлисты», «Импорт»: Prism найдёт песни в медиатеке и в сети.';
+
+  @override
+  String get tourYoursTitle => 'Под себя';
+
+  @override
+  String get tourYoursBodyDesktop =>
+      'В настройках: темы и цвета, живые фоны, эквалайзер, выравнивание громкости, статус в Discord и другое. «Слушать вместе» даёт друзьям слышать одну песню одновременно.\n\nПри закрытии окна Prism остаётся в трее. Тур можно открыть снова в Настройках.';
+
+  @override
+  String get tourYoursBodyPhone =>
+      'В настройках: темы и цвета, живые фоны, эквалайзер, выравнивание громкости и другое. «Слушать вместе» даёт друзьям слышать одну песню одновременно.\n\nТур можно открыть снова в Настройках.';
+
+  @override
+  String get tourSkip => 'Пропустить';
+
+  @override
+  String get tourBack => 'Назад';
+
+  @override
+  String get tourNext => 'Далее';
+
+  @override
+  String get tourDone => 'Начать слушать';
+
+  @override
+  String get tourShowAgain => 'Приветственный тур';
+
+  @override
+  String get tourShowAgainHint => 'Короткое знакомство с первого запуска';
 }

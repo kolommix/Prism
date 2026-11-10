@@ -28,6 +28,35 @@ class _QueueListState extends ConsumerState<QueueList> {
   Set<int> _selected = {};
   bool _selecting = false;
 
+  /// The list follows the playing song: it sits at the top, the songs before
+  /// it just above (scroll up to see them).
+  ScrollController? _scroll;
+  int? _followed;
+  bool _dragging = false;
+
+  void _follow(PlaybackQueue queue) {
+    if (_followed == queue.index || queue.isEmpty) return;
+    final first = _followed == null;
+    _followed = queue.index;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final c = _scroll;
+      if (!mounted || c == null || !c.hasClients || _dragging || _selecting) return;
+      final pos = c.position;
+      // All rows are the same height: the list's whole length tells it.
+      final content = pos.maxScrollExtent + pos.viewportDimension - widget.padding.vertical;
+      if (content <= 0) return;
+      final row = content / queue.length;
+      final target = (queue.index * row).clamp(0.0, pos.maxScrollExtent);
+      if ((target - pos.pixels).abs() < 1) return;
+      final d = context.motion.d(PrismMotion.long);
+      if (first || d == Duration.zero) {
+        c.jumpTo(target);
+      } else {
+        c.animateTo(target, duration: d, curve: PrismMotion.curve);
+      }
+    });
+  }
+
   void _toggle(int i) => setState(() {
         if (!_selected.remove(i)) _selected.add(i);
         if (_selected.isEmpty) _selecting = false;
@@ -67,10 +96,13 @@ class _QueueListState extends ConsumerState<QueueList> {
       );
     }
     final selected = {for (final i in _selected) if (i < queue.length) i};
+    _follow(queue);
 
     Widget list() => SmoothScroll(
           builder: (scroll) => ReorderableListView.builder(
-            scrollController: scroll,
+            scrollController: _scroll = scroll,
+            onReorderStart: (_) => _dragging = true,
+            onReorderEnd: (_) => _dragging = false,
             padding: widget.padding,
             shrinkWrap: widget.shrinkWrap,
             buildDefaultDragHandles: false,

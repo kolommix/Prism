@@ -53,7 +53,10 @@ Future<ReleaseInfo?> fetchLatestRelease({http.Client? client}) async {
     if (j is! Map || j['tag_name'] is! String) throw UpdateCheckException(l10n.updateFailed('format'));
     return ReleaseInfo(
       version: (j['tag_name'] as String).replaceFirst(RegExp('^[vV]'), ''),
-      url: j['html_url'] as String? ?? 'https://github.com/$githubRepo/releases/latest',
+      // Only ever opens Prism's own GitHub page.
+      url: j['html_url'] is String && (j['html_url'] as String).startsWith('https://github.com/$githubRepo/')
+          ? j['html_url'] as String
+          : 'https://github.com/$githubRepo/releases/latest',
       notes: j['body'] as String? ?? '',
     );
   } on UpdateCheckException {

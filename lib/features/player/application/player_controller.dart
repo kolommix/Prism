@@ -243,14 +243,34 @@ class PlayerController {
   Future<void> saveSession() => _save(force: true);
 
   Future<void> setCrossfade(Duration d) => _engine.setCrossfade(d);
-  Future<void> setVolume(double v) => _engine.setVolume(v);
+  /// The user's volume 0..1 (saved, restored at start).
+  double get volume => _volume;
+  double _volume = 1;
+  double _fade = 1;
+  Timer? _volumeSave;
+
+  Future<void> setVolume(double v) {
+    _volume = v.clamp(0.0, 1.0);
+    _volumeSave?.cancel();
+    _volumeSave = Timer(const Duration(milliseconds: 400), () => unawaited(_save(force: true)));
+    return _engine.setVolume(_volume * _fade);
+  }
+
+  /// Sleep timer fade 0..1 on top of the user's volume (never saved).
+  Future<void> setFade(double f) {
+    _fade = f.clamp(0.0, 1.0);
+    return _engine.setVolume(_volume * _fade);
+  }
 
   // ---------------------------------------------------------- persistence
 
   /// Restores the last session (queue + position) without auto-playing.
   Future<void> restore(Future<List<Track>> Function(List<int> ids) loadTracks) async {
     final saved = await _store?.load();
-    if (saved == null || saved.trackIds.isEmpty) return;
+    if (saved == null) return;
+    _volume = saved.volume;
+    await _engine.setVolume(_volume * _fade);
+    if (saved.trackIds.isEmpty) return;
     final tracks = await loadTracks(saved.trackIds);
     if (tracks.isEmpty) return;
     final byId = {for (final t in tracks) t.id: t};
@@ -280,6 +300,7 @@ class PlayerController {
       position: _engine.state.position,
       repeatMode: _queue.repeatMode,
       shuffled: _queue.shuffled,
+      volume: _volume,
     ));
   }
 
@@ -354,6 +375,7 @@ class PlayerController {
   }
 
   Future<void> dispose() async {
+    _volumeSave?.cancel();
     await _save(force: true);
     await _eventSub.cancel();
     await _stateSub.cancel();

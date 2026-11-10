@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 import 'package:drift/drift.dart';
@@ -148,8 +149,10 @@ class LyricsRepository {
       }
     }
     try {
-      final m = readMetadata(File(t.uri));
-      final text = m.lyrics;
+      // Off the UI thread: reading tags is blocking file IO, and for some MP3s
+      // it scans the whole file (measured: ~0.5 s UI freeze on each new song).
+      final path = t.uri;
+      final text = await Isolate.run(() => readMetadata(File(path)).lyrics);
       if (text != null && text.trim().isNotEmpty) {
         return parseLrc(text).isNotEmpty ? (text, null, 'embedded') : (null, text, 'embedded');
       }

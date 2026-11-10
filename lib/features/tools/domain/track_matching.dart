@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
+
 import '../../library/data/search_text.dart';
 import '../../online/domain/matching.dart' show cleanTitle;
 import '../../library/domain/track.dart';
@@ -8,6 +12,16 @@ class TrackRef {
   const TrackRef({required this.uri, required this.title, required this.artist, required this.durationMs});
 
   factory TrackRef.of(Track t) => TrackRef(uri: t.uri, title: t.title, artist: t.displayArtist, durationMs: t.durationMs);
+
+  /// For other people (listen together): a local file goes as a fingerprint
+  /// of its path, never the path itself (it holds the user name and folders,
+  /// and the default link is a public server). The same file on the same PC
+  /// still matches exactly; online songs keep their id.
+  factory TrackRef.shared(Track t) =>
+      TrackRef(uri: sharedUri(t), title: t.title, artist: t.displayArtist, durationMs: t.durationMs);
+
+  static String sharedUri(Track t) =>
+      t.sourceId == 'local' ? 'h:${sha256.convert(utf8.encode(t.uri)).toString().substring(0, 32)}' : t.uri;
 
   factory TrackRef.fromJson(Map<String, dynamic> j) => TrackRef(
         uri: j['uri'] as String? ?? '',
@@ -32,6 +46,7 @@ class TrackMatcher {
   TrackMatcher(Iterable<Track> library) {
     for (final t in library) {
       _byUri[t.uri] = t;
+      _byUri[TrackRef.sharedUri(t)] = t;
       (_byKey[_key(t.title, t.displayArtist)] ??= []).add(t);
     }
   }

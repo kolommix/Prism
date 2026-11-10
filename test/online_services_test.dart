@@ -634,6 +634,14 @@ void main() {
       expect(version, 'new');
 
       expect((await get('bytes=400000-')).$1, 416);
+
+      // Guessing the address or coming in under another host name gets nothing.
+      final c = HttpClient();
+      final guessed = await (await c.getUrl(url.replace(path: '/s/yt%3Ax'))).close();
+      expect(guessed.statusCode, 404);
+      final rebound = await (await c.getUrl(url)..headers.host = 'evil.example').close();
+      expect(rebound.statusCode, 404);
+      c.close();
       await proxy.close();
       await upstream.close(force: true);
     });

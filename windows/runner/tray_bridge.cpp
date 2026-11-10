@@ -82,9 +82,13 @@ void TrayBridge::Show(const std::wstring& tooltip) {
   nid.uID = kTrayIconId;
   nid.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
   nid.uCallbackMessage = kTrayCallbackMessage;
+  // The tray size at this window's scaling (16 px at 100 %, 24 at 150 %...).
+  // GetSystemMetrics alone says 16 at any scaling, and Windows then
+  // stretched the 16 px picture: blurry.
+  const UINT dpi = ::GetDpiForWindow(hwnd_);
+  const int size = ::GetSystemMetricsForDpi(SM_CXSMICON, dpi ? dpi : 96);
   nid.hIcon = static_cast<HICON>(::LoadImageW(::GetModuleHandleW(nullptr), MAKEINTRESOURCEW(IDI_APP_ICON),
-                                              IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON),
-                                              ::GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR));
+                                              IMAGE_ICON, size, size, LR_DEFAULTCOLOR));
   // Tooltip is limited to 128 chars including the terminator.
   wcsncpy_s(nid.szTip, tooltip.c_str(), _TRUNCATE);
   ::Shell_NotifyIconW(visible_ ? NIM_MODIFY : NIM_ADD, &nid);

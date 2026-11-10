@@ -18,11 +18,16 @@ void main() {
   test('reads the latest release', () async {
     final r = await fetchLatestRelease(client: MockClient((req) async {
       expect(req.url.path, endsWith('/releases/latest'));
-      return http.Response('{"tag_name":"v1.2.0","html_url":"https://x/y","body":"Notes"}', 200);
+      return http.Response('{"tag_name":"v1.2.0","html_url":"https://github.com/kolommix/Prism/releases/tag/v1.2.0","body":"Notes"}', 200);
     }));
     expect(r!.version, '1.2.0');
-    expect(r.url, 'https://x/y');
+    expect(r.url, 'https://github.com/kolommix/Prism/releases/tag/v1.2.0');
     expect(r.notes, 'Notes');
+  });
+
+  test('a link to anywhere else opens Prism''s release page instead', () async {
+    final r = await fetchLatestRelease(client: MockClient((_) async => http.Response('{"tag_name":"v1.2.0","html_url":"https://evil.example/x"}', 200)));
+    expect(r!.url, 'https://github.com/kolommix/Prism/releases/latest');
   });
 
   test('nothing published yet is not an error', () async {

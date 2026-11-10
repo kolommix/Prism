@@ -6,6 +6,8 @@ import 'package:ffmpeg_kit_flutter_new_audio/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new_audio/return_code.dart';
 import 'package:path/path.dart' as p;
 
+import '../platform/background_process.dart';
+
 /// Result of one FFmpeg run.
 class FfmpegResult {
   const FfmpegResult(this.exitCode, this.log);
@@ -99,28 +101,30 @@ class ProcessFfmpegRunner extends FfmpegRunner {
 
   @override
   Future<FfmpegResult> run(List<String> args, {void Function(Duration processed)? onProgress, FfmpegCancel? cancel}) async {
-    final proc = await Process.start(executable, ['-hide_banner', '-nostdin', ...args]);
-    cancel?._stop = () => proc.kill();
+    // Started from a background isolate: starting ffmpeg.exe blocks the
+    // calling thread for ~0.5 s (see BackgroundProcess).
+    final proc = await BackgroundProcess.start(
+      executable,
+      ['-hide_banner', '-nostdin', ...args],
+      keepStdout: false,
+      onStderr: onProgress == null
+          ? null
+          : (chunk) {
+              final t = parseFfmpegTime(chunk);
+              if (t != null) onProgress(t);
+            },
+    );
+    cancel?._stop = proc.kill;
     if (cancel?.isCancelled ?? false) proc.kill();
-    final log = StringBuffer();
-    final errDone = proc.stderr.transform(const Utf8Decoder(allowMalformed: true)).listen((chunk) {
-      log.write(chunk);
-      if (onProgress != null) {
-        final t = parseFfmpegTime(chunk);
-        if (t != null) onProgress(t);
-      }
-    }).asFuture<void>();
-    await proc.stdout.drain<void>();
-    final code = await proc.exitCode;
-    await errDone;
-    return FfmpegResult(code, log.toString());
+    final r = await proc.done;
+    return FfmpegResult(r.exitCode, r.stderr);
   }
 
   @override
   Future<Set<String>> filters() async {
     if (_filters != null) return _filters!;
-    final proc = await Process.run(executable, ['-hide_banner', '-filters']);
-    return _filters = _parseFilterList('${proc.stdout}');
+    final r = await BackgroundProcess.run(executable, ['-hide_banner', '-filters']);
+    return _filters = _parseFilterList(r.stdout);
   }
 }
 

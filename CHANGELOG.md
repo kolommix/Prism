@@ -3,6 +3,37 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (`.github/workflows/release.yml` reads it), so add one before tagging.
 
+## 1.2.5 (2026-11-10)
+
+### Smoother
+- **No more freezes when the next song starts.** Prism started its helper tools (FFmpeg, yt-dlp) in a way that made
+  the whole app wait about half a second each time; they now start in the background.
+- The "Up next" list follows the song that is playing.
+
+### Imports
+- **Work with an antivirus on.** Prism now ships the unpacked yt-dlp (the one-file version unpacks itself into Temp
+  on every run, which antivirus programs often block) and checks secure connections with Windows' own certificates.
+  If an antivirus still blocks it, Prism says so and names the folder to allow.
+
+### Player
+- **Volume is remembered** between starts. The sleep timer no longer puts it back to 100 %.
+
+### Windows
+- New installer: dark, in English and Russian, explains what is installed and where your data lives, and asks before
+  deleting your library when you uninstall.
+- Prism has its own icon everywhere (it still had Flutter's), sharp in the tray at any display scaling.
+- The title bar no longer flashes white.
+
+### New here
+- A short tour on the first start: adding music, the player, playlists and imports. Settings, Welcome tour shows it again.
+
+### Android
+- Samsung phones with Exynos chips: Prism uses another graphics mode there, which should stop the crash in Backgrounds.
+
+### Security and privacy
+- Listen together no longer sends your songs' file paths (they contain your Windows user name) to the room.
+- The local stream server only answers Prism itself; listen together ignores malformed messages.
+
 ## 1.2.4 (2026-11-09)
 
 - **Sharper covers**: each cover is drawn at the size it is shown (the big player cover was stuck at 600 px),
