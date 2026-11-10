@@ -151,10 +151,20 @@ jobs:
             echo "::error::CHANGELOG.md has no section for $v"
             exit 1
           fi
+      - name: Plain-text README and changelog are up to date
+        run: |
+          for f in README CHANGELOG; do test -f "$f.txt" || { echo "::error::$f.txt missing (dart run tool/md_to_txt.dart)"; exit 1; }; done
+          if ! grep -q "^${GITHUB_REF_NAME#v} (" CHANGELOG.txt; then
+            echo "::error::CHANGELOG.txt has no section for ${GITHUB_REF_NAME#v}: run dart run tool/md_to_txt.dart"
+            exit 1
+          fi
       - uses: actions/download-artifact@v4
         with:
           path: files
       - uses: softprops/action-gh-release@v2
         with:
           body_path: notes.md
-          files: files/**/*
+          files: |
+            files/**/*
+            README.txt
+            CHANGELOG.txt

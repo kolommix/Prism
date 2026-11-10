@@ -46,6 +46,8 @@ Do these in order, from this folder.
 
 1. Set the new version in `pubspec.yaml` (`version: 1.2.0+7`) and in `lib/core/app_version.dart`, and add its section to
    `CHANGELOG.md` (`## 1.2.0 (date)`). The release notes come from that section; without it the release stops.
+   Then run `dart run tool/md_to_txt.dart`: it writes the plain-text copies (`CHANGELOG.txt`, `README.txt`, ...) that
+   the release attaches for people without a Markdown viewer.
 2. Run `flutter analyze`, `flutter test --exclude-tags "audio,network"` and `flutter test --tags audio`.
 3. Commit, then tag and push. The tag must equal the version in `pubspec.yaml`, or the workflow stops:
 
