@@ -2793,7 +2793,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eachPersonPlaysTheSongFrom =>
-      'Each person plays the song from their own library. Song names pass through a free public server, scrambled with the code. You can turn that off in Settings → Listen together.';
+      'Each person plays the song from their own library. A song someone doesn\'t have plays from YouTube, the same upload for everyone, when YouTube playback is on. Song names pass through a free public server, scrambled with the code; you can turn that off in Settings → Listen together.';
 
   @override
   String get onThisNetwork => 'On this network';
@@ -4559,4 +4559,236 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tourShowAgainHint => 'The short introduction from the first start';
+
+  @override
+  String get importSavedFileBroken =>
+      'The saved file was incomplete (YouTube stopped sending it part way), so it was thrown away. Other uploads of the song were tried too.';
+
+  @override
+  String serviceUnreachableInternetWorks(String service) {
+    return 'The internet works, but $service can\'t be reached from here. It may be blocked or slowed down on this network; a VPN usually helps. Local songs still play.';
+  }
+
+  @override
+  String get updateNow => 'Update now';
+
+  @override
+  String get updateLater => 'Later';
+
+  @override
+  String get updateDownloadApk => 'Download update';
+
+  @override
+  String get updateWindowsHint =>
+      'Prism downloads the update, installs it over this version and opens again by itself. Your music, playlists and settings stay. Nothing to uninstall.';
+
+  @override
+  String get updateAndroidHint =>
+      'Your browser downloads the new version. Open the file and tap Update: your music, playlists and settings stay.';
+
+  @override
+  String updateDownloading(String percent) {
+    return 'Downloading the update… $percent %';
+  }
+
+  @override
+  String get updateInstalling =>
+      'Installing. Prism closes and opens again by itself in a moment.';
+
+  @override
+  String get updateBroken =>
+      'The download came out damaged, so nothing was installed. Try again.';
+
+  @override
+  String updatedTo(String version) {
+    return 'Prism was updated to $version';
+  }
+
+  @override
+  String get highPriorityTitle => 'Smooth when the PC is busy';
+
+  @override
+  String get highPrioritySubtitle =>
+      'Prism gets a little more processor time than normal programs, so music and animations don\'t stutter while games or the browser load the PC.';
+
+  @override
+  String togetherInviteText(String code) {
+    return 'Listen with me in Prism! Open Prism → Listen together and enter the code $code';
+  }
+
+  @override
+  String togetherChangedBy(String name) {
+    return '$name changed the music';
+  }
+
+  @override
+  String togetherOnlyHostControls(String host) {
+    return 'Only $host controls the music in this session';
+  }
+
+  @override
+  String togetherHostCantFind(String host) {
+    return '$host doesn\'t have that song and couldn\'t find it online';
+  }
+
+  @override
+  String get togetherCopyInvite => 'Copy invite';
+
+  @override
+  String get togetherInviteCopied => 'Copied: paste it in any chat';
+
+  @override
+  String get togetherFriendsControl => 'Friends can control the music';
+
+  @override
+  String get togetherFriendsControlHint =>
+      'Play, pause, skip, seek and add songs for everyone';
+
+  @override
+  String get togetherYouCanControl =>
+      'Your play, pause, skip and \"Play next\" change the music for everyone.';
+
+  @override
+  String get togetherStatusFinding => 'finding the song';
+
+  @override
+  String get togetherStatusMissing => 'doesn\'t have this song';
+
+  @override
+  String get togetherJoinTitle => 'Join a friend';
+
+  @override
+  String get togetherHostLabel => 'host';
+
+  @override
+  String togetherJoinFromClipboard(String code) {
+    return 'A Prism invite is in your clipboard. Join session $code?';
+  }
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String hzValue(String value) {
+    return '$value Hz';
+  }
+
+  @override
+  String get eqDb => 'dB';
+
+  @override
+  String get eqRegionSubBass => 'Sub bass';
+
+  @override
+  String get eqRegionBass => 'Bass';
+
+  @override
+  String get eqRegionLowMids => 'Low mids';
+
+  @override
+  String get eqRegionMids => 'Mids';
+
+  @override
+  String get eqRegionPresence => 'Presence';
+
+  @override
+  String get eqRegionBrilliance => 'Air';
+
+  @override
+  String get eqCompare => 'Hold to compare';
+
+  @override
+  String get eqCompareHint => 'Hold to hear the song without the equalizer';
+
+  @override
+  String get eqComparingWithout => 'Without the equalizer';
+
+  @override
+  String get eqCurveHint =>
+      'Drag a point up or down, turn the mouse wheel over it, or double-click it for 0 dB. Behind the curve: the song that plays.';
+
+  @override
+  String eqMayDistort(String db) {
+    return 'Loud parts can distort: the curve goes $db dB above 0.';
+  }
+
+  @override
+  String get eqFixVolume => 'Fix it';
+
+  @override
+  String get eqSimple => 'Simple';
+
+  @override
+  String get eqDetailed => 'Detailed';
+
+  @override
+  String get eqPresets => 'Presets';
+
+  @override
+  String get eqToneBass => 'Bass';
+
+  @override
+  String get eqToneMids => 'Mids';
+
+  @override
+  String get eqToneTreble => 'Treble';
+
+  @override
+  String get eqToneBassHint => 'kick, bass line';
+
+  @override
+  String get eqToneMidsHint => 'voices, guitars';
+
+  @override
+  String get eqToneTrebleHint => 'cymbals, clarity';
+
+  @override
+  String get eqBassBoostHint => 'extra low end';
+
+  @override
+  String get eqPreampHint => 'volume before the EQ';
+
+  @override
+  String get eqAuto => 'Auto';
+
+  @override
+  String get eqReset => 'Reset';
+
+  @override
+  String get eqTypeExact => 'Click to type an exact value';
+
+  @override
+  String eqBandRange(String max) {
+    return 'From -$max to +$max';
+  }
+
+  @override
+  String khzValue(String value) {
+    return '$value kHz';
+  }
+
+  @override
+  String get dropMusicHere => 'Drop songs, folders or a playlist';
+
+  @override
+  String get dropMusicHint =>
+      'Songs and folders go into your library right away; playlist files and links are imported.';
+
+  @override
+  String get dropAdding => 'Adding to your library…';
+
+  @override
+  String dropAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count songs in your library',
+      one: '$count song in your library',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dropNothingNew =>
+      'No songs Prism can play were in what you dropped.';
 }

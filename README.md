@@ -27,7 +27,7 @@ If Play Protect warns you, tap **Install anyway**. The app isn't on Google Play,
 
 ### Updating
 
-Prism tells you when there's a new version (you can also check in Settings → About). Download the new file and install it over the old one. Your music, playlists and settings stay.
+Prism tells you when there's a new version (you can also check in Settings → About). On Windows, click **Update now**: Prism downloads the new version, installs it over the old one and opens again by itself. On Android, tap **Download update**, open the file and tap **Update**. Your music, playlists and settings stay. Never uninstall first: running a newer installer over Prism is always an update.
 
 ### Removing it
 
@@ -41,7 +41,7 @@ Prism tells you when there's a new version (you can also check in Settings → A
 - **Lyrics:** synced lyrics that follow the song, found online or from your `.lrc` files
 - **Edit songs:** cut, join, speed up, reverse, fade, and make ringtones. Your original file stays safe unless you choose to replace it
 - **Fix song info:** look up the right title, artist, album and cover, one song or a whole album
-- **Listen together:** share a short code and friends hear the same song at the same time, from their own files
+- **Listen together:** send an invite and friends hear the same song at the same time; everyone can pause, skip and add songs (the host can turn that off), and a friend without a song gets the same YouTube upload
 - **Bring your playlists:** import from Spotify, YouTube, SoundCloud, Deezer, Apple Music, Yandex Music or a file
 - **Share playlists:** send a friend a code or a `.liner` file
 - **See your stats:** top songs, listening streaks and a yearly recap you can save as pictures
@@ -55,7 +55,7 @@ Online features are optional. Some need setup: see [setting up online services](
 - **Yandex Music import** has never been tried for real, because Yandex blocks the computer it was built on. There's no official way to connect to it, so it may just not work. Exporting your playlist to a CSV file and importing that is the backup plan.
 - **YouTube playback** goes against YouTube's rules, so it's off by default. Use it only for yourself, and expect it to break sometimes.
 - **Spotify** only gives song names, never audio. Prism looks for those songs in your files or on other services.
-- **Listen together** needs everyone to have the song, or an online service turned on. Song names go through a free public server, scrambled. You can turn that off.
+- **Listen together** plays everyone's own copy of a song; a friend without it gets the same YouTube upload when YouTube playback is on. Song names go through a free public server, scrambled. You can turn that off.
 - **The visualizer on Windows** doesn't react to the equalizer or speed, and doesn't work on streamed songs.
 - **On Android, the live visualizer** asks for microphone permission, because Android requires it for that feature. Nothing is recorded, and it's off unless you turn it on.
 - **Video backgrounds** are silent and loop the first 30 seconds.

@@ -8,13 +8,14 @@ part of 'app_settings.dart';
 
 _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   theme: json['theme'] == null
-      ? const ThemeConfig()
+      ? defaultTheme
       : ThemeConfig.fromJson(json['theme'] as Map<String, dynamic>),
   autoCheckUpdates: json['autoCheckUpdates'] as bool? ?? true,
   localeCode: json['localeCode'] as String? ?? '',
   reduceMotion: json['reduceMotion'] as bool? ?? false,
   crossfadeSeconds: (json['crossfadeSeconds'] as num?)?.toInt() ?? 0,
   closeToTray: json['closeToTray'] as bool? ?? true,
+  highPriority: json['highPriority'] as bool? ?? true,
   normalization:
       $enumDecodeNullable(_$NormalizationModeEnumMap, json['normalization']) ??
       NormalizationMode.off,
@@ -42,6 +43,8 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   relayUrl: json['relayUrl'] as String? ?? '',
   togetherInternet: json['togetherInternet'] as bool? ?? true,
   togetherName: json['togetherName'] as String? ?? '',
+  togetherGuestControl: json['togetherGuestControl'] as bool? ?? true,
+  eqDetailed: json['eqDetailed'] as bool? ?? false,
   discordPresence: json['discordPresence'] as bool? ?? false,
   discordClientId: json['discordClientId'] as String? ?? '',
   discordCovers: json['discordCovers'] as bool? ?? true,
@@ -55,6 +58,7 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'reduceMotion': instance.reduceMotion,
       'crossfadeSeconds': instance.crossfadeSeconds,
       'closeToTray': instance.closeToTray,
+      'highPriority': instance.highPriority,
       'normalization': _$NormalizationModeEnumMap[instance.normalization]!,
       'autoAnalyzeLoudness': instance.autoAnalyzeLoudness,
       'onlineLyrics': instance.onlineLyrics,
@@ -77,6 +81,8 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'relayUrl': instance.relayUrl,
       'togetherInternet': instance.togetherInternet,
       'togetherName': instance.togetherName,
+      'togetherGuestControl': instance.togetherGuestControl,
+      'eqDetailed': instance.eqDetailed,
       'discordPresence': instance.discordPresence,
       'discordClientId': instance.discordClientId,
       'discordCovers': instance.discordCovers,

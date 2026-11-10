@@ -4508,7 +4508,7 @@ abstract class AppLocalizations {
   /// No description provided for @eachPersonPlaysTheSongFrom.
   ///
   /// In en, this message translates to:
-  /// **'Each person plays the song from their own library. Song names pass through a free public server, scrambled with the code. You can turn that off in Settings → Listen together.'**
+  /// **'Each person plays the song from their own library. A song someone doesn\'t have plays from YouTube, the same upload for everyone, when YouTube playback is on. Song names pass through a free public server, scrambled with the code; you can turn that off in Settings → Listen together.'**
   String get eachPersonPlaysTheSongFrom;
 
   /// No description provided for @onThisNetwork.
@@ -7319,6 +7319,384 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The short introduction from the first start'**
   String get tourShowAgainHint;
+
+  /// No description provided for @importSavedFileBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'The saved file was incomplete (YouTube stopped sending it part way), so it was thrown away. Other uploads of the song were tried too.'**
+  String get importSavedFileBroken;
+
+  /// No description provided for @serviceUnreachableInternetWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'The internet works, but {service} can\'t be reached from here. It may be blocked or slowed down on this network; a VPN usually helps. Local songs still play.'**
+  String serviceUnreachableInternetWorks(String service);
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update now'**
+  String get updateNow;
+
+  /// No description provided for @updateLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateLater;
+
+  /// No description provided for @updateDownloadApk.
+  ///
+  /// In en, this message translates to:
+  /// **'Download update'**
+  String get updateDownloadApk;
+
+  /// No description provided for @updateWindowsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Prism downloads the update, installs it over this version and opens again by itself. Your music, playlists and settings stay. Nothing to uninstall.'**
+  String get updateWindowsHint;
+
+  /// No description provided for @updateAndroidHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your browser downloads the new version. Open the file and tap Update: your music, playlists and settings stay.'**
+  String get updateAndroidHint;
+
+  /// No description provided for @updateDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the update… {percent} %'**
+  String updateDownloading(String percent);
+
+  /// No description provided for @updateInstalling.
+  ///
+  /// In en, this message translates to:
+  /// **'Installing. Prism closes and opens again by itself in a moment.'**
+  String get updateInstalling;
+
+  /// No description provided for @updateBroken.
+  ///
+  /// In en, this message translates to:
+  /// **'The download came out damaged, so nothing was installed. Try again.'**
+  String get updateBroken;
+
+  /// No description provided for @updatedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Prism was updated to {version}'**
+  String updatedTo(String version);
+
+  /// No description provided for @highPriorityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smooth when the PC is busy'**
+  String get highPriorityTitle;
+
+  /// No description provided for @highPrioritySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Prism gets a little more processor time than normal programs, so music and animations don\'t stutter while games or the browser load the PC.'**
+  String get highPrioritySubtitle;
+
+  /// No description provided for @togetherInviteText.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen with me in Prism! Open Prism → Listen together and enter the code {code}'**
+  String togetherInviteText(String code);
+
+  /// No description provided for @togetherChangedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} changed the music'**
+  String togetherChangedBy(String name);
+
+  /// No description provided for @togetherOnlyHostControls.
+  ///
+  /// In en, this message translates to:
+  /// **'Only {host} controls the music in this session'**
+  String togetherOnlyHostControls(String host);
+
+  /// No description provided for @togetherHostCantFind.
+  ///
+  /// In en, this message translates to:
+  /// **'{host} doesn\'t have that song and couldn\'t find it online'**
+  String togetherHostCantFind(String host);
+
+  /// No description provided for @togetherCopyInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy invite'**
+  String get togetherCopyInvite;
+
+  /// No description provided for @togetherInviteCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied: paste it in any chat'**
+  String get togetherInviteCopied;
+
+  /// No description provided for @togetherFriendsControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends can control the music'**
+  String get togetherFriendsControl;
+
+  /// No description provided for @togetherFriendsControlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Play, pause, skip, seek and add songs for everyone'**
+  String get togetherFriendsControlHint;
+
+  /// No description provided for @togetherYouCanControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Your play, pause, skip and \"Play next\" change the music for everyone.'**
+  String get togetherYouCanControl;
+
+  /// No description provided for @togetherStatusFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'finding the song'**
+  String get togetherStatusFinding;
+
+  /// No description provided for @togetherStatusMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'doesn\'t have this song'**
+  String get togetherStatusMissing;
+
+  /// No description provided for @togetherJoinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join a friend'**
+  String get togetherJoinTitle;
+
+  /// No description provided for @togetherHostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'host'**
+  String get togetherHostLabel;
+
+  /// No description provided for @togetherJoinFromClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'A Prism invite is in your clipboard. Join session {code}?'**
+  String togetherJoinFromClipboard(String code);
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @hzValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} Hz'**
+  String hzValue(String value);
+
+  /// No description provided for @eqDb.
+  ///
+  /// In en, this message translates to:
+  /// **'dB'**
+  String get eqDb;
+
+  /// No description provided for @eqRegionSubBass.
+  ///
+  /// In en, this message translates to:
+  /// **'Sub bass'**
+  String get eqRegionSubBass;
+
+  /// No description provided for @eqRegionBass.
+  ///
+  /// In en, this message translates to:
+  /// **'Bass'**
+  String get eqRegionBass;
+
+  /// No description provided for @eqRegionLowMids.
+  ///
+  /// In en, this message translates to:
+  /// **'Low mids'**
+  String get eqRegionLowMids;
+
+  /// No description provided for @eqRegionMids.
+  ///
+  /// In en, this message translates to:
+  /// **'Mids'**
+  String get eqRegionMids;
+
+  /// No description provided for @eqRegionPresence.
+  ///
+  /// In en, this message translates to:
+  /// **'Presence'**
+  String get eqRegionPresence;
+
+  /// No description provided for @eqRegionBrilliance.
+  ///
+  /// In en, this message translates to:
+  /// **'Air'**
+  String get eqRegionBrilliance;
+
+  /// No description provided for @eqCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to compare'**
+  String get eqCompare;
+
+  /// No description provided for @eqCompareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to hear the song without the equalizer'**
+  String get eqCompareHint;
+
+  /// No description provided for @eqComparingWithout.
+  ///
+  /// In en, this message translates to:
+  /// **'Without the equalizer'**
+  String get eqComparingWithout;
+
+  /// No description provided for @eqCurveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a point up or down, turn the mouse wheel over it, or double-click it for 0 dB. Behind the curve: the song that plays.'**
+  String get eqCurveHint;
+
+  /// No description provided for @eqMayDistort.
+  ///
+  /// In en, this message translates to:
+  /// **'Loud parts can distort: the curve goes {db} dB above 0.'**
+  String eqMayDistort(String db);
+
+  /// No description provided for @eqFixVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix it'**
+  String get eqFixVolume;
+
+  /// No description provided for @eqSimple.
+  ///
+  /// In en, this message translates to:
+  /// **'Simple'**
+  String get eqSimple;
+
+  /// No description provided for @eqDetailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed'**
+  String get eqDetailed;
+
+  /// No description provided for @eqPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Presets'**
+  String get eqPresets;
+
+  /// No description provided for @eqToneBass.
+  ///
+  /// In en, this message translates to:
+  /// **'Bass'**
+  String get eqToneBass;
+
+  /// No description provided for @eqToneMids.
+  ///
+  /// In en, this message translates to:
+  /// **'Mids'**
+  String get eqToneMids;
+
+  /// No description provided for @eqToneTreble.
+  ///
+  /// In en, this message translates to:
+  /// **'Treble'**
+  String get eqToneTreble;
+
+  /// No description provided for @eqToneBassHint.
+  ///
+  /// In en, this message translates to:
+  /// **'kick, bass line'**
+  String get eqToneBassHint;
+
+  /// No description provided for @eqToneMidsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'voices, guitars'**
+  String get eqToneMidsHint;
+
+  /// No description provided for @eqToneTrebleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'cymbals, clarity'**
+  String get eqToneTrebleHint;
+
+  /// No description provided for @eqBassBoostHint.
+  ///
+  /// In en, this message translates to:
+  /// **'extra low end'**
+  String get eqBassBoostHint;
+
+  /// No description provided for @eqPreampHint.
+  ///
+  /// In en, this message translates to:
+  /// **'volume before the EQ'**
+  String get eqPreampHint;
+
+  /// No description provided for @eqAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get eqAuto;
+
+  /// No description provided for @eqReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get eqReset;
+
+  /// No description provided for @eqTypeExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to type an exact value'**
+  String get eqTypeExact;
+
+  /// No description provided for @eqBandRange.
+  ///
+  /// In en, this message translates to:
+  /// **'From -{max} to +{max}'**
+  String eqBandRange(String max);
+
+  /// No description provided for @khzValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} kHz'**
+  String khzValue(String value);
+
+  /// No description provided for @dropMusicHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop songs, folders or a playlist'**
+  String get dropMusicHere;
+
+  /// No description provided for @dropMusicHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs and folders go into your library right away; playlist files and links are imported.'**
+  String get dropMusicHint;
+
+  /// No description provided for @dropAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'Adding to your library…'**
+  String get dropAdding;
+
+  /// No description provided for @dropAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} song in your library} other{{count} songs in your library}}'**
+  String dropAdded(int count);
+
+  /// No description provided for @dropNothingNew.
+  ///
+  /// In en, this message translates to:
+  /// **'No songs Prism can play were in what you dropped.'**
+  String get dropNothingNew;
 }
 
 class _AppLocalizationsDelegate

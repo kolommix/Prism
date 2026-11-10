@@ -15,6 +15,8 @@ class SharedState {
     this.queueVersion = 0,
     this.hostName = '',
     this.people = const [],
+    this.who = const [],
+    this.control = false,
   });
 
   final List<TrackRef> queue;
@@ -35,6 +37,12 @@ class SharedState {
   /// Everyone listening with the host.
   final List<String> people;
 
+  /// The same people with how it goes for each (newer versions).
+  final List<SessionPerson> who;
+
+  /// Guests may play, pause, skip, seek and add songs.
+  final bool control;
+
   Map<String, Object> toJson() => {
         't': 'state',
         'queue': [for (final r in queue) r.toJson()],
@@ -46,6 +54,8 @@ class SharedState {
         'qv': queueVersion,
         'name': hostName,
         'people': people,
+        'who': [for (final w in who) w.toJson()],
+        'ctl': control,
       };
 
   factory SharedState.fromJson(Map<String, dynamic> j) => SharedState(
@@ -58,6 +68,11 @@ class SharedState {
         queueVersion: j['qv'] as int? ?? 0,
         hostName: j['name'] as String? ?? '',
         people: [for (final p in (j['people'] as List? ?? const [])) '$p'],
+        who: [
+          for (final w in (j['who'] as List? ?? const []))
+            if (w is Map) SessionPerson.fromJson(w),
+        ],
+        control: j['ctl'] == true,
       );
 
   /// Where the host is *now* (guest time + [clockOffsetMs] = host time).
@@ -67,6 +82,60 @@ class SharedState {
     return Duration(milliseconds: positionMs + (elapsed * speed).round());
   }
 }
+
+/// How it goes for one guest, shown to everyone.
+enum PersonStatus {
+  /// Plays along.
+  listening,
+
+  /// Looking for the host's song online.
+  finding,
+
+  /// Doesn't have the host's song and couldn't find it.
+  missing;
+
+  static PersonStatus parse(Object? v) => values.where((x) => x.name == v).firstOrNull ?? listening;
+}
+
+class SessionPerson {
+  const SessionPerson(this.name, this.status);
+  final String name;
+  final PersonStatus status;
+
+  Map<String, Object> toJson() => {'n': name, 'st': status.name};
+
+  static SessionPerson fromJson(Map<dynamic, dynamic> j) {
+    final n = j['n'];
+    final name = n is String ? (n.length > 40 ? n.substring(0, 40) : n) : '';
+    return SessionPerson(name, PersonStatus.parse(j['st']));
+  }
+}
+
+/// What a guest asks the host to do (when the host lets guests control).
+enum TogetherCommand {
+  play,
+  pause,
+  seek,
+  next,
+  previous,
+
+  /// Jump to a song of the shared queue (`i` = index in the shared window).
+  jump,
+
+  /// Songs to play right after the current one (`refs`).
+  playNext,
+
+  /// Songs for the end of the queue (`refs`).
+  add,
+
+  /// Play this song now (`refs`, one).
+  playNow;
+
+  static TogetherCommand? parse(Object? v) => values.where((x) => x.name == v).firstOrNull;
+}
+
+/// Guests send at most this many songs in one command.
+const maxCommandSongs = 50;
 
 /// Guest seeks when it is more than this far off.
 const maxDrift = Duration(milliseconds: 700);

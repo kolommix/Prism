@@ -2857,7 +2857,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get eachPersonPlaysTheSongFrom =>
-      'Каждый играет песню из своей библиотеки. Названия песен идут через бесплатный публичный сервер, зашифрованные кодом. Это можно выключить: Настройки → Слушать вместе.';
+      'Каждый играет песню из своей библиотеки. Песня, которой у кого-то нет, играет с YouTube — одна и та же загрузка у всех, если воспроизведение YouTube включено. Названия песен идут через бесплатный публичный сервер, зашифрованные кодом; это можно выключить: Настройки → Слушать вместе.';
 
   @override
   String get onThisNetwork => 'В этой сети';
@@ -4662,4 +4662,239 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get tourShowAgainHint => 'Короткое знакомство с первого запуска';
+
+  @override
+  String get importSavedFileBroken =>
+      'Сохранённый файл оказался неполным (YouTube перестал его отдавать на середине), поэтому он удалён. Другие загрузки этой песни тоже пробовались.';
+
+  @override
+  String serviceUnreachableInternetWorks(String service) {
+    return 'Интернет есть, но $service отсюда недоступен. Возможно, он заблокирован или замедлен в этой сети; обычно помогает VPN. Локальные песни играют.';
+  }
+
+  @override
+  String get updateNow => 'Обновить';
+
+  @override
+  String get updateLater => 'Позже';
+
+  @override
+  String get updateDownloadApk => 'Скачать обновление';
+
+  @override
+  String get updateWindowsHint =>
+      'Prism скачает обновление, установит его поверх этой версии и сам откроется снова. Музыка, плейлисты и настройки останутся. Ничего удалять не нужно.';
+
+  @override
+  String get updateAndroidHint =>
+      'Браузер скачает новую версию. Откройте файл и нажмите «Обновить»: музыка, плейлисты и настройки останутся.';
+
+  @override
+  String updateDownloading(String percent) {
+    return 'Скачивается обновление… $percent %';
+  }
+
+  @override
+  String get updateInstalling =>
+      'Устанавливается. Prism закроется и через мгновение сам откроется снова.';
+
+  @override
+  String get updateBroken =>
+      'Загрузка пришла повреждённой, поэтому ничего не установлено. Попробуйте ещё раз.';
+
+  @override
+  String updatedTo(String version) {
+    return 'Prism обновлён до версии $version';
+  }
+
+  @override
+  String get highPriorityTitle => 'Плавно, даже когда ПК загружен';
+
+  @override
+  String get highPrioritySubtitle =>
+      'Prism получает чуть больше процессорного времени, чем обычные программы, поэтому музыка и анимации не заикаются, когда игры или браузер нагружают ПК.';
+
+  @override
+  String togetherInviteText(String code) {
+    return 'Слушай со мной в Prism! Открой Prism → «Слушать вместе» и введи код $code';
+  }
+
+  @override
+  String togetherChangedBy(String name) {
+    return 'Музыку меняет $name';
+  }
+
+  @override
+  String togetherOnlyHostControls(String host) {
+    return 'В этой сессии музыкой управляет только $host';
+  }
+
+  @override
+  String togetherHostCantFind(String host) {
+    return 'Этой песни нет у хоста ($host), и найти её онлайн не получилось';
+  }
+
+  @override
+  String get togetherCopyInvite => 'Скопировать приглашение';
+
+  @override
+  String get togetherInviteCopied => 'Скопировано: вставьте в любой чат';
+
+  @override
+  String get togetherFriendsControl => 'Друзья могут управлять музыкой';
+
+  @override
+  String get togetherFriendsControlHint =>
+      'Пауза, пропуск, перемотка и добавление песен — для всех';
+
+  @override
+  String get togetherYouCanControl =>
+      'Ваши пауза, пропуск и «Играть следующей» меняют музыку у всех.';
+
+  @override
+  String get togetherStatusFinding => 'ищет песню';
+
+  @override
+  String get togetherStatusMissing => 'нет этой песни';
+
+  @override
+  String get togetherJoinTitle => 'Присоединиться к другу';
+
+  @override
+  String get togetherHostLabel => 'ведущий';
+
+  @override
+  String togetherJoinFromClipboard(String code) {
+    return 'В буфере обмена приглашение Prism. Присоединиться к сеансу $code?';
+  }
+
+  @override
+  String get ok => 'ОК';
+
+  @override
+  String hzValue(String value) {
+    return '$value Гц';
+  }
+
+  @override
+  String get eqDb => 'дБ';
+
+  @override
+  String get eqRegionSubBass => 'Суббас';
+
+  @override
+  String get eqRegionBass => 'Бас';
+
+  @override
+  String get eqRegionLowMids => 'Низ. сред.';
+
+  @override
+  String get eqRegionMids => 'Середина';
+
+  @override
+  String get eqRegionPresence => 'Присутствие';
+
+  @override
+  String get eqRegionBrilliance => 'Воздух';
+
+  @override
+  String get eqCompare => 'Зажать: сравнить';
+
+  @override
+  String get eqCompareHint =>
+      'Удерживайте, чтобы услышать песню без эквалайзера';
+
+  @override
+  String get eqComparingWithout => 'Без эквалайзера';
+
+  @override
+  String get eqCurveHint =>
+      'Тяните точку вверх или вниз, крутите колесо мыши над ней или дважды щёлкните для 0 дБ. За кривой — играющая песня.';
+
+  @override
+  String eqMayDistort(String db) {
+    return 'Громкие места могут искажаться: кривая выше 0 на $db дБ.';
+  }
+
+  @override
+  String get eqFixVolume => 'Исправить';
+
+  @override
+  String get eqSimple => 'Просто';
+
+  @override
+  String get eqDetailed => 'Подробно';
+
+  @override
+  String get eqPresets => 'Пресеты';
+
+  @override
+  String get eqToneBass => 'Бас';
+
+  @override
+  String get eqToneMids => 'Середина';
+
+  @override
+  String get eqToneTreble => 'Верха';
+
+  @override
+  String get eqToneBassHint => 'бочка, басовая линия';
+
+  @override
+  String get eqToneMidsHint => 'голос, гитары';
+
+  @override
+  String get eqToneTrebleHint => 'тарелки, чёткость';
+
+  @override
+  String get eqBassBoostHint => 'больше низа';
+
+  @override
+  String get eqPreampHint => 'громкость до эквалайзера';
+
+  @override
+  String get eqAuto => 'Авто';
+
+  @override
+  String get eqReset => 'Сбросить';
+
+  @override
+  String get eqTypeExact => 'Щёлкните, чтобы ввести точное значение';
+
+  @override
+  String eqBandRange(String max) {
+    return 'От -$max до +$max';
+  }
+
+  @override
+  String khzValue(String value) {
+    return '$value кГц';
+  }
+
+  @override
+  String get dropMusicHere => 'Отпустите песни, папки или плейлист';
+
+  @override
+  String get dropMusicHint =>
+      'Песни и папки сразу попадут в медиатеку; файлы плейлистов и ссылки импортируются.';
+
+  @override
+  String get dropAdding => 'Добавляем в медиатеку…';
+
+  @override
+  String dropAdded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count песни в медиатеке',
+      many: '$count песен в медиатеке',
+      few: '$count песни в медиатеке',
+      one: '$count песня в медиатеке',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dropNothingNew =>
+      'Среди перетащенного нет песен, которые Prism умеет играть.';
 }

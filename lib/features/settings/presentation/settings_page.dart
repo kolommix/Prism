@@ -597,6 +597,13 @@ class _SectionBody extends ConsumerWidget {
             value: settings.closeToTray,
             onChanged: (v) => ctrl.update((s) => s.copyWith(closeToTray: v)),
           ),
+          SettingsSwitch(
+            icon: Icons.speed_rounded,
+            title: l10n.highPriorityTitle,
+            subtitle: l10n.highPrioritySubtitle,
+            value: settings.highPriority,
+            onChanged: (v) => ctrl.update((s) => s.copyWith(highPriority: v)),
+          ),
           const DiscordSettings(),
         ],
       ),

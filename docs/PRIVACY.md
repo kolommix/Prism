@@ -26,6 +26,8 @@ contacts, accounts, advertising id, start at boot.
 
 ## Windows
 The installer asks for no capabilities and needs no admin rights. The app does not use the Windows location API.
+Prism runs at "above normal" priority so music doesn't stutter on a busy PC (Settings → Windows → Smooth when the PC is
+busy). That changes nothing about what Prism can read or send.
 
 ## What leaves the device
 Every server below sees your IP address, as with any internet request. Prism never looks up where that address is and
@@ -35,6 +37,7 @@ never sends it anywhere itself.
 | Where | What is sent | Why | Turn off |
 |---|---|---|---|
 | `api.github.com` | App version | Update check | Settings → About |
+| `www.msftconnecttest.com` (Windows), `connectivitycheck.gstatic.com` (Android) | Nothing: the address the system itself uses for its own "am I online" check | Only after an online service failed, to say "the internet works, but this service can't be reached" instead of "offline" | Not switchable (only happens after a failure) |
 | `itunes.apple.com`, `api.deezer.com` | Song title and artist | Finds missing covers and artists | Settings → Library → Missing info |
 | `lrclib.net` | Title, artist, album, length | Lyrics of the song you play | Don't open lyrics |
 | `fonts.gstatic.com` (Google Fonts) | Nothing but the font request | Downloads the app font once | Not switchable |
@@ -45,9 +48,10 @@ never sends it anywhere itself.
 | Import from a link | `open.spotify.com`, `api.spotify.com`, `youtube.com`, `googleapis.com`, `soundcloud.com`, `api.deezer.com`, `music.apple.com`, `api.music.yandex.net` | The link you import |
 | Matching, playing and saving online songs (if you turn it on) | YouTube, SoundCloud | Song title and artist searches, the songs you play or save |
 | Saving songs on Windows (if you turn it on) | `api.github.com`, `github.com` (yt-dlp's official release) | Nothing about you: Prism fetches a newer yt-dlp when there is none or saving fails and the copy is over a day old, and checks it against the release's SHA-256 list |
+| Updating from inside Prism | `github.com` (Prism's own release) | Nothing about you: the installer or APK of the new version, checked against GitHub's size and SHA-256 before it runs |
 | Accounts (optional) | Spotify, Google, SoundCloud, Yandex | Login through the service. Tokens stay in the system keychain |
 | Song info fixer | `musicbrainz.org`, `coverartarchive.org`, `itunes.apple.com`, `api.acoustid.org` (only with your own key) | Title, artist, album; an audio fingerprint for AcoustID |
-| Listen together, by code | `broker.emqx.io`, `broker.hivemq.com` (public servers) | Scrambled with the session code: what is playing, position, the name you typed in Settings. Without a name you appear as "Someone", never your computer's name |
+| Listen together, by code | `broker.emqx.io`, `broker.hivemq.com` (public servers) | Scrambled with the session code: what is playing (with its YouTube video id when known), position, the name you typed, whether you have the song, and what a friend asks the host to play. Without a name you appear as "Someone", never your computer's name. Never file paths |
 | Listen together, same Wi-Fi | Your local network | Session code, name, song name |
 | Discord status (if Discord runs) | Discord on this computer | The song you play |
 | Shared playlists | Nothing is uploaded | The `liner://` link holds song names and public links, never file paths |
@@ -55,6 +59,12 @@ never sends it anywhere itself.
 ### Clipboard
 The Import screen looks at your clipboard while it is open, on this device only, to offer a copied playlist link.
 Nothing is sent until you tap Import. On Android, the system shows its usual "pasted" notice.
+On Windows, when Prism comes to the front it also looks for a copied listen-together invite (a message with "Prism"
+and a session code) and asks whether to join. Nothing is sent unless you click Join.
+
+### Proxy
+Prism's web requests go the way your browser's do: through the proxy set in Windows (Settings → Network → Proxy) or in
+`HTTPS_PROXY`, if there is one. Home network addresses always go direct.
 
 ## Stored on your device
 Library, playlists, settings and stats stay in the app's own folder. Keys you add stay in a local `online_config.json`.

@@ -1,3 +1,5 @@
+import 'package:prism/features/library/domain/track.dart';
+import 'package:prism/features/together/application/together_controller.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -81,6 +83,57 @@ void main() {
       expect(ended['t'], 'ended');
       await g1.close();
       await other.close();
+    });
+  });
+
+  group('exact songs', () {
+    Track song({required String uri, String source = 'local', String title = 'Song', int id = 1}) =>
+        Track(id: id, sourceId: source, uri: uri, title: title, artist: 'Band', durationMs: 200000);
+
+    test('imported and streamed songs carry their YouTube upload', () {
+      const saved = r'C:\Users\me\imported_music\Band - Song [dQw4w9WgXcQ].m4a';
+      expect(TrackRef.shared(song(uri: saved)).yt, 'dQw4w9WgXcQ');
+      expect(TrackRef.shared(song(uri: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', source: 'youtube')).yt, 'dQw4w9WgXcQ');
+      expect(TrackRef.shared(song(uri: 'D:/Music/Band - Song.mp3')).yt, isNull);
+      expect(TrackRef.shared(song(uri: saved)).toJson().toString(), isNot(contains('Users')), reason: 'still no path on the wire');
+    });
+
+    test('a friend with the same upload saved under another name matches it exactly', () {
+      final mine = song(uri: r'E:\imported_music\Other name [dQw4w9WgXcQ].m4a', title: 'Totally different');
+      final ref = TrackRef.fromJson(const {'uri': 'h:abc', 'title': 'Song', 'artist': 'Band', 'durationMs': 1000, 'yt': 'dQw4w9WgXcQ'});
+      expect(TrackMatcher([mine]).match(ref)?.id, mine.id);
+    });
+
+    test('only real video ids are taken from the wire', () {
+      final bad = TrackRef.fromJson(const {'uri': 'x', 'title': 't', 'artist': 'a', 'durationMs': 1, 'yt': '../../etc'});
+      expect(bad.yt, isNull);
+      expect(TrackRef.fromJson(const {'uri': 'x', 'title': 't', 'artist': 'a', 'durationMs': 1}).toJson().containsKey('yt'), isFalse);
+    });
+
+    test('people and control survive the trip, old messages still read', () {
+      const s = SharedState(
+        queue: [],
+        index: 0,
+        positionMs: 0,
+        playing: true,
+        speed: 1,
+        sentAtMs: 0,
+        people: ['Max'],
+        who: [SessionPerson('Max', PersonStatus.missing)],
+        control: true,
+      );
+      final back = SharedState.fromJson(s.toJson());
+      expect(back.who.single.status, PersonStatus.missing);
+      expect(back.control, isTrue);
+      final old = SharedState.fromJson(const {'t': 'state', 'people': ['Max']});
+      expect(old.who, isEmpty);
+      expect(old.control, isFalse);
+    });
+
+    test('invites: the copied message is found, a random word is not', () {
+      expect(findInviteCode('Listen with me in Prism! Open Prism → Listen together and enter the code K7QXA'), 'K7QXA');
+      expect(findInviteCode('HELLO world'), isNull);
+      expect(findInviteCode('K7QXA'), isNull, reason: 'a bare code does not ask by itself');
     });
   });
 }

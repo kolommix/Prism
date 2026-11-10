@@ -23,6 +23,10 @@ bool isSupportedAudioFile(String path) =>
 /// The scan is incremental: a file whose size and modification time did not
 /// change since the last scan is skipped, so re-scanning a big library is
 /// mostly just a directory walk.
+class _Counts {
+  int added = 0, updated = 0;
+}
+
 class LibraryScanner {
   LibraryScanner({
     required LibraryRepository repository,
@@ -65,6 +69,38 @@ class LibraryScanner {
     yield ScanProgress.discovering(found: found.length);
 
     // 2) Read tags for new/changed files ---------------------------------
+    final counts = _Counts();
+    yield* _readNew(found, known, counts);
+
+    // 3) Remove tracks whose files vanished (only inside scanned roots) -----
+    final rootPrefixes = roots.map((r) => r.endsWith(p.separator) ? r : '$r${p.separator}').toList();
+    final gone = known.keys.where(
+      (uri) => !found.containsKey(uri) && rootPrefixes.any(uri.startsWith),
+    );
+    final removed = await _repo.deleteByUris(gone);
+
+    yield ScanProgress.finished(added: counts.added, updated: counts.updated, removed: removed, took: sw.elapsed);
+  }
+
+  /// Adds single songs (dragged onto the window) without making their folder
+  /// a library folder. Later scans of library folders leave them alone.
+  Stream<ScanProgress> scanFiles(List<String> paths) async* {
+    final sw = Stopwatch()..start();
+    final known = await _repo.fileFingerprints();
+    final found = <String, FileStat>{};
+    for (final path in paths) {
+      final file = File(path);
+      if (!isSupportedAudioFile(path) || !await file.exists()) continue;
+      found[file.absolute.path] = await file.stat();
+    }
+    yield ScanProgress.discovering(found: found.length);
+    final counts = _Counts();
+    yield* _readNew(found, known, counts);
+    yield ScanProgress.finished(added: counts.added, updated: counts.updated, removed: 0, took: sw.elapsed);
+  }
+
+  /// Reads tags of the new and changed files among [found] and stores them.
+  Stream<ScanProgress> _readNew(Map<String, FileStat> found, Map<String, (int, int)> known, _Counts counts) async* {
     final toRead = <String>[];
     for (final entry in found.entries) {
       final prev = known[entry.key];
@@ -72,7 +108,7 @@ class LibraryScanner {
       if (prev == null || prev != fp) toRead.add(entry.key);
     }
 
-    var added = 0, updated = 0, done = 0;
+    var done = 0;
     final pending = <TracksCompanion>[];
     if (!await _artworkDir.exists()) await _artworkDir.create(recursive: true);
 
@@ -83,9 +119,9 @@ class LibraryScanner {
         final path = chunk[j];
         pending.add(await _buildRow(path, found[path]!, tagList[j]));
         if (known.containsKey(path)) {
-          updated++;
+          counts.updated++;
         } else {
-          added++;
+          counts.added++;
         }
       }
       done += chunk.length;
@@ -93,15 +129,6 @@ class LibraryScanner {
       pending.clear();
       yield ScanProgress.reading(done: done, total: toRead.length, currentFile: p.basename(chunk.last));
     }
-
-    // 3) Remove tracks whose files vanished (only inside scanned roots) -----
-    final rootPrefixes = roots.map((r) => r.endsWith(p.separator) ? r : '$r${p.separator}').toList();
-    final gone = known.keys.where(
-      (uri) => !found.containsKey(uri) && rootPrefixes.any(uri.startsWith),
-    );
-    final removed = await _repo.deleteByUris(gone);
-
-    yield ScanProgress.finished(added: added, updated: updated, removed: removed, took: sw.elapsed);
   }
 
   Future<TracksCompanion> _buildRow(String path, FileStat stat, AudioTags tags) async {

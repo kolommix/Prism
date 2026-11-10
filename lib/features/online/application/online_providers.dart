@@ -7,6 +7,7 @@ import '../../library/application/library_providers.dart';
 import '../../library/domain/track.dart';
 import '../../player/application/player_providers.dart';
 import '../data/import_repository.dart';
+import '../data/network_check.dart';
 import '../data/remote_track_store.dart';
 import '../data/stream_cache.dart';
 import '../domain/external_track.dart';
@@ -111,6 +112,10 @@ class ImportRunner extends Notifier<ImportRun?> {
   /// doesn't make them come faster than YouTube accepts.
   static const workers = 2;
 
+  /// Tries of one song after a dropped connection before the import pauses.
+  static const transientRetries = 2;
+  static Duration transientWait = const Duration(seconds: 3);
+
   Timer? _retry;
   final _attempts = <int, int>{};
 
@@ -163,8 +168,16 @@ class ImportRunner extends Notifier<ImportRun?> {
             await Future<void>.delayed(wait);
             continue;
           }
+          // One slow answer or dropped connection is common on a weak or
+          // filtered network: try the song again a little later before the
+          // whole import pauses.
+          if (e.isTransient && n <= transientRetries && !_stop) {
+            queue.insert(0, item);
+            await Future<void>.delayed(transientWait * n);
+            continue;
+          }
           // Offline / rate limited / server down: stop, keep the song pending.
-          pauseMessage = e.message;
+          pauseMessage = (await ref.read(networkCheckProvider).explain(e)).message;
           _stop = true;
           break;
         } on Object catch (e) {

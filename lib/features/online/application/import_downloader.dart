@@ -1,17 +1,21 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
 import '../../library/application/library_providers.dart';
 import '../data/import_repository.dart';
+import '../data/network_check.dart';
+import '../../../l10n/l10n.dart';
 import '../../library/domain/track.dart';
 import '../domain/external_track.dart';
 import '../domain/matching.dart';
 import '../domain/online_error.dart';
 import '../services/music_service_module.dart';
 import '../services/youtube/youtube_module.dart';
+import 'import_file_check.dart';
 import 'online_providers.dart';
 
 /// Where imported songs are saved: real files, real library songs.
@@ -50,19 +54,28 @@ class ImportDownloader extends Notifier<ImportDownload?> {
   final _claimed = <int>{};
   final _again = <int>{};
   bool _stop = false;
+  bool _stoppedByUser = false;
   int _busyJob = -1;
 
-  @override
-  ImportDownload? build() => null;
+  /// After the service refused or the connection dropped, saving goes on by
+  /// itself later (longer each time), nobody has to press Retry.
+  Timer? _retryTimer;
+  final _attempts = <int, int>{};
 
-  void stop() => _stop = true;
+  @override
+  ImportDownload? build() {
+    ref.onDispose(() => _retryTimer?.cancel());
+    return null;
+  }
+
+  void stop() {
+    _stop = true;
+    _stoppedByUser = true;
+    _retryTimer?.cancel();
+  }
 
   /// Downloads whatever this job has waiting. Safe to call often.
   void poke(int jobId) {
-    if (_busyJob == jobId) {
-      _again.add(jobId);
-      return;
-    }
     if (_busyJob != -1) {
       _again.add(jobId);
       return;
@@ -72,6 +85,7 @@ class ImportDownloader extends Notifier<ImportDownload?> {
 
   /// Tries the songs that failed before as well.
   void retry(int jobId) {
+    _retryTimer?.cancel();
     _failed.clear();
     poke(jobId);
   }
@@ -79,10 +93,12 @@ class ImportDownloader extends Notifier<ImportDownload?> {
   Future<void> _run(int jobId) async {
     _busyJob = jobId;
     _stop = false;
+    _stoppedByUser = false;
     final repo = ref.read(importRepositoryProvider);
     await _dropUnfinished();
     var done = 0, failed = 0, inARow = 0;
     String? message;
+    Object? lastError;
 
     Future<void> worker() async {
       while (!_stop) {
@@ -101,6 +117,7 @@ class ImportDownloader extends Notifier<ImportDownload?> {
         } on Object catch (e) {
           _failed.add(item.id);
           failed++;
+          lastError = e;
           message = describeOnlineError(e);
           // A blocked song is about that song; only service trouble counts
           // towards stopping.
@@ -112,13 +129,29 @@ class ImportDownloader extends Notifier<ImportDownload?> {
       }
     }
 
+    var serviceTrouble = false;
     try {
       await Future.wait([for (var i = 0; i < workers; i++) worker()]);
+      serviceTrouble = _stop && !_stoppedByUser;
+      if (lastError case final OnlineException e) {
+        // "Offline" only when the internet really is gone.
+        message = (await ref.read(networkCheckProvider).explain(e)).message;
+      }
     } finally {
       _busyJob = -1;
+      if (serviceTrouble) {
+        final attempt = _attempts[jobId] ?? 0;
+        _attempts[jobId] = attempt + 1;
+        final wait = importRetryDelay(attempt);
+        message = '${message ?? ''} ${l10n.importRetryIn(wait.inMinutes)}'.trim();
+        _retryTimer?.cancel();
+        _retryTimer = Timer(wait, () => retry(jobId));
+      } else if (failed == 0) {
+        _attempts.remove(jobId);
+      }
       state = ImportDownload(jobId: jobId, done: done, failed: failed, running: false, message: failed > 0 ? message : null);
     }
-    if (_again.isNotEmpty && !_stop) {
+    if (_again.isNotEmpty && !_stoppedByUser) {
       final next = _again.first;
       _again.remove(next);
       poke(next);
@@ -135,38 +168,58 @@ class ImportDownloader extends Notifier<ImportDownload?> {
 
     final dir = ref.read(importDownloadDirProvider);
     await dir.create(recursive: true);
-    var file = await _existing(dir, id);
-    if (file == null) {
+    final expected = remote.durationMs > 0 ? remote.durationMs : w.durationMs;
+    var saved = await _existing(dir, id, expected);
+    if (saved == null) {
       try {
-        file = await _save(module, remote, dir, artist, title);
+        saved = await _save(module, remote, dir, artist, title);
       } on OnlineException catch (e) {
         if (e.kind != OnlineErrorKind.notFound) rethrow;
         // YouTube blocks saving some uploads; another upload of the same
         // song often works.
-        file = await _fromAnotherUpload(module, w, id, dir, artist, title) ?? (throw e);
+        saved = await _fromAnotherUpload(module, w, id, dir, artist, title) ?? (throw e);
       }
     }
+    final (file, audio) = saved;
     final trackId = await ref.read(libraryRepositoryProvider).addDownloadedFile(
           file,
           title: title,
           artist: artist,
           album: w.album,
-          durationMs: remote.durationMs > 0 ? remote.durationMs : w.durationMs,
+          // The length of what was really saved, when it was measured.
+          durationMs: audio.durationMs > 0 ? audio.durationMs : expected,
           artwork: w.artworkUrl ?? remote.artworkPath,
         );
     await repo.relinkItem(item.id, trackId);
   }
 
-  Future<File> _save(MusicServiceModule module, Track remote, Directory dir, String artist, String title) async {
+  /// Saves one upload and checks the file. A broken file is thrown away and
+  /// counts as a blocked upload, so the next upload of the song gets a turn.
+  Future<(File, SavedAudio)> _save(MusicServiceModule module, Track remote, Directory dir, String artist, String title) async {
     final base = p.join(dir.path, importFileName(artist, title, youtubeIdOf(remote)!));
     final ext = await module.download(remote, base);
-    return File('$base.$ext');
+    final file = File('$base.$ext');
+    final audio = await ref.read(importFileCheckProvider).check(file, expectedMs: remote.durationMs);
+    if (!audio.ok) {
+      debugPrint('Prism import: ${file.path} refused (${audio.reason})');
+      await _delete(file);
+      throw OnlineException(OnlineErrorKind.notFound, service: OnlineService.youtube, message: l10n.importSavedFileBroken);
+    }
+    return (file, audio);
+  }
+
+  static Future<void> _delete(File f) async {
+    try {
+      if (await f.exists()) await f.delete();
+    } on FileSystemException {
+      // In use: the next start cleans it up.
+    }
   }
 
   /// How many other uploads are tried before a song counts as blocked.
   static const otherUploads = 3;
 
-  Future<File?> _fromAnotherUpload(
+  Future<(File, SavedAudio)?> _fromAnotherUpload(
     MusicServiceModule module,
     ExternalTrack wanted,
     String blockedId,
@@ -215,11 +268,16 @@ class ImportDownloader extends Notifier<ImportDownload?> {
     return name.endsWith('.part') || name.endsWith('.ytdl') || name.contains('.part-frag') || name.endsWith('.temp');
   }
 
-  /// Already saved by an earlier import.
-  Future<File?> _existing(Directory dir, String id) async {
+  /// Already saved by an earlier import, and whole. A broken copy (older
+  /// versions kept those) is removed so it gets saved again.
+  Future<(File, SavedAudio)?> _existing(Directory dir, String id, int expectedMs) async {
     await for (final e in dir.list()) {
       final name = p.basename(e.path);
-      if (e is File && name.contains('[$id].') && savedExtensions.contains(p.extension(name).toLowerCase())) return e;
+      if (e is File && name.contains('[$id].') && savedExtensions.contains(p.extension(name).toLowerCase())) {
+        final audio = await ref.read(importFileCheckProvider).check(e, expectedMs: expectedMs);
+        if (audio.ok) return (e, audio);
+        await _delete(e);
+      }
     }
     return null;
   }

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,12 +25,18 @@ import 'features/settings/application/settings_controller.dart';
 import 'l10n/l10n.dart';
 
 import 'features/online/application/import_flow.dart';
+import 'features/online/application/import_repair.dart';
 import 'features/online/application/online_providers.dart';
 import 'features/online/domain/import_intake.dart';
 import 'features/playlists/application/share_inbox.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'core/providers.dart';
+import 'core/app_version.dart';
+import 'core/motion/busy_pc.dart';
+import 'features/library/application/library_providers.dart';
+import 'features/together/presentation/together_sheet.dart';
+import 'features/together/application/together_controller.dart';
 import 'features/update/update_check.dart';
+import 'features/update/update_installer.dart';
 import 'features/onboarding/presentation/welcome_tour.dart';
 /// Windows integration instance (null on Android / in tests).
 final windowsIntegrationProvider = Provider<WindowsDesktopIntegration?>((ref) => null);
@@ -60,11 +68,17 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      DeepLinks(_onImportRequest).start(widget.startArgs);
+      DeepLinks(_onImportRequest, onMusic: _onMusicDropped).start(widget.startArgs);
       _showTourOnce();
       _quietUpdateCheck();
+      unawaited(_sayUpdated());
       // Imports that were still going when the app closed.
       if (ref.read(onlineHubProvider).flags.importDownload) unawaited(ref.read(importFlowProvider).resumeAll());
+      // Songs older versions saved broken (silent or cut off) are found and
+      // saved again; a little later, so the start stays quick.
+      Timer(const Duration(seconds: 20), () {
+        if (mounted) unawaited(ref.read(importRepairProvider).run());
+      });
     });
     // A streamed song that can't play (offline, removed video, service off)
     // is skipped by the player; say why, once, instead of failing silently.
@@ -93,11 +107,57 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     if (latest == null || !mounted) return;
     _messenger.currentState?.showSnackBar(SnackBar(
       content: Text(l10n.updateAvailable(latest.version)),
-      duration: const Duration(seconds: 8),
+      duration: const Duration(seconds: 10),
       action: SnackBarAction(
-        label: l10n.updateOpen,
-        onPressed: () => launchUrl(Uri.parse(latest.url), mode: LaunchMode.externalApplication),
+        label: l10n.updateNow,
+        onPressed: () {
+          final c = _router.routerDelegate.navigatorKey.currentContext;
+          if (c != null) unawaited(showUpdateDialog(c, latest));
+        },
       ),
+    ));
+  }
+
+  /// After an update: says so once, so friends know it worked.
+  Future<void> _sayUpdated() async {
+    const key = 'update.lastRunVersion';
+    final prefs = ref.read(prefsProvider);
+    final last = await prefs.getString(key);
+    await prefs.setString(key, appVersion);
+    if (last == null || !isNewerVersion(appVersion, last) || !mounted) return;
+    _messenger.currentState?.showSnackBar(SnackBar(content: Text(l10n.updatedTo(appVersion))));
+  }
+
+  /// Songs or folders dragged onto the window: into the library at once, then
+  /// one message with how many and a Play button.
+  Future<void> _onMusicDropped(List<String> files, List<String> folders) async {
+    final scan = ref.read(scanControllerProvider.notifier);
+    _messenger.currentState?.showSnackBar(SnackBar(content: Text(l10n.dropAdding), duration: const Duration(seconds: 2)));
+    try {
+      for (final folder in folders) {
+        await scan.addFolder(folder);
+      }
+      await scan.addFiles(files);
+    } on Object catch (e) {
+      _messenger.currentState?.showSnackBar(SnackBar(content: Text(l10n.error(e))));
+      return;
+    }
+    if (!mounted) return;
+    final wanted = files.toSet();
+    final prefixes = [for (final d in folders) d.endsWith(Platform.pathSeparator) ? d : '$d${Platform.pathSeparator}'];
+    final library = await ref.read(libraryRepositoryProvider).watchTracks().first;
+    final songs = [
+      for (final t in library)
+        if (wanted.contains(t.uri) || prefixes.any(t.uri.startsWith)) t,
+    ]..sort((a, b) => a.uri.compareTo(b.uri));
+    if (!mounted) return;
+    _messenger.currentState?.hideCurrentSnackBar();
+    _messenger.currentState?.showSnackBar(SnackBar(
+      content: Text(songs.isEmpty ? l10n.dropNothingNew : l10n.dropAdded(songs.length)),
+      duration: const Duration(seconds: 6),
+      action: songs.isEmpty
+          ? null
+          : SnackBarAction(label: l10n.play, onPressed: () => ref.read(playerControllerProvider).playTracks(songs)),
     ));
   }
 
@@ -121,6 +181,43 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
   void didChangeLocales(List<Locale>? locales) => setState(() {});
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_offerInviteFromClipboard());
+  }
+
+  /// Codes already asked about (or this session's own), so nothing nags.
+  final _askedInvites = <String>{};
+
+  /// Prism comes to the front with a friend's invite in the clipboard (the
+  /// "Copy invite" message): one click joins. Windows only: on Android every
+  /// clipboard read shows a system notice.
+  Future<void> _offerInviteFromClipboard() async {
+    if (!Platform.isWindows) return;
+    final together = ref.read(togetherProvider);
+    if (together.role != TogetherRole.none || together.busy) return;
+    final String? text;
+    try {
+      text = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
+    } on Object {
+      return;
+    }
+    final code = findInviteCode(text);
+    if (code == null || !_askedInvites.add(code) || !mounted) return;
+    _messenger.currentState?.showSnackBar(SnackBar(
+      content: Text(l10n.togetherJoinFromClipboard(code)),
+      duration: const Duration(seconds: 12),
+      action: SnackBarAction(
+        label: l10n.join,
+        onPressed: () async {
+          await ref.read(togetherProvider.notifier).join(code);
+          final c = _router.routerDelegate.navigatorKey.currentContext;
+          if (c != null && c.mounted) unawaited(showTogetherSheet(c));
+        },
+      ),
+    ));
+  }
+
+  @override
   void didChangePlatformBrightness() =>
       setState(() => _platformBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness);
 
@@ -136,6 +233,18 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     ref.listen(settingsProvider.select((s) => s.closeToTray), (_, v) {
       ref.read(windowsIntegrationProvider)?.closeToTray = v;
     });
+    ref.listen(settingsProvider.select((s) => s.highPriority), (_, v) => ProcessPriority.apply(high: v));
+    // Listen together tells things once ("Max changed the music").
+    ref.listen(togetherProvider.select((s) => (s.noticeId, s.notice)), (before, now) {
+      if (now.$2 == null || before?.$1 == now.$1) return;
+      _messenger.currentState?.showSnackBar(SnackBar(content: Text(now.$2!), duration: const Duration(seconds: 3)));
+    });
+    // The own session's code is never offered back.
+    ref.listen(togetherProvider.select((s) => s.code), (_, code) {
+      if (code != null) _askedInvites.add(code);
+    });
+    // A busy PC: colors snap instead of gliding (see BusyMeter).
+    final busy = ref.watch(busyPcProvider);
     // Keeps normalisation mode + automatic loudness analysis running.
     ref.listen(loudnessControllerProvider, (_, _) {});
     // Finds missing covers and artists in the background (if on).
@@ -180,7 +289,7 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
       // Every frame of a theme animation rebuilds the whole app (~4 ms each,
       // measured), so keep it short; the background's own 1.2 s colour glide
       // carries the smooth feel on track changes.
-      themeAnimationDuration: reduceMotion
+      themeAnimationDuration: reduceMotion || busy
           ? Duration.zero
           : Duration(milliseconds: (450 * settings.theme.animationSpeed).round()),
       themeAnimationCurve: Curves.easeOutCubic,

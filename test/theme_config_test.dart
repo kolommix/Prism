@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
+import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:prism/core/theme/theme_config.dart';
 import 'package:flutter/material.dart';
 import 'package:prism/core/theme/prism_theme_extensions.dart';
@@ -59,11 +62,38 @@ void main() {
   });
 
   group('black & white', () {
-    test('is the default theme', () {
+    test('is still built in, after Prism colors', () {
       const t = ThemeConfig();
       expect(t.monochrome, isTrue);
       expect(t.brightness, ThemeBrightnessMode.amoled);
-      expect(builtInThemes.first, t);
+      expect(builtInThemes, contains(t));
+    });
+
+    test('Prism colors are the default', () {
+      expect(const AppSettings().theme, prismTheme);
+      expect(prismTheme.monochrome, isFalse);
+      expect(builtInThemes.first, prismTheme);
+    });
+
+    test('someone on the untouched old default moves to Prism colors once, font kept', () {
+      final moved = SettingsStore.toPrismColors(const ThemeConfig(fontFamily: 'Inter'));
+      expect(moved.name, 'Prism');
+      expect(moved.monochrome, isFalse);
+      expect(moved.fontFamily, 'Inter');
+      const changed = ThemeConfig(cornerRadius: 4);
+      expect(SettingsStore.toPrismColors(changed), changed, reason: 'changed it: their choice');
+      const paper = ThemeConfig(name: 'Paper', brightness: ThemeBrightnessMode.light, cornerRadius: 14, glassIntensity: 0.3);
+      expect(SettingsStore.toPrismColors(paper), paper);
+    });
+
+    test('the move happens once: picking black & white later sticks', () async {
+      SharedPreferencesAsyncPlatform.instance = InMemorySharedPreferencesAsync.empty();
+      final prefs = SharedPreferencesAsync();
+      final store = SettingsStore(prefs);
+      await store.save(const AppSettings(theme: ThemeConfig()));
+      expect((await store.load()).theme.name, 'Prism');
+      await store.save(const AppSettings(theme: ThemeConfig()));
+      expect((await store.load()).theme.name, 'Mono', reason: 'chosen again after the move');
     });
 
     test('old theme files without the key stay colored', () {
@@ -75,8 +105,8 @@ void main() {
     test('settings upgrade: built-in color preset → new default, own theme kept', () {
       final preset = SettingsStore.upgradeTheme({'name': 'Midnight', 'fontFamily': 'JetBrains Mono', 'cornerRadius': 10.0});
       final upgraded = ThemeConfig.fromJson(preset);
-      expect(upgraded.monochrome, isTrue);
-      expect(upgraded.name, 'Mono');
+      expect(upgraded.monochrome, isFalse);
+      expect(upgraded.name, 'Prism');
       expect(upgraded.fontFamily, 'JetBrains Mono', reason: 'the font choice survives');
 
       final own = ThemeConfig.fromJson(SettingsStore.upgradeTheme({'name': 'Mine', 'primaryColor': 0xFF112233}));

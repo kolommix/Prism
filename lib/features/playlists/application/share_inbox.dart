@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/prism_theme_extensions.dart';
 import '../../../l10n/l10n.dart';
+import '../../library/data/library_scanner.dart' show isSupportedAudioFile;
 import '../../online/domain/import_intake.dart';
 
 /// Things to import that arrived from outside the import screen, waiting for it
@@ -30,9 +31,13 @@ final importInboxProvider = NotifierProvider<ImportInbox, List<ImportRequest>>(I
 /// line (a second start hands them to the running window and exits) and through
 /// drag and drop.
 class DeepLinks {
-  DeepLinks(this.onRequest);
+  DeepLinks(this.onRequest, {this.onMusic});
 
   final void Function(ImportRequest request) onRequest;
+
+  /// Songs and folders dragged onto the window (Windows): straight into the
+  /// library, no import step.
+  final void Function(List<String> files, List<String> folders)? onMusic;
   static const _channel = MethodChannel('prism/deeplink');
   static const _dropChannel = MethodChannel('prism/drop');
 
@@ -57,7 +62,9 @@ class DeepLinks {
             dragging.value = false;
             final data = (call.arguments as Map).cast<String, Object?>();
             final files = (data['files'] as List? ?? const []).cast<String>();
-            for (final f in files) {
+            final (songs, folders, others) = await sortDropped(files);
+            if (songs.isNotEmpty || folders.isNotEmpty) onMusic?.call(songs, folders);
+            for (final f in others) {
               await handle(f);
             }
             final text = data['text'] as String?;
@@ -76,6 +83,23 @@ class DeepLinks {
         // Nothing shared at start.
       }
     }
+  }
+
+  /// Dropped paths: songs, folders, and the rest (playlists, links) for import.
+  @visibleForTesting
+  static Future<(List<String>, List<String>, List<String>)> sortDropped(List<String> paths) async {
+    final songs = <String>[], folders = <String>[], others = <String>[];
+    for (final path in paths) {
+      if (isSupportedAudioFile(path)) {
+        songs.add(path);
+      } else if (await FileSystemEntity.isDirectory(path)) {
+        folders.add(path);
+      } else {
+        others.add(path);
+      }
+    }
+    songs.sort();
+    return (songs, folders, others);
   }
 
   /// [value] is text or a path, or (Android, a shared file) `{name, text}`.
@@ -128,9 +152,15 @@ class DropOverlay extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.playlist_add_rounded, size: 48, color: context.look.led),
+                    Icon(Icons.library_add_rounded, size: 48, color: context.look.led),
                     const SizedBox(height: 12),
-                    Text(l10n.importDropHere, style: Theme.of(context).textTheme.titleLarge),
+                    Text(l10n.dropMusicHere, style: Theme.of(context).textTheme.titleLarge, textAlign: TextAlign.center),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.dropMusicHint,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ),

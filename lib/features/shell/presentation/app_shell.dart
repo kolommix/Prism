@@ -37,6 +37,7 @@ List<_Destination> get _destinations => [
   _Destination(l10n.playlists2, Icons.queue_music_outlined, Icons.queue_music_rounded),
   _Destination(l10n.stats, Icons.insights_outlined, Icons.insights_rounded),
   _Destination(l10n.settings, Icons.tune_outlined, Icons.tune_rounded),
+  _Destination(l10n.equalizer, Icons.graphic_eq_outlined, Icons.graphic_eq_rounded),
 ];
 
 /// Top-level scaffold that adapts to the window size.

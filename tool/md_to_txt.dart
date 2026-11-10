@@ -1,11 +1,25 @@
-// Plain-text copies of the user-facing Markdown files, for people who open
-// them in Notepad: README.txt, README.ru.txt, CHANGELOG.txt, docs/PRIVACY.txt.
+// Plain-text copies of every info Markdown file on GitHub, for people who
+// open them in Notepad: a .txt next to each .md (the .md stays: GitHub's page
+// and the release notes are made from it).
 //
-//   dart run tool/md_to_txt.dart          (run after editing those .md files)
-//   dart run tool/md_to_txt.dart --check  (CI: fails when a .txt is stale)
+// Found by itself, so a new doc can't be forgotten: every .md in the project
+// root, docs/ and third_party/ (not inside the vendored packages), except the
+// working notes that never go to GitHub.
+//
+//   dart run tool/md_to_txt.dart          (run after editing any .md)
+//   dart run tool/md_to_txt.dart --check  (CI: fails when a .txt is missing or stale)
 import 'dart:io';
 
-const files = ['README.md', 'README.ru.md', 'CHANGELOG.md', 'docs/PRIVACY.md'];
+/// Working notes kept on this PC only (.gitignore), no copies for them.
+const notOnGitHub = {'CLAUDE.md', 'STATUS.md', 'PROGRESS.md'};
+
+List<String> get files => [
+      for (final dir in ['.', 'docs', 'third_party'])
+        if (Directory(dir).existsSync())
+          for (final e in Directory(dir).listSync()..sort((a, b) => a.path.compareTo(b.path)))
+            if (e is File && e.path.toLowerCase().endsWith('.md') && !notOnGitHub.contains(e.uri.pathSegments.last))
+              e.path.replaceAll(r'\', '/').replaceFirst(RegExp(r'^\./'), ''),
+    ];
 
 String toText(String md) {
   final out = <String>[];

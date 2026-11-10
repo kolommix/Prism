@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:prism/features/playlists/application/share_inbox.dart';
 import 'package:path/path.dart' as p;
 import 'package:prism/core/db/app_database.dart';
 import 'package:prism/features/library/data/library_repository.dart';
@@ -184,6 +185,31 @@ void main() {
     test('missing root folder is ignored', () async {
       final events = await scanner.scanFolders([p.join(root.path, 'does-not-exist')]).toList();
       expect((events.last as ScanFinished).added, 0);
+    });
+
+    test('dropped songs join the library at once, without their folder', () async {
+      final a = await touch('Downloads/Daft Punk - One More Time.mp3');
+      final b = await touch('Downloads/Untagged.flac');
+      await touch('Downloads/other.mp3'); // not dropped
+      final events = await scanner.scanFiles([a.path, b.path, p.join(root.path, 'Downloads', 'readme.txt')]).toList();
+      expect((events.last as ScanFinished).added, 2);
+      expect((await repo.watchTracks().first).map((t) => t.title), unorderedEquals(['One More Time', 'Untagged']));
+      expect(await repo.folders(), isEmpty, reason: 'only the songs, not the whole folder');
+
+      // A scan of the library folders later leaves them alone.
+      await touch('Library/X - Song.mp3');
+      await scanner.scanFolders([p.join(root.path, 'Library')]).drain<void>();
+      expect(await repo.watchTracks().first, hasLength(3));
+    });
+
+    test('what was dropped: songs, folders, and playlists for import', () async {
+      final song = await touch('d/a.MP3');
+      final list = await touch('d/list.m3u');
+      final folder = Directory(p.join(root.path, 'album'))..createSync();
+      final (songs, folders, others) = await DeepLinks.sortDropped([list.path, folder.path, song.path]);
+      expect(songs, [song.path]);
+      expect(folders, [folder.path]);
+      expect(others, [list.path]);
     });
   });
 

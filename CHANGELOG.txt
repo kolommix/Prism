@@ -4,6 +4,43 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (.github/workflows/release.yml reads it), so add one before tagging.
 
+1.3.0 (2026-11-11)
+------------------
+
+Updating is one click now:
+- Windows: "Update now" downloads the new version from Prism's GitHub, checks it, installs it over the old one and
+  opens Prism again. Nothing to uninstall. (This once, install 1.3.0 by hand: older versions only open the page.)
+- Running a newer installer over Prism is always an update: it skips the questions and keeps everything.
+- Android: "Download update" gets the right APK for your phone.
+
+Imports:
+- No more empty songs. Some saved songs showed their full length but played a few seconds or nothing (YouTube
+  stopped sending them part way). Every saved song is now checked, broken ones are thrown away and saved again from
+  another upload. Broken songs from older versions are found and fixed by themselves after the update.
+- No more "you seem to be offline" while the internet works. Prism now goes through the Windows proxy like your
+  browser (VPN apps), retries a slow answer before pausing, and says when YouTube itself can't be reached on your
+  network. Paused downloads carry on by themselves.
+
+Listen together, reworked:
+- Friends can play, pause, skip, seek and add songs for everyone (the host can turn that off).
+- Everyone plays the very same YouTube upload for a song someone doesn't have.
+- "Copy invite" message, and Prism offers to join when it finds a copied invite.
+- You see who is listening, who is finding the song and who doesn't have it.
+
+Equalizer, reworked:
+- Its own place in the sidebar.
+- One big curve with the song's spectrum behind it: drag points, scroll, double-click for 0 dB.
+- Simple view (Bass, Mids, Treble) or Detailed view (10 bands, exact values), hold to compare, presets with pictures,
+  one click to stop distortion.
+
+More:
+- Drag songs or folders onto Prism and they are in your library right away.
+- Prism colors are the default look (black & white is still in the theme list).
+- New icon: Prism's own blue prism.
+- Smoother on a busy PC: Prism asks Windows for a little more processor time (Settings, Windows) and lightens its
+  animations while the PC is overloaded.
+- Plain-text copies of every info file for reading in Notepad.
+
 1.2.5 (2026-11-10)
 ------------------
 

@@ -1,7 +1,9 @@
-# Draws Prism's Windows pictures from the Prism mark (docs\prism-discord-icon.png):
-#   installer\art\wizard.png, wizard_small.png   the installer's pictures
-#   windows\runner\resources\app_icon.ico        the exe / taskbar / installer icon
-# Black and white like the app, the amber dot as the only extra color.
+# Draws every Prism icon from one vector mark: a faceted glass prism in blues
+# (Prism's own drawing, not taken from any other logo).
+#   windows\runner\resources\app_icon.ico                  exe / taskbar / installer icon
+#   installer\art\wizard.png, wizard_small.png             the installer's pictures
+#   android\app\src\main\res\mipmap-*\ic_launcher*.png     Android launcher icons
+#   docs\prism-discord-icon.png                            picture for the Discord app page
 # Run again after changing the mark:
 #   powershell -ExecutionPolicy Bypass -File tool\make_installer_art.ps1
 $ErrorActionPreference = 'Stop'
@@ -9,9 +11,25 @@ Add-Type -AssemblyName System.Drawing
 $root = Split-Path -Parent $PSScriptRoot
 $out = Join-Path $root 'installer\art'
 New-Item -ItemType Directory -Force $out | Out-Null
-$mark = [System.Drawing.Image]::FromFile((Join-Path $root 'docs\prism-discord-icon.png'))
-# The dots sit inside this square of the 1024 px source.
-$markRect = New-Object System.Drawing.Rectangle 150, 150, 724, 724
+
+# Near-black of the app and the Android icon background (values\colors.xml).
+$bg = [System.Drawing.Color]::FromArgb(255, 20, 19, 26)
+$fg = [System.Drawing.Color]::FromArgb(255, 236, 236, 238)
+$dim = [System.Drawing.Color]::FromArgb(255, 150, 150, 156)
+$line = [System.Drawing.Color]::FromArgb(255, 40, 40, 46)
+$amber = [System.Drawing.Color]::FromArgb(255, 255, 179, 71)
+$center = New-Object System.Drawing.StringFormat
+$center.Alignment = 'Center'
+
+# The mark in a unit square: a triangular prism seen a little from the side.
+# Front face split in two facets (lit and half lit), the side face in shade.
+$facetLit = [System.Drawing.Color]::FromArgb(255, 196, 236, 255)
+$facetHalf = [System.Drawing.Color]::FromArgb(255, 112, 196, 255)
+$facetSide = [System.Drawing.Color]::FromArgb(255, 46, 120, 226)
+$facetEdge = [System.Drawing.Color]::FromArgb(255, 30, 84, 178)
+$A = 0.37, 0.14; $B = 0.08, 0.84; $C = 0.66, 0.84
+$A2 = 0.63, 0.14; $C2 = 0.92, 0.84
+$M = 0.37, 0.84
 
 function New-Canvas([int]$w, [int]$h) {
     $bmp = New-Object System.Drawing.Bitmap $w, $h, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
@@ -23,43 +41,101 @@ function New-Canvas([int]$w, [int]$h) {
     return @($bmp, $g)
 }
 
-function Draw-Mark($g, [int]$x, [int]$y, [int]$size) {
-    $g.DrawImage($mark, (New-Object System.Drawing.Rectangle $x, $y, $size, $size), $markRect, [System.Drawing.GraphicsUnit]::Pixel)
+function Pt($p, [double]$x, [double]$y, [double]$size) {
+    return New-Object System.Drawing.PointF ([single]($x + $p[0] * $size)), ([single]($y + $p[1] * $size))
 }
 
-# Same near-black as the mark's own background, so it blends in.
-$bg = $mark.GetPixel(4, 4)
-$fg = [System.Drawing.Color]::FromArgb(255, 236, 236, 238)
-$dim = [System.Drawing.Color]::FromArgb(255, 150, 150, 156)
-$line = [System.Drawing.Color]::FromArgb(255, 40, 40, 46)
-$amber = [System.Drawing.Color]::FromArgb(255, 255, 179, 71)
-$center = New-Object System.Drawing.StringFormat
-$center.Alignment = 'Center'
+function Fill($g, $color, $points) {
+    $g.FillPolygon((New-Object System.Drawing.SolidBrush $color), [System.Drawing.PointF[]]$points)
+}
 
+# Draws the mark into the square at ($x, $y) with side $size.
+function Draw-Mark($g, [double]$x, [double]$y, [double]$size) {
+    $a = Pt $A $x $y $size; $b = Pt $B $x $y $size; $c = Pt $C $x $y $size
+    $a2 = Pt $A2 $x $y $size; $c2 = Pt $C2 $x $y $size; $m = Pt $M $x $y $size
+    Fill $g $facetSide @($a, $a2, $c2, $c)
+    # A darker strip along the back edge gives the side face depth.
+    $e1 = New-Object System.Drawing.PointF ([single]($a2.X - 0.05 * $size)), $a2.Y
+    $e2 = New-Object System.Drawing.PointF ([single]($c2.X - 0.05 * $size)), $c2.Y
+    Fill $g $facetEdge @($e1, $a2, $c2, $e2)
+    Fill $g $facetHalf @($a, $b, $c)
+    Fill $g $facetLit @($a, $b, $m)
+}
+
+function Rounded-Tile($g, [int]$s, [double]$radius) {
+    $r = [Math]::Max(2, [int]($s * $radius))
+    $path = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $path.AddArc(0, 0, 2 * $r, 2 * $r, 180, 90)
+    $path.AddArc($s - 2 * $r - 1, 0, 2 * $r, 2 * $r, 270, 90)
+    $path.AddArc($s - 2 * $r - 1, $s - 2 * $r - 1, 2 * $r, 2 * $r, 0, 90)
+    $path.AddArc(0, $s - 2 * $r - 1, 2 * $r, 2 * $r, 90, 90)
+    $path.CloseFigure()
+    $g.FillPath((New-Object System.Drawing.SolidBrush $bg), $path)
+}
+
+function Save-Png($bmp, [string]$path) {
+    New-Item -ItemType Directory -Force (Split-Path -Parent $path) | Out-Null
+    $bmp.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+}
+
+# ------------------------------------------------------------ installer art
 # Side picture of the welcome and finish pages (164 x 314, drawn at 2x).
 $w = 328; $h = 628
 $bmp, $g = New-Canvas $w $h
 $g.Clear($bg)
 $g.FillRectangle((New-Object System.Drawing.SolidBrush $line), $w - 2, 0, 2, $h)
-Draw-Mark $g ([int](($w - 176) / 2)) 150 176
+Draw-Mark $g (($w - 176) / 2) 150 176
 $font = New-Object System.Drawing.Font 'Segoe UI Semibold', 40, ([System.Drawing.FontStyle]::Regular), ([System.Drawing.GraphicsUnit]::Pixel)
 $g.DrawString('Prism', $font, (New-Object System.Drawing.SolidBrush $fg), (New-Object System.Drawing.RectangleF 0, 346, $w, 60), $center)
 $small = New-Object System.Drawing.Font 'Segoe UI', 17, ([System.Drawing.FontStyle]::Regular), ([System.Drawing.GraphicsUnit]::Pixel)
 $g.DrawString('music player', $small, (New-Object System.Drawing.SolidBrush $dim), (New-Object System.Drawing.RectangleF 0, 402, $w, 30), $center)
 $g.FillEllipse((New-Object System.Drawing.SolidBrush $amber), [int]($w / 2 - 5), 452, 10, 10)
 $g.Dispose()
-$bmp.Save((Join-Path $out 'wizard.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+Save-Png $bmp (Join-Path $out 'wizard.png')
 $bmp.Dispose()
 
 # Small picture at the top right of the other pages (55 x 55, drawn at 2x).
 $bmp, $g = New-Canvas 110 110
 $g.Clear($bg)
-Draw-Mark $g 8 8 94
+Draw-Mark $g 10 10 90
 $g.Dispose()
-$bmp.Save((Join-Path $out 'wizard_small.png'), [System.Drawing.Imaging.ImageFormat]::Png)
+Save-Png $bmp (Join-Path $out 'wizard_small.png')
 $bmp.Dispose()
 
-# app_icon.ico: rounded dark tile with the mark, PNG-compressed sizes 16-256.
+# ------------------------------------------------------------ Discord / docs
+$bmp, $g = New-Canvas 1024 1024
+$g.Clear($bg)
+Draw-Mark $g 192 192 640
+$g.Dispose()
+Save-Png $bmp (Join-Path $root 'docs\prism-discord-icon.png')
+$bmp.Dispose()
+
+# ------------------------------------------------------------ Android
+# Adaptive foreground: 108 dp canvas, the mark inside the 66 dp safe circle.
+# Legacy icon (Android 7 and older launchers): the rounded tile.
+$res = Join-Path $root 'android\app\src\main\res'
+$densities = @{ 'mdpi' = 1.0; 'hdpi' = 1.5; 'xhdpi' = 2.0; 'xxhdpi' = 3.0; 'xxxhdpi' = 4.0 }
+foreach ($d in $densities.Keys) {
+    $k = $densities[$d]
+    $fs = [int](108 * $k)
+    $bmp, $g = New-Canvas $fs $fs
+    $g.Clear([System.Drawing.Color]::Transparent)
+    Draw-Mark $g (0.25 * $fs) (0.25 * $fs) (0.5 * $fs)
+    $g.Dispose()
+    Save-Png $bmp (Join-Path $res "mipmap-$d\ic_launcher_foreground.png")
+    $bmp.Dispose()
+
+    $ls = [int](48 * $k)
+    $bmp, $g = New-Canvas $ls $ls
+    $g.Clear([System.Drawing.Color]::Transparent)
+    Rounded-Tile $g $ls 0.22
+    Draw-Mark $g (0.14 * $ls) (0.14 * $ls) (0.72 * $ls)
+    $g.Dispose()
+    Save-Png $bmp (Join-Path $res "mipmap-$d\ic_launcher.png")
+    $bmp.Dispose()
+}
+
+# ------------------------------------------------------------ Windows .ico
 # One icon entry: PNG for 256 px, a classic 32-bit bitmap below that (every
 # Windows API reads those; PNG small entries came out blurry or broken in some).
 function Encode-Entry($bmp, [int]$s) {
@@ -90,41 +166,12 @@ foreach ($s in $sizes) {
     $bmp, $g = New-Canvas $s $s
     $g.Clear([System.Drawing.Color]::Transparent)
     if ($s -le 32) {
-        # Tray / title bar / small taskbar sizes: the scaled-down mark is a
-        # blur of tiny dots there. Draw its 12 main dots directly instead
-        # (4 x 4 grid without corners, big ones in the middle), no tile.
-        $cell = $s / 4.0
-        $c1 = [System.Drawing.Color]::FromArgb(255, 165, 200, 255)
-        $c2 = [System.Drawing.Color]::FromArgb(255, 51, 221, 255)
-        for ($row = 0; $row -lt 4; $row++) {
-            for ($col = 0; $col -lt 4; $col++) {
-                $corner = ($row -eq 0 -or $row -eq 3) -and ($col -eq 0 -or $col -eq 3)
-                if ($corner) { continue }
-                $inner = ($row -eq 1 -or $row -eq 2) -and ($col -eq 1 -or $col -eq 2)
-                $rad = if ($inner) { $cell * 0.47 } else { $cell * 0.33 }
-                $t = ($row + $col) / 6.0
-                $col3 = [System.Drawing.Color]::FromArgb(255,
-                    [int]($c1.R + ($c2.R - $c1.R) * $t), [int]($c1.G + ($c2.G - $c1.G) * $t), [int]($c1.B + ($c2.B - $c1.B) * $t))
-                $cx = ($col + 0.5) * $cell; $cy = ($row + 0.5) * $cell
-                $g.FillEllipse((New-Object System.Drawing.SolidBrush $col3), [single]($cx - $rad), [single]($cy - $rad), [single](2 * $rad), [single](2 * $rad))
-            }
-        }
-        $g.Dispose()
-        $pngs += , (Encode-Entry $bmp $s)
-        $bmp.Dispose()
-        continue
+        # Tray / title bar / small taskbar: the mark alone, as big as it goes.
+        Draw-Mark $g 0 ($s * 0.02) $s
+    } else {
+        Rounded-Tile $g $s 0.22
+        Draw-Mark $g ($s * 0.12) ($s * 0.12) ($s * 0.76)
     }
-    $r = [Math]::Max(2, [int]($s * 0.22))
-    $path = New-Object System.Drawing.Drawing2D.GraphicsPath
-    $path.AddArc(0, 0, 2 * $r, 2 * $r, 180, 90)
-    $path.AddArc($s - 2 * $r - 1, 0, 2 * $r, 2 * $r, 270, 90)
-    $path.AddArc($s - 2 * $r - 1, $s - 2 * $r - 1, 2 * $r, 2 * $r, 0, 90)
-    $path.AddArc(0, $s - 2 * $r - 1, 2 * $r, 2 * $r, 90, 90)
-    $path.CloseFigure()
-    $g.FillPath((New-Object System.Drawing.SolidBrush $bg), $path)
-    # Small sizes get a bigger mark: the dots must stay visible.
-    $pad = if ($s -le 24) { [int]($s * 0.04) } else { [int]($s * 0.1) }
-    Draw-Mark $g $pad $pad ($s - 2 * $pad)
     $g.Dispose()
     $pngs += , (Encode-Entry $bmp $s)
     $bmp.Dispose()
@@ -145,6 +192,5 @@ for ($i = 0; $i -lt $sizes.Count; $i++) {
 foreach ($p in $pngs) { $wr.Write($p) }
 $wr.Flush()
 [System.IO.File]::WriteAllBytes((Join-Path $root 'windows\runner\resources\app_icon.ico'), $ico.ToArray())
-$mark.Dispose()
 
-Get-ChildItem $out, (Join-Path $root 'windows\runner\resources\app_icon.ico') | Select-Object Name, Length
+Get-ChildItem $out, (Join-Path $root 'windows\runner\resources\app_icon.ico'), (Join-Path $root 'docs\prism-discord-icon.png') | Select-Object Name, Length

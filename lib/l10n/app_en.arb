@@ -1903,7 +1903,7 @@
   "friendSCode": "Friend's code",
   "join": "Join",
   "startASession": "Start a session",
-  "eachPersonPlaysTheSongFrom": "Each person plays the song from their own library. Song names pass through a free public server, scrambled with the code. You can turn that off in Settings → Listen together.",
+  "eachPersonPlaysTheSongFrom": "Each person plays the song from their own library. A song someone doesn't have plays from YouTube, the same upload for everyone, when YouTube playback is on. Song names pass through a free public server, scrambled with the code; you can turn that off in Settings → Listen together.",
   "onThisNetwork": "On this network",
   "backupSummary": "{playlists} playlists ({playlistSongs} songs), {favorites} favorites, {themes} themes, {smart} smart playlists, {edits} edits",
   "@backupSummary": {
@@ -2916,5 +2916,159 @@
   "tourNext": "Next",
   "tourDone": "Start listening",
   "tourShowAgain": "Welcome tour",
-  "tourShowAgainHint": "The short introduction from the first start"
+  "tourShowAgainHint": "The short introduction from the first start",
+  "importSavedFileBroken": "The saved file was incomplete (YouTube stopped sending it part way), so it was thrown away. Other uploads of the song were tried too.",
+  "serviceUnreachableInternetWorks": "The internet works, but {service} can't be reached from here. It may be blocked or slowed down on this network; a VPN usually helps. Local songs still play.",
+  "@serviceUnreachableInternetWorks": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNow": "Update now",
+  "updateLater": "Later",
+  "updateDownloadApk": "Download update",
+  "updateWindowsHint": "Prism downloads the update, installs it over this version and opens again by itself. Your music, playlists and settings stay. Nothing to uninstall.",
+  "updateAndroidHint": "Your browser downloads the new version. Open the file and tap Update: your music, playlists and settings stay.",
+  "updateDownloading": "Downloading the update… {percent} %",
+  "@updateDownloading": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "updateInstalling": "Installing. Prism closes and opens again by itself in a moment.",
+  "updateBroken": "The download came out damaged, so nothing was installed. Try again.",
+  "updatedTo": "Prism was updated to {version}",
+  "@updatedTo": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "highPriorityTitle": "Smooth when the PC is busy",
+  "highPrioritySubtitle": "Prism gets a little more processor time than normal programs, so music and animations don't stutter while games or the browser load the PC.",
+  "togetherInviteText": "Listen with me in Prism! Open Prism → Listen together and enter the code {code}",
+  "@togetherInviteText": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "togetherChangedBy": "{name} changed the music",
+  "@togetherChangedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "togetherOnlyHostControls": "Only {host} controls the music in this session",
+  "@togetherOnlyHostControls": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "togetherHostCantFind": "{host} doesn't have that song and couldn't find it online",
+  "@togetherHostCantFind": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "togetherCopyInvite": "Copy invite",
+  "togetherInviteCopied": "Copied: paste it in any chat",
+  "togetherFriendsControl": "Friends can control the music",
+  "togetherFriendsControlHint": "Play, pause, skip, seek and add songs for everyone",
+  "togetherYouCanControl": "Your play, pause, skip and \"Play next\" change the music for everyone.",
+  "togetherStatusFinding": "finding the song",
+  "togetherStatusMissing": "doesn't have this song",
+  "togetherJoinTitle": "Join a friend",
+  "togetherHostLabel": "host",
+  "togetherJoinFromClipboard": "A Prism invite is in your clipboard. Join session {code}?",
+  "@togetherJoinFromClipboard": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "ok": "OK",
+  "hzValue": "{value} Hz",
+  "@hzValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "eqDb": "dB",
+  "eqRegionSubBass": "Sub bass",
+  "eqRegionBass": "Bass",
+  "eqRegionLowMids": "Low mids",
+  "eqRegionMids": "Mids",
+  "eqRegionPresence": "Presence",
+  "eqRegionBrilliance": "Air",
+  "eqCompare": "Hold to compare",
+  "eqCompareHint": "Hold to hear the song without the equalizer",
+  "eqComparingWithout": "Without the equalizer",
+  "eqCurveHint": "Drag a point up or down, turn the mouse wheel over it, or double-click it for 0 dB. Behind the curve: the song that plays.",
+  "eqMayDistort": "Loud parts can distort: the curve goes {db} dB above 0.",
+  "@eqMayDistort": {
+    "placeholders": {
+      "db": {
+        "type": "String"
+      }
+    }
+  },
+  "eqFixVolume": "Fix it",
+  "eqSimple": "Simple",
+  "eqDetailed": "Detailed",
+  "eqPresets": "Presets",
+  "eqToneBass": "Bass",
+  "eqToneMids": "Mids",
+  "eqToneTreble": "Treble",
+  "eqToneBassHint": "kick, bass line",
+  "eqToneMidsHint": "voices, guitars",
+  "eqToneTrebleHint": "cymbals, clarity",
+  "eqBassBoostHint": "extra low end",
+  "eqPreampHint": "volume before the EQ",
+  "eqAuto": "Auto",
+  "eqReset": "Reset",
+  "eqTypeExact": "Click to type an exact value",
+  "eqBandRange": "From -{max} to +{max}",
+  "@eqBandRange": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "khzValue": "{value} kHz",
+  "@khzValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "dropMusicHere": "Drop songs, folders or a playlist",
+  "dropMusicHint": "Songs and folders go into your library right away; playlist files and links are imported.",
+  "dropAdding": "Adding to your library…",
+  "dropAdded": "{count, plural, one{{count} song in your library} other{{count} songs in your library}}",
+  "@dropAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dropNothingNew": "No songs Prism can play were in what you dropped."
 }

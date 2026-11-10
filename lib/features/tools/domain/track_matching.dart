@@ -9,16 +9,22 @@ import '../../library/domain/track.dart';
 /// Portable reference to a song (for backups and listen-together): works
 /// across devices where the file paths differ.
 class TrackRef {
-  const TrackRef({required this.uri, required this.title, required this.artist, required this.durationMs});
+  const TrackRef({required this.uri, required this.title, required this.artist, required this.durationMs, this.yt});
 
-  factory TrackRef.of(Track t) => TrackRef(uri: t.uri, title: t.title, artist: t.displayArtist, durationMs: t.durationMs);
+  factory TrackRef.of(Track t) =>
+      TrackRef(uri: t.uri, title: t.title, artist: t.displayArtist, durationMs: t.durationMs, yt: youtubeIdOfTrack(t));
 
   /// For other people (listen together): a local file goes as a fingerprint
   /// of its path, never the path itself (it holds the user name and folders,
   /// and the default link is a public server). The same file on the same PC
   /// still matches exactly; online songs keep their id.
-  factory TrackRef.shared(Track t) =>
-      TrackRef(uri: sharedUri(t), title: t.title, artist: t.displayArtist, durationMs: t.durationMs);
+  factory TrackRef.shared(Track t, {String? yt}) => TrackRef(
+        uri: sharedUri(t),
+        title: t.title,
+        artist: t.displayArtist,
+        durationMs: t.durationMs,
+        yt: yt ?? youtubeIdOfTrack(t),
+      );
 
   static String sharedUri(Track t) =>
       t.sourceId == 'local' ? 'h:${sha256.convert(utf8.encode(t.uri)).toString().substring(0, 32)}' : t.uri;
@@ -28,6 +34,7 @@ class TrackRef {
         title: j['title'] as String? ?? '',
         artist: j['artist'] as String? ?? '',
         durationMs: j['durationMs'] as int? ?? 0,
+        yt: switch (j['yt']) { final String id when isYoutubeId(id) => id, _ => null },
       );
 
   final String uri;
@@ -35,7 +42,34 @@ class TrackRef {
   final String artist;
   final int durationMs;
 
-  Map<String, Object> toJson() => {'uri': uri, 'title': title, 'artist': artist, 'durationMs': durationMs};
+  /// The YouTube upload this song is, when known (imported or streamed
+  /// songs, or found once by the host): everyone plays exactly that one.
+  final String? yt;
+
+  TrackRef withYt(String? id) => TrackRef(uri: uri, title: title, artist: artist, durationMs: durationMs, yt: id ?? yt);
+
+  Map<String, Object> toJson() => {
+        'uri': uri,
+        'title': title,
+        'artist': artist,
+        'durationMs': durationMs,
+        'yt': ?yt,
+      };
+}
+
+final _ytId = RegExp(r'^[A-Za-z0-9_-]{11}$');
+
+bool isYoutubeId(String s) => _ytId.hasMatch(s);
+
+/// The YouTube video of a track: a streamed one (`watch?v=ID`), or a song an
+/// import saved (Prism names those files "Artist - Title [ID].m4a").
+String? youtubeIdOfTrack(Track t) {
+  if (t.sourceId == 'youtube') {
+    final v = Uri.tryParse(t.uri)?.queryParameters['v'];
+    return v != null && isYoutubeId(v) ? v : null;
+  }
+  if (t.sourceId != 'local') return null;
+  return RegExp(r'\[([A-Za-z0-9_-]{11})\]\.[A-Za-z0-9]+$').firstMatch(t.uri)?.group(1);
 }
 
 String _key(String title, String artist) => '${normalizeForSearch(title)}|${normalizeForSearch(artist)}';
@@ -47,15 +81,17 @@ class TrackMatcher {
     for (final t in library) {
       _byUri[t.uri] = t;
       _byUri[TrackRef.sharedUri(t)] = t;
+      if (youtubeIdOfTrack(t) case final id?) _byYt[id] ??= t;
       (_byKey[_key(t.title, t.displayArtist)] ??= []).add(t);
     }
   }
 
   final _byUri = <String, Track>{};
+  final _byYt = <String, Track>{};
   final _byKey = <String, List<Track>>{};
 
   Track? match(TrackRef r) {
-    final exact = _byUri[r.uri];
+    final exact = _byUri[r.uri] ?? (r.yt == null ? null : _byYt[r.yt]);
     if (exact != null) return exact;
     final candidates = _byKey[_key(r.title, r.artist)];
     if (candidates == null) return null;

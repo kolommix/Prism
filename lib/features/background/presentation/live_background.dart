@@ -11,6 +11,7 @@ import '../../../core/theme/prism_theme_extensions.dart';
 import '../../desktop/application/desktop_extras.dart';
 import '../../player/application/player_providers.dart';
 import '../../settings/application/settings_controller.dart';
+import '../../../core/motion/busy_pc.dart';
 import '../../visualizer/domain/spectrum.dart';
 import '../../visualizer/presentation/visualizer.dart';
 import '../application/background_input.dart';
@@ -162,7 +163,9 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
   }
 
   void _onTick(Duration now) {
-    final cap = widget.fps ?? ref.read(settingsProvider).background.effectiveFrameRate;
+    var cap = widget.fps ?? ref.read(settingsProvider).background.effectiveFrameRate;
+    // A busy PC: 30 frames a second at most (see BusyMeter).
+    if (!widget.preview && ref.read(busyPcProvider) && (cap <= 0 || cap > 30)) cap = 30;
     final passed = now - _lastStep;
     // A little early is fine: frames are never exactly on the mark.
     if (cap > 0 && passed.inMicroseconds < 1000000 ~/ cap - 2000) return;

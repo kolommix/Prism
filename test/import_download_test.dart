@@ -9,6 +9,8 @@ import 'package:prism/core/providers.dart';
 import 'package:prism/features/library/application/library_providers.dart';
 import 'package:prism/features/library/domain/track.dart';
 import 'package:prism/features/online/application/import_downloader.dart';
+import 'package:prism/features/online/application/import_file_check.dart';
+import 'package:prism/features/online/application/import_repair.dart';
 import 'package:prism/features/online/application/online_hub.dart';
 import 'package:prism/features/online/application/online_providers.dart';
 import 'package:prism/features/online/data/import_repository.dart';
@@ -54,6 +56,21 @@ class _FakeYoutube extends MusicServiceModule {
   Future<List<Track>> search(String query, {int limit = 20}) async => results;
 }
 
+/// Says a file is whole unless its name holds a "broken" video id.
+class _Check extends ImportFileCheck {
+  final broken = <String>{};
+  int checks = 0;
+
+  @override
+  Future<SavedAudio> check(File file, {int expectedMs = 0}) async {
+    checks++;
+    if (broken.any((id) => file.path.contains('[$id].')) || file.readAsStringSync() == 'broken') {
+      return const SavedAudio(ok: false, reason: 'test');
+    }
+    return const SavedAudio(ok: true, durationMs: 199000);
+  }
+}
+
 void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
 
@@ -77,6 +94,7 @@ void main() {
     late Directory dir;
     late ProviderContainer c;
     late _FakeYoutube yt;
+    late _Check check;
     late ImportRepository repo;
 
     setUp(() async {
@@ -84,6 +102,7 @@ void main() {
       db = AppDatabase(NativeDatabase.memory());
       dir = await Directory.systemTemp.createTemp('prism_dl_');
       yt = _FakeYoutube();
+      check = _Check();
       final hub = OnlineHub(
         configLoader: OnlineConfigLoader(dir),
         prefs: SharedPreferencesAsync(),
@@ -97,6 +116,7 @@ void main() {
         appDatabaseProvider.overrideWithValue(db),
         onlineHubProvider.overrideWithValue(hub),
         importDownloadModuleProvider.overrideWithValue(yt),
+        importFileCheckProvider.overrideWithValue(check),
       ]);
       repo = c.read(importRepositoryProvider);
     });
@@ -144,7 +164,7 @@ void main() {
       expect(library.single.title, 'Song 0');
       expect(library.single.artist, 'Band');
       expect(library.single.album, 'LP');
-      expect(library.single.durationMs, 200000);
+      expect(library.single.durationMs, 199000, reason: 'the length of what was really saved');
       expect(library.single.uri, contains('[aaa]'));
       expect(File(library.single.uri).existsSync(), isTrue);
 
@@ -248,6 +268,73 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 20));
       await finished();
       expect((await c.read(libraryRepositoryProvider).watchTracks().first), hasLength(8));
+    });
+
+    test('a broken save is thrown away and another upload is saved', () async {
+      check.broken.add('hol');
+      yt.results = [
+        Track(id: 0, sourceId: 'youtube', uri: 'https://www.youtube.com/watch?v=alt', title: 'Band - Song 0', artist: 'Band - Topic', durationMs: 200000),
+      ];
+      final id = await job(1);
+      final item = (await repo.watchItems(id).first).single;
+      await repo.saveMatch(item.id, trackId: (await remote('hol')).id, confidence: 0.9, source: 'youtube');
+      c.read(importDownloaderProvider.notifier).poke(id);
+      await finished();
+      expect(yt.saved, ['hol', 'alt']);
+      final folder = c.read(importDownloadDirProvider);
+      expect(folder.listSync().where((e) => e.path.contains('[hol]')), isEmpty, reason: 'the broken file is gone');
+      expect((await c.read(libraryRepositoryProvider).watchTracks().first).single.uri, contains('[alt]'));
+    });
+
+    test('a broken file from an older version is not reused', () async {
+      final folder = c.read(importDownloadDirProvider)..createSync(recursive: true);
+      final old = File('${folder.path}/Old name [ddd].m4a')..writeAsStringSync('broken');
+      final id = await job(1);
+      final item = (await repo.watchItems(id).first).single;
+      await repo.saveMatch(item.id, trackId: (await remote('ddd')).id, confidence: 0.9, source: 'youtube');
+      c.read(importDownloaderProvider.notifier).poke(id);
+      await finished();
+      expect(yt.calls, 1, reason: 'saved again instead of reusing the broken copy');
+      expect(old.existsSync(), isFalse);
+      expect((await repo.watchItems(id).first).single.track?.sourceId, 'local');
+    });
+
+    test('repair: broken saved songs stream again and are saved once more', () async {
+      final id = await job(2);
+      final items = await repo.watchItems(id).first;
+      await repo.saveMatch(items[0].id, trackId: (await remote('good1234567')).id, confidence: 0.9, source: 'youtube');
+      await repo.saveMatch(items[1].id, trackId: (await remote('bad12345678')).id, confidence: 0.9, source: 'youtube');
+      c.read(importDownloaderProvider.notifier).poke(id);
+      await finished();
+      expect(await c.read(libraryRepositoryProvider).watchTracks().first, hasLength(2));
+
+      // Later it turns out one of them is broken (saved by an old version).
+      check.broken.add('bad12345678');
+      final callsBefore = yt.calls;
+      final found = await c.read(importRepairProvider).run();
+      expect(found, 1);
+      final now = await repo.watchItems(id).first;
+      expect(now[0].track?.sourceId, 'local');
+      expect(now[1].track?.sourceId, isNot('local'), reason: 'back to the stream until it is saved again');
+      expect((await c.read(libraryRepositoryProvider).watchTracks().first).map((t) => t.uri), everyElement(isNot(contains('bad12345678'))));
+
+      // It gets saved again (whole this time).
+      check.broken.clear();
+      c.read(importDownloaderProvider.notifier).poke(id);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      await finished();
+      expect(yt.calls, greaterThan(callsBefore));
+      expect(await c.read(libraryRepositoryProvider).watchTracks().first, hasLength(2));
+
+      // Whole files are checked once, not at every start.
+      final before = check.checks;
+      expect(await c.read(importRepairProvider).run(), 0);
+      expect(check.checks - before, lessThanOrEqualTo(1));
+    });
+
+    test('video id in saved file names', () {
+      expect(ImportRepair.videoIdInFileName(r'C:mA - B [dQw4w9WgXcQ].m4a'), 'dQw4w9WgXcQ');
+      expect(ImportRepair.videoIdInFileName('A - B [short].m4a'), isNull);
     });
   });
 }

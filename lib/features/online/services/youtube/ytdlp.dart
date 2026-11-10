@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
 import '../../../../core/platform/background_process.dart';
+import '../../../../core/platform/system_proxy.dart';
 import '../../../../l10n/l10n.dart';
 import '../../domain/external_track.dart';
 import '../../domain/online_error.dart';
@@ -101,7 +102,9 @@ class YtDlp {
     if (!await File(exe).exists()) throw _blocked;
     // From a background isolate: starting a process blocks the calling
     // thread (see BackgroundProcess), and imports start one per song.
-    final proc = await BackgroundProcess.start(exe, args(id, pathWithoutExt, ffmpeg: ffmpeg), timeout: timeout);
+    // The same way out as the rest of Prism (a VPN app's system proxy).
+    final proxy = SystemProxy.instance.proxyFor(Uri.parse('https://www.youtube.com/'));
+    final proc = await BackgroundProcess.start(exe, args(id, pathWithoutExt, ffmpeg: ffmpeg, proxy: proxy), timeout: timeout);
     _running.add(proc);
     final r = await proc.done;
     _running.remove(proc);
@@ -117,7 +120,7 @@ class YtDlp {
   }
 
   /// The command line for one song.
-  static List<String> args(String id, String pathWithoutExt, {String? ffmpeg}) => [
+  static List<String> args(String id, String pathWithoutExt, {String? ffmpeg, String? proxy}) => [
         '--no-config',
         '--no-playlist',
         '--no-progress',
@@ -129,6 +132,7 @@ class YtDlp {
         '--concurrent-fragments', '4',
         '-f', 'bestaudio[ext=m4a]/bestaudio',
         if (ffmpeg != null) ...['--ffmpeg-location', ffmpeg],
+        if (proxy != null) ...['--proxy', 'http://$proxy'],
         '-o', '$pathWithoutExt.%(ext)s',
         '--print', 'after_move:filepath',
         'https://www.youtube.com/watch?v=$id',

@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:prism/core/db/app_database.dart';
 import 'package:prism/core/providers.dart';
 import 'package:prism/features/library/application/library_providers.dart';
+import 'package:prism/features/library/domain/track.dart';
 import 'package:prism/features/online/application/online_providers.dart';
 import 'package:prism/features/player/application/player_controller.dart';
 import 'package:prism/features/player/application/player_providers.dart';
@@ -234,6 +235,19 @@ void main() {
             ),
         ]);
 
+    Future<void> addTitles(ProviderContainer c, String folder, List<String> titles) =>
+        c.read(libraryRepositoryProvider).upsertTracks([
+          for (final title in titles)
+            TracksCompanion.insert(
+              uri: '$folder/$title.mp3',
+              folder: folder,
+              title: title,
+              artist: const Value('Band'),
+              durationMs: const Value(200000),
+              searchText: Value(title.toLowerCase()),
+            ),
+        ]);
+
     test('both come back after the connection drops, and the guest follows again', () async {
       final host = device('Ivan', AppDatabase(NativeDatabase.memory()));
       final guest = device('Max', AppDatabase(NativeDatabase.memory()));
@@ -266,6 +280,90 @@ void main() {
       await guest.read(togetherProvider.notifier).leave();
       await until(() => host.read(togetherProvider).guests == 0, 'host to see Max leave');
       expect(guest.read(togetherProvider).role, TogetherRole.none);
+    });
+
+    Future<List<Track>> songsOf(ProviderContainer c) => c.read(libraryRepositoryProvider).watchTracks().first;
+
+    Future<(ProviderContainer, ProviderContainer)> session({
+      List<String> hostSongs = const ['One', 'Two'],
+      List<String> guestSongs = const ['One', 'Two'],
+    }) async {
+      final host = device('Ivan', AppDatabase(NativeDatabase.memory()));
+      final guest = device('Max', AppDatabase(NativeDatabase.memory()));
+      await addTitles(host, 'C:/host', hostSongs);
+      await addTitles(guest, '/friend', guestSongs);
+      final songs = (await songsOf(host))..sort((a, b) => hostSongs.indexOf(a.title).compareTo(hostSongs.indexOf(b.title)));
+      await host.read(playerControllerProvider).playTracks(songs, startIndex: 0, shuffle: false);
+      await host.read(togetherProvider.notifier).host();
+      await guest.read(togetherProvider.notifier).join(host.read(togetherProvider).code!);
+      expect(guest.read(togetherProvider).role, TogetherRole.guest, reason: guest.read(togetherProvider).status);
+      await until(() => host.read(togetherProvider).people.contains('Max'), 'host to see Max');
+      return (host, guest);
+    }
+
+    test('a friend\'s pause, skip and "play next" change the host\'s music', () async {
+      final (host, guest) = await session(hostSongs: ['One', 'Two', 'Three'], guestSongs: ['One', 'Two', 'Three']);
+      final hostPlayer = host.read(playerControllerProvider);
+      final guestPlayer = guest.read(playerControllerProvider);
+      await until(() => guestPlayer.queue.current?.title == 'One', 'guest to play One');
+      await until(() => guest.read(togetherProvider).control, 'guest to hear control is on');
+
+      await guestPlayer.pause();
+      await until(() => !hostPlayer.state.playing, 'host paused by the friend');
+      await guestPlayer.play();
+      await until(() => hostPlayer.state.playing, 'host playing again');
+
+      await guestPlayer.skipNext();
+      await until(() => hostPlayer.queue.current?.title == 'Two', 'host skipped by the friend');
+      await until(() => guestPlayer.queue.current?.title == 'Two', 'guest follows');
+
+      final three = (await songsOf(guest)).firstWhere((t) => t.title == 'Three');
+      final queueBefore = hostPlayer.queue.tracks.length;
+      await guestPlayer.playNext([three]);
+      await until(() => hostPlayer.queue.tracks.length == queueBefore + 1, 'song added on the host');
+      final next = hostPlayer.queue.tracks[hostPlayer.queue.index + 1];
+      expect(next.title, 'Three');
+      expect(next.uri, startsWith('C:/host'), reason: 'the host plays its own copy');
+      expect(host.read(togetherProvider).notice, contains('Max'));
+    });
+
+    test('with control off, a friend\'s buttons change nothing and say why', () async {
+      final (host, guest) = await session();
+      final hostPlayer = host.read(playerControllerProvider);
+      final guestPlayer = guest.read(playerControllerProvider);
+      host.read(togetherProvider.notifier).setGuestControl(false);
+      await until(() => !guest.read(togetherProvider).control, 'guest to hear control is off');
+      final noticeBefore = guest.read(togetherProvider).noticeId;
+      await guestPlayer.skipNext();
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(hostPlayer.queue.current?.title, 'One');
+      expect(guest.read(togetherProvider).noticeId, greaterThan(noticeBefore));
+      expect(guest.read(togetherProvider).notice, contains('Ivan'));
+    });
+
+    test('everyone sees who is missing the song', () async {
+      final (host, guest) = await session(hostSongs: ['One', 'Secret'], guestSongs: ['One']);
+      final hostPlayer = host.read(playerControllerProvider);
+      await hostPlayer.skipNext();
+      await until(
+        () => host.read(togetherProvider).who.any((p) => p.name == 'Max' && p.status == PersonStatus.missing),
+        'host to see Max missing the song',
+      );
+      await until(() => guest.read(togetherProvider).missingSong != null, 'guest to say what is missing');
+      await hostPlayer.jumpTo(0);
+      await until(
+        () => host.read(togetherProvider).who.any((p) => p.name == 'Max' && p.status == PersonStatus.listening),
+        'host to see Max listening again',
+      );
+    });
+
+    test('leaving gives the player its own buttons back', () async {
+      final (host, guest) = await session();
+      final guestPlayer = guest.read(playerControllerProvider);
+      expect(guestPlayer.remote, isNotNull);
+      await guest.read(togetherProvider.notifier).leave();
+      expect(guestPlayer.remote, isNull);
+      expect(host.read(togetherProvider).role, TogetherRole.host);
     });
   });
 

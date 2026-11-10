@@ -153,7 +153,7 @@ jobs:
           fi
       - name: Plain-text README and changelog are up to date
         run: |
-          for f in README CHANGELOG; do test -f "$f.txt" || { echo "::error::$f.txt missing (dart run tool/md_to_txt.dart)"; exit 1; }; done
+          for f in README README.ru CHANGELOG docs/PRIVACY docs/ARCHITECTURE docs/ONLINE_SERVICES docs/RELEASING; do test -f "$f.txt" || { echo "::error::$f.txt missing (dart run tool/md_to_txt.dart)"; exit 1; }; done
           if ! grep -q "^${GITHUB_REF_NAME#v} (" CHANGELOG.txt; then
             echo "::error::CHANGELOG.txt has no section for ${GITHUB_REF_NAME#v}: run dart run tool/md_to_txt.dart"
             exit 1
@@ -167,4 +167,6 @@ jobs:
           files: |
             files/**/*
             README.txt
+            README.ru.txt
             CHANGELOG.txt
+            docs/PRIVACY.txt

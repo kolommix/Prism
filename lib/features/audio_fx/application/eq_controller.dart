@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/providers.dart';
 import '../../player/application/player_providers.dart';
+import '../domain/eq_math.dart';
 import '../domain/eq_settings.dart';
 import '../platform/audio_effects_backend.dart';
 
@@ -84,8 +85,8 @@ class EqController extends Notifier<EqState> {
     ref.read(audioEffectsProvider).setEq(eq);
     try {
       ref.read(playerControllerProvider).setPreampDb(eq.enabled ? eq.preampDb : 0);
-    } on UnimplementedError {
-      // No player in widget tests.
+    } on Object {
+      // No player in widget tests (Riverpod 3 wraps the error in a ProviderException).
     }
   }
 
@@ -99,6 +100,20 @@ class EqController extends Notifier<EqState> {
 
   void setBassBoost(double v) => _set(state.copyWith(
       settings: state.settings.copyWith(bassBoost: v.clamp(0.0, 1.0), enabled: true, presetName: 'Custom')));
+
+  /// Simple view: Bass, Mids or Treble to [level] dB (see [eqWithTone]).
+  void setTone(EqTone tone, double level) {
+    final s = state.settings;
+    _set(state.copyWith(
+      settings: s.copyWith(gainsDb: eqWithTone(s.gainsDb, tone, level), presetName: 'Custom', enabled: true),
+    ));
+  }
+
+  /// Preamp just low enough that the loudest point of the curve stays at 0 dB.
+  void autoPreamp() => setPreamp(eqAutoPreampDb(state.settings));
+
+  /// "Hold to compare": the sound without the EQ while held, nothing saved.
+  void compare(bool without) => _push(without ? state.settings.copyWith(enabled: false) : state.settings);
 
   void applyPreset(EqPreset p) => _set(state.copyWith(settings: state.settings.applyPreset(p)));
 

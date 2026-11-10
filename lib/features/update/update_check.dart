@@ -3,17 +3,63 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/app_version.dart';
 import '../../l10n/l10n.dart';
+import 'update_installer.dart';
 
 /// The newest published version.
 class ReleaseInfo {
-  const ReleaseInfo({required this.version, required this.url, this.notes = ''});
+  const ReleaseInfo({required this.version, required this.url, this.notes = '', this.assets = const []});
   final String version;
   final String url;
   final String notes;
+
+  /// Files of the release (installer, APKs), only ones on Prism's GitHub.
+  final List<ReleaseAsset> assets;
+}
+
+/// One downloadable file of a release.
+class ReleaseAsset {
+  const ReleaseAsset({required this.name, required this.url, required this.size, this.sha256});
+  final String name;
+  final String url;
+  final int size;
+
+  /// From GitHub's own record of the upload (`digest: sha256:...`), when given.
+  final String? sha256;
+
+  /// Only files that really come from Prism's releases.
+  static ReleaseAsset? fromJson(Object? j) {
+    if (j is! Map) return null;
+    final name = j['name'], url = j['browser_download_url'], size = j['size'], digest = j['digest'];
+    if (name is! String || url is! String || size is! int) return null;
+    if (!url.startsWith('https://github.com/$githubRepo/releases/download/')) return null;
+    final sha = digest is String && digest.startsWith('sha256:') ? digest.substring(7).toLowerCase() : null;
+    return ReleaseAsset(name: name, url: url, size: size, sha256: sha);
+  }
+}
+
+/// The file that updates this install: the Windows installer, or the APK for
+/// this phone's processor ([dartVersion] says which: `on "android_arm64"`).
+ReleaseAsset? updateFileFor(ReleaseInfo r, {required bool windows, String? dartVersion}) {
+  if (windows) {
+    final setup = RegExp(r'^Prism-Setup-.*\.exe$');
+    return r.assets.where((a) => setup.hasMatch(a.name)).firstOrNull;
+  }
+  final v = dartVersion ?? '';
+  final abi = v.contains('android_arm64')
+      ? 'arm64-v8a'
+      : v.contains('android_arm')
+          ? 'armeabi-v7a'
+          : null;
+  final apks = r.assets.where((a) => a.name.endsWith('.apk')).toList();
+  if (abi != null) {
+    final exact = apks.where((a) => a.name.contains(abi)).firstOrNull;
+    if (exact != null) return exact;
+  }
+  // The universal one works everywhere.
+  return apks.where((a) => !a.name.contains('arm64-v8a') && !a.name.contains('armeabi')).firstOrNull ?? apks.firstOrNull;
 }
 
 /// True when [latest] ("v1.2.0") is newer than [current] ("1.1.9+3").
@@ -58,6 +104,10 @@ Future<ReleaseInfo?> fetchLatestRelease({http.Client? client}) async {
           ? j['html_url'] as String
           : 'https://github.com/$githubRepo/releases/latest',
       notes: j['body'] as String? ?? '',
+      assets: [
+        if (j['assets'] case final List list)
+          for (final a in list) ?ReleaseAsset.fromJson(a),
+      ],
     );
   } on UpdateCheckException {
     rethrow;
@@ -85,27 +135,6 @@ Future<void> checkForUpdatesInteractive(BuildContext context) async {
     messenger?.showSnackBar(SnackBar(content: Text(e.message)));
   }
 }
-
-Future<void> showUpdateDialog(BuildContext context, ReleaseInfo r) => showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.updateAvailable(r.version)),
-        content: SizedBox(
-          width: 460,
-          child: SingleChildScrollView(child: Text(r.notes.isEmpty ? l10n.updateHowTo : '${r.notes}\n\n${l10n.updateHowTo}')),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.close)),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              launchUrl(Uri.parse(r.url), mode: LaunchMode.externalApplication);
-            },
-            child: Text(l10n.updateOpen),
-          ),
-        ],
-      ),
-    );
 
 /// The quiet check at startup: at most once a day, and only says something when
 /// there is a new version. Failures stay silent; the button still works.

@@ -99,3 +99,86 @@ double semitonesToRatio(double semitones) => math.pow(2, semitones / 12).toDoubl
 
 /// dB → linear gain.
 double dbToLinear(double db) => math.pow(10, db / 20).toDouble();
+
+// ------------------------------------------------------------- simple mode
+
+/// The three "simple" controls and how much each moves every band: Bass,
+/// Mids and Treble overlap softly, like the tone knobs of an amplifier.
+enum EqTone {
+  bass([1.0, 1.0, 0.8, 0.4, 0.1, 0, 0, 0, 0, 0]),
+  mids([0, 0, 0.1, 0.4, 0.8, 1.0, 0.8, 0.4, 0.1, 0]),
+  treble([0, 0, 0, 0, 0, 0.1, 0.4, 0.8, 1.0, 1.0]);
+
+  const EqTone(this.weights);
+  final List<double> weights;
+}
+
+/// Where the three tone controls stand for these band gains (least-squares
+/// fit, so a curve made in the detailed view still shows sensible values).
+Map<EqTone, double> eqToneLevels(List<double> gains) {
+  final w = [for (final t in EqTone.values) t.weights];
+  // Normal equations: (WᵀW) x = Wᵀg, 3 × 3.
+  final a = List.generate(3, (i) => List.generate(3, (j) {
+        var s = 0.0;
+        for (var k = 0; k < gains.length; k++) {
+          s += w[i][k] * w[j][k];
+        }
+        return s;
+      }));
+  final b = List.generate(3, (i) {
+    var s = 0.0;
+    for (var k = 0; k < gains.length; k++) {
+      s += w[i][k] * gains[k];
+    }
+    return s;
+  });
+  final x = _solve3(a, b);
+  return {for (var i = 0; i < 3; i++) EqTone.values[i]: x[i].clamp(-eqMaxGainDb, eqMaxGainDb).toDouble()};
+}
+
+/// Moves one tone control to [level]: every band shifts by the change times
+/// its weight, so whatever was shaped in the detailed view stays.
+List<double> eqWithTone(List<double> gains, EqTone tone, double level) {
+  final delta = level - eqToneLevels(gains)[tone]!;
+  return [
+    for (var i = 0; i < gains.length; i++)
+      (gains[i] + delta * tone.weights[i]).clamp(-eqMaxGainDb, eqMaxGainDb).toDouble(),
+  ];
+}
+
+List<double> _solve3(List<List<double>> a, List<double> b) {
+  double det(List<List<double>> m) =>
+      m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+      m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+      m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+  final d = det(a);
+  if (d.abs() < 1e-9) return [0, 0, 0];
+  return [
+    for (var c = 0; c < 3; c++)
+      det([
+            for (var r = 0; r < 3; r++) [for (var k = 0; k < 3; k++) k == c ? b[r] : a[r][k]],
+          ]) /
+          d,
+  ];
+}
+
+/// The preamp that keeps the loudest point of the curve at 0 dB (rounded to
+/// half a dB, never above 0).
+double eqAutoPreampDb(EqSettings eq) {
+  final peak = eqPeakBoostDb(eq.copyWith(enabled: true));
+  if (peak <= 0.05) return 0;
+  return (-(peak * 2).ceil() / 2).clamp(-eqMaxPreampDb, 0.0).toDouble();
+}
+
+/// What part of the sound a frequency is, for the labels under the curve.
+enum EqRegion {
+  subBass(20, 60),
+  bass(60, 250),
+  lowMids(250, 500),
+  mids(500, 2000),
+  presence(2000, 6000),
+  brilliance(6000, 20000);
+
+  const EqRegion(this.from, this.to);
+  final double from, to;
+}

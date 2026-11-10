@@ -34,7 +34,7 @@ enum OnlineErrorKind {
 }
 
 class OnlineException implements Exception {
-  OnlineException(this.kind, {this.service, this._message, this.retryAfter, this.isRegionBlocked = false});
+  OnlineException(this.kind, {this.service, this._message, this.retryAfter, this.isRegionBlocked = false, this.internetWorks = false});
 
   final OnlineErrorKind kind;
   final OnlineService? service;
@@ -45,6 +45,10 @@ class OnlineException implements Exception {
 
   /// The service refuses this country or network (HTTP 451).
   final bool isRegionBlocked;
+
+  /// An [OnlineErrorKind.offline] error checked by NetworkCheck: the internet
+  /// works, only this service can't be reached from here.
+  final bool internetWorks;
 
   /// True when trying again later can help (matching pauses instead of failing).
   bool get isTransient =>

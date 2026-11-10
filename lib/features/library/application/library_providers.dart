@@ -95,8 +95,28 @@ class ScanController extends Notifier<ScanProgress?> {
   bool get isScanning => state != null && state is! ScanFinished;
 
   Future<void> addFolder(String path) async {
+    await _idle();
     await ref.read(libraryRepositoryProvider).addFolder(path);
     await _run(ref.read(libraryScannerProvider).scanFolders([path]));
+  }
+
+  /// Songs dragged onto the window: into the library right away, also ones
+  /// taken out of Prism before (dropping them is asking for them back).
+  Future<void> addFiles(List<String> paths) async {
+    if (paths.isEmpty) return;
+    final repo = ref.read(libraryRepositoryProvider);
+    for (final path in paths) {
+      await repo.restoreRemoved(path);
+    }
+    await _idle();
+    await _run(ref.read(libraryScannerProvider).scanFiles(paths));
+  }
+
+  /// A scan already running finishes first (a second one would be dropped).
+  Future<void> _idle() async {
+    for (var i = 0; i < 600 && isScanning; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
   }
 
   Future<void> removeFolder(String path) => ref.read(libraryRepositoryProvider).removeFolder(path);

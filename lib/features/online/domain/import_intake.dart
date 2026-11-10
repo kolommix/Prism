@@ -105,6 +105,7 @@ ImportProblem importProblemFor(Object error, {ParsedLink? link}) {
   if (error is ShareFormatException) return ImportProblem(l10n.importErrorFile(error.message), ImportNextStep.chooseFile);
   if (error is! OnlineException) return ImportProblem(l10n.importErrorUnknown, ImportNextStep.chooseFile);
   return switch (error.kind) {
+    OnlineErrorKind.offline when error.internetWorks => ImportProblem(error.message, ImportNextStep.tryAgain),
     OnlineErrorKind.offline => ImportProblem(l10n.importErrorOffline, ImportNextStep.tryAgain),
     OnlineErrorKind.rateLimited => ImportProblem(l10n.importErrorSlowDown(name), ImportNextStep.tryAgain),
     OnlineErrorKind.server => ImportProblem(l10n.importErrorServer(name), ImportNextStep.tryAgain),

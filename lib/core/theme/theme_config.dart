@@ -121,11 +121,23 @@ abstract class ThemeConfig with _$ThemeConfig {
       );
 }
 
-/// A few built-in themes shown in the theme editor.
+/// Prism's own colors, the theme a fresh install starts with.
+const prismTheme = ThemeConfig(
+  name: 'Prism',
+  monochrome: false,
+  brightness: ThemeBrightnessMode.dark,
+  cornerRadius: 18,
+  glassIntensity: 0.6,
+);
+
+/// What a fresh install (and "reset") uses.
+const defaultTheme = prismTheme;
+
+/// A few built-in themes shown in the theme editor, the default first.
 const builtInThemes = <ThemeConfig>[
+  prismTheme,
   ThemeConfig(),
   ThemeConfig(name: 'Paper', brightness: ThemeBrightnessMode.light, cornerRadius: 14, glassIntensity: 0.3),
-  ThemeConfig(name: 'Prism', monochrome: false, brightness: ThemeBrightnessMode.dark, cornerRadius: 18, glassIntensity: 0.6),
   ThemeConfig(
     name: 'Sunset',
     monochrome: false,

@@ -13,6 +13,7 @@ import '../../library/domain/track.dart';
 import '../../player/application/player_providers.dart';
 import '../../player/presentation/widgets/live_position.dart';
 import '../../settings/application/settings_controller.dart';
+import '../../../core/motion/busy_pc.dart';
 import '../data/live_fft.dart';
 import '../data/spectrum_service.dart';
 import '../domain/spectrum.dart';
@@ -99,7 +100,9 @@ class _VisualizerState extends ConsumerState<Visualizer> with SingleTickerProvid
     final spectrum = track == null ? null : ref.watch(spectrumProvider(track));
     final scheme = Theme.of(context).colorScheme;
     final muted = TextStyle(color: scheme.onSurfaceVariant);
-    final settings = ref.watch(settingsProvider.select((s) => (s.visualizerSensitivity, s.visualizerLowPower, s.visualizerLive)));
+    final picked = ref.watch(settingsProvider.select((s) => (s.visualizerSensitivity, s.visualizerLowPower, s.visualizerLive)));
+    // A busy PC gets the light mode too (see BusyMeter).
+    final settings = (picked.$1, picked.$2 || ref.watch(busyPcProvider), picked.$3);
     _syncLive(settings.$3);
     Widget paint(BandSource source) => RepaintBoundary(
           child: CustomPaint(

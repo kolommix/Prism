@@ -29,6 +29,37 @@ class PlaybackTuning {
       );
 }
 
+/// Where a listen-together guest's play, pause, skip, seek and "play next"
+/// go instead of this player: to the host, so everyone's music changes. Each
+/// returns true when it took the action (the local player then does nothing).
+abstract interface class PlayerRemote {
+  bool play();
+  bool pause();
+  bool seek(Duration position);
+  bool skipNext();
+  bool skipPrevious();
+  bool jumpTo(int index);
+  bool playTracks(List<Track> tracks, int startIndex);
+  bool playNext(List<Track> tracks);
+  bool addToQueue(List<Track> tracks);
+}
+
+/// The player itself, never routed to [PlayerController.remote]: listen
+/// together follows the host with it.
+class LocalPlayer {
+  LocalPlayer._(this._p);
+  final PlayerController _p;
+
+  Future<void> play() => _p._play();
+  Future<void> pause() => _p._pause();
+  Future<void> seek(Duration position) => _p._engine.seek(position);
+  Future<void> playTracks(List<Track> tracks, {int startIndex = 0, bool? shuffle}) =>
+      _p._playTracks(tracks, startIndex: startIndex, shuffle: shuffle);
+
+  /// A new queue around the song that plays, without restarting it.
+  Future<void> setQueue(List<Track> tracks, int index) => _p._replaceQueue(tracks, index);
+}
+
 /// The brain of playback: owns the [PlaybackQueue] and keeps the
 /// [PlaybackEngine] fed with "current + next".
 ///
@@ -47,6 +78,12 @@ class PlayerController {
 
   final PlaybackEngine _engine;
   final PlaybackStateStore? _store;
+
+  /// Set while this player is a listen-together guest (see [PlayerRemote]).
+  PlayerRemote? remote;
+
+  /// This player without the [remote] detour.
+  late final LocalPlayer local = LocalPlayer._(this);
   final Random _random;
   late final StreamSubscription<EngineEvent> _eventSub;
   late final StreamSubscription<EngineState> _stateSub;
@@ -128,19 +165,31 @@ class PlayerController {
 
   /// Replaces the queue and starts playing [tracks] from [startIndex].
   Future<void> playTracks(List<Track> tracks, {int startIndex = 0, bool? shuffle}) async {
+    if (remote?.playTracks(tracks, startIndex) ?? false) return;
+    await _playTracks(tracks, startIndex: startIndex, shuffle: shuffle);
+  }
+
+  Future<void> _playTracks(List<Track> tracks, {int startIndex = 0, bool? shuffle}) async {
     var q = _queue;
     if (shuffle != null) q = q.copyWith(shuffled: shuffle);
     _setQueue(q.load(tracks, startIndex: startIndex, random: _random));
     await _loadCurrent(play: true);
   }
 
+  Future<void> _replaceQueue(List<Track> tracks, int index) async {
+    _setQueue(_queue.copyWith(shuffled: false).load(tracks, startIndex: index, random: _random));
+    await _syncNext();
+  }
+
   Future<void> playNext(List<Track> tracks) async {
+    if (remote?.playNext(tracks) ?? false) return;
     final wasEmpty = _queue.isEmpty;
     _setQueue(_queue.addAllNext(tracks));
     wasEmpty ? await _loadCurrent(play: true) : await _syncNext();
   }
 
   Future<void> addToQueue(List<Track> tracks) async {
+    if (remote?.addToQueue(tracks) ?? false) return;
     final wasEmpty = _queue.isEmpty;
     _setQueue(_queue.addToEnd(tracks));
     wasEmpty ? await _loadCurrent(play: true) : await _syncNext();
@@ -178,12 +227,18 @@ class PlayerController {
   }
 
   Future<void> jumpTo(int index) async {
+    if (remote?.jumpTo(index) ?? false) return;
     if (index == _queue.index) return seek(Duration.zero);
     _setQueue(_queue.jumpTo(index));
     await _loadCurrent(play: true);
   }
 
   Future<void> skipNext() async {
+    if (remote?.skipNext() ?? false) return;
+    await _skipNext();
+  }
+
+  Future<void> _skipNext() async {
     final before = _queue.index;
     _setQueue(_queue.skipNext());
     if (_queue.index != before) await _loadCurrent(play: true);
@@ -191,6 +246,7 @@ class PlayerController {
 
   /// Restarts the track if more than 3 s played, otherwise goes back.
   Future<void> skipPrevious() async {
+    if (remote?.skipPrevious() ?? false) return;
     if (_engine.state.position > const Duration(seconds: 3) || _queue.previousIndex == null) {
       return seek(Duration.zero);
     }
@@ -216,6 +272,11 @@ class PlayerController {
   // ------------------------------------------------------------ transport
 
   Future<void> play() async {
+    if (remote?.play() ?? false) return;
+    await _play();
+  }
+
+  Future<void> _play() async {
     if (_queue.isEmpty) return;
     if (_engine.state.status == EngineStatus.idle) {
       await _loadCurrent(play: true, position: _engine.state.position);
@@ -226,13 +287,21 @@ class PlayerController {
   }
 
   Future<void> pause() async {
+    if (remote?.pause() ?? false) return;
+    await _pause();
+  }
+
+  Future<void> _pause() async {
     await _engine.pause();
     await _save(force: true);
   }
 
   Future<void> togglePlay() => _engine.state.playing ? pause() : play();
 
-  Future<void> seek(Duration position) => _engine.seek(position);
+  Future<void> seek(Duration position) async {
+    if (remote?.seek(position) ?? false) return;
+    await _engine.seek(position);
+  }
 
   Future<void> stop() async {
     await _save(force: true);
@@ -352,7 +421,8 @@ class PlayerController {
         // Skip broken files, but don't loop forever over a fully broken queue.
         _consecutiveFailures++;
         if (_consecutiveFailures < _queue.length && _queue.skipNext().index != _queue.index) {
-          await skipNext();
+          // Its own decision, never sent to a listen-together host.
+          await _skipNext();
         }
     }
   }

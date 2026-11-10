@@ -180,7 +180,8 @@ class ExplodeBackend extends YoutubeBackend {
       final r = await _http
           .get(url, headers: {HttpHeaders.rangeHeader: 'bytes=$from-${total - 1}'})
           .timeout(const Duration(seconds: 10));
-      return r.statusCode == 206 || r.statusCode == 200;
+      // An empty or short answer is a refusal too.
+      return r.statusCode == 206 && r.bodyBytes.length == total - from;
     } on Object {
       return false;
     }
@@ -233,6 +234,16 @@ class ExplodeBackend extends YoutubeBackend {
     }
   }
 
+  /// The bytes `from..to` out of an answer to a range request, or null when
+  /// the answer doesn't hold all of them. A 200 is the whole file (the range
+  /// was ignored), so the piece is cut out of it only when it is complete.
+  static List<int>? pieceOf(int status, List<int> body, int from, int to, int total) {
+    final want = to - from + 1;
+    if (status == 206) return body.length == want ? body : null;
+    if (status == 200 && body.length == total) return body.sublist(from, to + 1);
+    return null;
+  }
+
   Future<String> _downloadOwn(String id, String pathWithoutExt) async {
     final best = await _guard(() => _resolve(id), limit: const Duration(seconds: 90));
     final ext = best.container == yte.StreamContainer.mp4 ? 'm4a' : best.container.name;
@@ -244,8 +255,9 @@ class ExplodeBackend extends YoutubeBackend {
       var url = best.url;
       var next = 0;
       var refreshed = false;
+      var broken = false;
       Future<void> worker() async {
-        while (next < total) {
+        while (next < total && !broken) {
           final from = next;
           final to = math.min(from + downloadChunk, total) - 1;
           next = to + 1;
@@ -261,6 +273,10 @@ class ExplodeBackend extends YoutubeBackend {
                 url = (await _guard(() => _resolve(id), limit: const Duration(seconds: 90))).url;
                 continue;
               }
+              if (r.statusCode == 403) {
+                // Refused part way (no proof token): this upload is blocked.
+                throw OnlineException(OnlineErrorKind.notFound, service: OnlineService.youtube, message: l10n.youtubeBlocksThisSong);
+              }
               if (r.statusCode != 206 && r.statusCode != 200) {
                 throw OnlineException(
                   r.statusCode == 429 ? OnlineErrorKind.rateLimited : OnlineErrorKind.badResponse,
@@ -268,7 +284,12 @@ class ExplodeBackend extends YoutubeBackend {
                   message: l10n.youtubeExtractorFailedYoutubeMayHave('HTTP ${r.statusCode}'),
                 );
               }
-              bytes = r.bodyBytes.length > to - from + 1 ? r.bodyBytes.sublist(0, to - from + 1) : r.bodyBytes;
+              bytes = pieceOf(r.statusCode, r.bodyBytes, from, to, total);
+              if (bytes == null) {
+                // Short or empty piece: writing it would leave a hole of
+                // zeros in the file (the "empty songs" friends got).
+                throw OnlineException(OnlineErrorKind.notFound, service: OnlineService.youtube, message: l10n.youtubeBlocksThisSong);
+              }
             } on OnlineException {
               rethrow;
             } on Object {
@@ -278,15 +299,30 @@ class ExplodeBackend extends YoutubeBackend {
               await Future<void>.delayed(Duration(milliseconds: 500 * (attempt + 1)));
             }
           }
-          await file.setPosition(from);
-          await file.writeFrom(bytes);
+          // Sync on purpose: the workers share one file, and an async
+          // position + write pair from two of them could interleave.
+          file
+            ..setPositionSync(from)
+            ..writeFromSync(bytes);
         }
       }
 
-      await Future.wait([for (var i = 0; i < downloadParallel; i++) worker()]);
-    } finally {
+      Future<void> guarded() async {
+        try {
+          await worker();
+        } on Object {
+          broken = true;
+          rethrow;
+        }
+      }
+
+      await Future.wait([for (var i = 0; i < downloadParallel; i++) guarded()]);
+    } on Object {
       await file.close();
+      if (await part.exists()) await part.delete();
+      rethrow;
     }
+    await file.close();
     if (await part.length() != total) {
       await part.delete();
       throw OnlineException(OnlineErrorKind.badResponse, service: OnlineService.youtube);

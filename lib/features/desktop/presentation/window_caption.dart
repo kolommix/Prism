@@ -77,27 +77,23 @@ class _CaptionBarState extends State<_CaptionBar> with WindowListener {
 
   @override
   Widget build(BuildContext context) {
+    // The first frame can come before the window has a size.
+    return LayoutBuilder(builder: (context, box) => box.maxWidth < 160 ? const SizedBox.shrink() : _bar());
+  }
+
+  Widget _bar() {
     return Row(
       children: [
         // Transparent: the app's background shows through, nothing is drawn here.
         const Expanded(child: DragToMoveArea(child: SizedBox.expand())),
-        _CaptionButton(
-          tooltip: l10n.windowMinimize,
-          icon: Icons.remove_rounded,
-          onPressed: windowManager.minimize,
-        ),
+        _CaptionButton(tooltip: l10n.windowMinimize, icon: Icons.remove_rounded, onPressed: windowManager.minimize),
         _CaptionButton(
           tooltip: _maximized ? l10n.windowRestore : l10n.windowMaximize,
           icon: _maximized ? Icons.filter_none_rounded : Icons.crop_square_rounded,
           iconSize: _maximized ? 12 : 14,
           onPressed: () => _maximized ? windowManager.unmaximize() : windowManager.maximize(),
         ),
-        _CaptionButton(
-          tooltip: l10n.close,
-          icon: Icons.close_rounded,
-          onPressed: windowManager.close,
-          close: true,
-        ),
+        _CaptionButton(tooltip: l10n.close, icon: Icons.close_rounded, onPressed: windowManager.close, close: true),
       ],
     );
   }
@@ -140,30 +136,33 @@ class _CaptionButtonState extends State<_CaptionButton> {
       fill = on.withValues(alpha: _down ? 0.14 : (_hover ? 0.08 : 0));
       fg = on.withValues(alpha: _hover ? 0.95 : 0.7);
     }
-    return Tooltip(
-      message: widget.tooltip,
-      waitDuration: const Duration(milliseconds: 600),
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _hover = true),
-        onExit: (_) => setState(() => _hover = _down = false),
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: (_) => setState(() => _down = true),
-          onTapCancel: () => setState(() => _down = false),
-          onTap: () {
-            setState(() => _down = false);
-            widget.onPressed();
-          },
-          child: AnimatedContainer(
-            duration: context.motion.d(const Duration(milliseconds: 120)),
-            curve: PrismMotion.curve,
-            width: 46,
-            height: captionHeight,
-            color: fill,
-            child: Icon(widget.icon, size: widget.iconSize, color: fg),
-          ),
+    final button = MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = _down = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => setState(() => _down = true),
+        onTapCancel: () => setState(() => _down = false),
+        onTap: () {
+          setState(() => _down = false);
+          widget.onPressed();
+        },
+        child: AnimatedContainer(
+          duration: context.motion.d(const Duration(milliseconds: 120)),
+          curve: PrismMotion.curve,
+          width: 46,
+          height: captionHeight,
+          color: fill,
+          child: Icon(widget.icon, size: widget.iconSize, color: fg),
         ),
       ),
     );
+    // The strip sits above the pages, outside any Overlay: a Tooltip there
+    // has nowhere to show (it threw in debug builds). Hover names only where
+    // an Overlay exists.
+    if (Overlay.maybeOf(context) == null) {
+      return Semantics(label: widget.tooltip, button: true, child: button);
+    }
+    return Tooltip(message: widget.tooltip, waitDuration: const Duration(milliseconds: 600), child: button);
   }
 }

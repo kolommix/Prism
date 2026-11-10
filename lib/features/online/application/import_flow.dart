@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/l10n.dart';
 import '../../playlists/domain/playlist_share.dart';
 import '../data/import_repository.dart';
+import '../data/network_check.dart';
 import '../domain/external_track.dart';
 import '../domain/import_intake.dart';
 import '../domain/import_parsers.dart';
@@ -24,8 +25,17 @@ class ImportFlow {
 
   Future<void> _running = Future<void>.value();
 
-  /// Reads what a link points to. Throws [OnlineException].
+  /// Reads what a link points to. Throws [OnlineException]; "offline" only
+  /// when the internet really is gone (see NetworkCheck).
   Future<List<ImportedList>> readLink(ParsedLink link) async {
+    try {
+      return await _readLink(link);
+    } on OnlineException catch (e) {
+      throw await _ref.read(networkCheckProvider).explain(e);
+    }
+  }
+
+  Future<List<ImportedList>> _readLink(ParsedLink link) async {
     var target = link;
     if (link.kind == LinkKind.shortLink && link.service != OnlineService.deezer) {
       final full = parseMusicLink((await followRedirects(link.url)).toString());

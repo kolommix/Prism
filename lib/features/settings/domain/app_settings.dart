@@ -13,7 +13,7 @@ abstract class AppSettings with _$AppSettings {
   const AppSettings._();
 
   const factory AppSettings({
-    @Default(ThemeConfig()) ThemeConfig theme,
+    @Default(defaultTheme) ThemeConfig theme,
 
     /// Asks GitHub for a newer version when the app starts, at most once a day.
     @Default(true) bool autoCheckUpdates,
@@ -29,6 +29,10 @@ abstract class AppSettings with _$AppSettings {
 
     /// Windows: closing the window keeps playing in the tray.
     @Default(true) bool closeToTray,
+
+    /// Windows: a little more processor time than normal programs, so music
+    /// and the screen don't stutter when the PC is busy (ProcessPriority).
+    @Default(true) bool highPriority,
 
     /// Loudness normalisation (ReplayGain tags or Prism's own measurement).
     @Default(NormalizationMode.off) NormalizationMode normalization,
@@ -88,6 +92,12 @@ abstract class AppSettings with _$AppSettings {
 
     /// Name friends see in a session; empty = the computer's name.
     @Default('') String togetherName,
+
+    /// Listen together: friends may play, pause, skip, seek and add songs.
+    @Default(true) bool togetherGuestControl,
+
+    /// Equalizer page: all 10 bands instead of Bass / Mids / Treble.
+    @Default(false) bool eqDetailed,
 
     /// Windows: show "Listening to …" on Discord.
     @Default(false) bool discordPresence,

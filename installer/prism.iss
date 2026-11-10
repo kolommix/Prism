@@ -67,6 +67,8 @@ en.LinksTask=Open liner:// links and .liner files from friends with Prism
 ru.LinksTask=Открывать ссылки liner:// и файлы .liner от друзей в Prism
 en.StartPrism=Start Prism now
 ru.StartPrism=Запустить Prism
+en.UpgradeWelcome=Prism is already on this computer. This updates it to version %1 in place.%n%nYour library, playlists, statistics and settings stay as they are: there is no need to uninstall first.%n%nPrism closes for a moment if it is open.
+ru.UpgradeWelcome=Prism уже установлен на этом компьютере. Сейчас он обновится до версии %1 прямо на месте.%n%nМедиатека, плейлисты, статистика и настройки останутся как есть: удалять старую версию не нужно.%n%nЕсли Prism открыт, он ненадолго закроется.
 en.RemoveData=Also delete your Prism library, playlists, statistics and settings?%n%n(%1)%n%nYour music files are never deleted. Choose No to keep everything for a later install.
 ru.RemoveData=Удалить также медиатеку Prism, плейлисты, статистику и настройки?%n%n(%1)%n%nМузыкальные файлы не удаляются никогда. Выберите «Нет», чтобы сохранить всё для следующей установки.
 
@@ -107,8 +109,29 @@ Root: HKCU; Subkey: "Software\Classes\Prism.SharedPlaylist\shell\open\command"; 
 
 [Run]
 Filename: "{app}\prism.exe"; Description: "{cm:StartPrism}"; Flags: nowait postinstall skipifsilent
+; Update from inside Prism (quiet install): Prism opens again by itself.
+Filename: "{app}\prism.exe"; Flags: nowait skipifnotsilent
 
 [Code]
+// Installing over an existing Prism is an update: no license, folder or task
+// questions again (the earlier answers are kept), and the welcome page says
+// that nothing needs to be uninstalled.
+function IsUpgrade: Boolean;
+begin
+  Result := RegKeyExists(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{6F1B0D2C-3E4A-4C55-9B7E-5A1F2D9C8E11}_is1');
+end;
+
+procedure InitializeWizard;
+begin
+  if IsUpgrade then
+    WizardForm.WelcomeLabel2.Caption := FmtMessage(CustomMessage('UpgradeWelcome'), ['{#AppVersion}']);
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := IsUpgrade and ((PageID = wpLicense) or (PageID = wpInfoBefore) or (PageID = wpSelectDir) or (PageID = wpSelectTasks) or (PageID = wpReady));
+end;
+
 // Uninstall: the library data stays unless the user says to delete it.
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var

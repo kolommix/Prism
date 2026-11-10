@@ -16,6 +16,8 @@ import 'core/motion/frame_probe.dart';
 import 'core/db/app_database.dart';
 import 'core/providers.dart';
 import 'core/sources/track_source.dart';
+import 'core/platform/system_proxy.dart';
+import 'core/motion/busy_pc.dart';
 import 'core/ffmpeg/ffmpeg_runner.dart';
 import 'features/audio_fx/application/eq_controller.dart';
 import 'features/audio_fx/application/loudness_controller.dart';
@@ -45,6 +47,7 @@ import 'l10n/l10n.dart';
 import 'features/background/data/background_files.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'core/app_version.dart';
+import 'features/update/update_installer.dart';
 /// Command line of this run; `liner://` links and `.liner` files arrive here.
 List<String> startArgs = const [];
 
@@ -57,6 +60,8 @@ List<String> startArgs = const [];
 Future<void> main([List<String> args = const []]) async {
   startArgs = args;
   WidgetsFlutterBinding.ensureInitialized();
+  // Web requests follow the system proxy, like the browser (VPN apps).
+  HttpOverrides.global = SystemProxyOverrides();
 
   if (Platform.isWindows) {
     // just_audio on Windows is backed by libmpv through media_kit. Prism owns
@@ -144,6 +149,8 @@ Future<void> main([List<String> args = const []]) async {
     await PrismAudioHandler.init(player);
   } else if (Platform.isWindows) {
     windows = WindowsDesktopIntegration(player)..closeToTray = settings.closeToTray;
+    ProcessPriority.apply(high: settings.highPriority);
+    quitForUpdate = windows.quit;
     await windows.init();
   }
 

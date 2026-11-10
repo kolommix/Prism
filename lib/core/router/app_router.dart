@@ -52,7 +52,8 @@ abstract final class Routes {
   static String smartPlaylist(int id) => '$playlists/smart/$id';
   static const themeEditor = '$settings/theme';
   static const background = '$settings/background';
-  static const equalizer = '$settings/equalizer';
+  /// Its own place in the sidebar (was under Settings; that address still works).
+  static const equalizer = '/equalizer';
   static const duplicates = '$settings/duplicates';
   static const onlineServices = '$settings/online';
   static const importPlaylists = '$playlists/import';
@@ -151,12 +152,16 @@ GoRouter buildRouter() => GoRouter(
               routes: [
                 GoRoute(path: 'theme', builder: (_, _) => const ThemeEditorPage()),
                 GoRoute(path: 'background', builder: (_, _) => const BackgroundPage()),
-                GoRoute(path: 'equalizer', builder: (_, _) => const EqualizerPage()),
+                // Old address of the equalizer (links, muscle memory).
+                GoRoute(path: 'equalizer', redirect: (_, _) => Routes.equalizer),
                 GoRoute(path: 'duplicates', builder: (_, _) => const DuplicatesPage()),
                 GoRoute(path: 'online', builder: (_, _) => const OnlineSettingsPage()),
               ],
             ),
           ],
+        ),
+        StatefulShellBranch(
+          routes: [GoRoute(path: Routes.equalizer, builder: (_, _) => const EqualizerPage())],
         ),
       ],
     ),

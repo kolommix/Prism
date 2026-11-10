@@ -4,6 +4,9 @@ library;
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:prism/core/ffmpeg/ffmpeg_runner.dart';
+import 'package:prism/features/online/application/import_file_check.dart';
 import 'package:prism/features/online/domain/online_error.dart';
 import 'package:prism/features/online/services/youtube/explode_backend.dart';
 import 'package:prism/features/online/services/youtube/ytdlp.dart';
@@ -38,7 +41,14 @@ void main() {
       expect('${probe.stderr}'.trim(), isEmpty, reason: 'decodes to the end without errors');
       final info = '${(await Process.run(ffmpeg, ['-hide_banner', '-i', file.path])).stderr}';
       final d = RegExp(r'Duration: (\d+):(\d+):(\d+)').firstMatch(info)!;
-      expect(int.parse(d[2]!) * 60 + int.parse(d[3]!), greaterThan(100), reason: 'the whole song');
+      final seconds = int.parse(d[2]!) * 60 + int.parse(d[3]!);
+      expect(seconds, greaterThan(100), reason: 'the whole song');
+      // The check every saved import goes through accepts a real one.
+      final checked = await ImportFileCheck(ffmpeg: ProcessFfmpegRunner(p.absolute(ffmpeg))).check(file, expectedMs: seconds * 1000);
+      expect(checked.ok, isTrue, reason: checked.reason);
+      expect(checked.durationMs, closeTo(seconds * 1000, 2000));
+      // ignore: avoid_print
+      print('$id: check ok, ${checked.durationMs} ms decoded');
     }, timeout: const Timeout(Duration(minutes: 3)));
   }
 }
