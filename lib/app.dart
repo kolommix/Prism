@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'features/background/application/background_crash_guard.dart';
+import 'features/background/domain/background_config.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -72,6 +74,14 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
       _showTourOnce();
       _quietUpdateCheck();
       unawaited(_sayUpdated());
+      final crashed = BackgroundCrashGuard.crashed;
+      if (crashed != null) {
+        BackgroundCrashGuard.crashed = null;
+        _messenger.currentState?.showSnackBar(SnackBar(
+          content: Text(l10n.bgCrashedOff(BackgroundStyle.parse(crashed).label)),
+          duration: const Duration(seconds: 10),
+        ));
+      }
       // Imports that were still going when the app closed.
       if (ref.read(onlineHubProvider).flags.importDownload) unawaited(ref.read(importFlowProvider).resumeAll());
       // Songs older versions saved broken (silent or cut off) are found and

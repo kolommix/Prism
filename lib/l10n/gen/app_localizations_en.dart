@@ -3782,12 +3782,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bgSnowDesc => 'Flakes drifting down in layers.';
 
   @override
-  String get bgGrain => 'Film grain';
-
-  @override
-  String get bgGrainDesc => 'A quiet tinted gradient with moving film grain.';
-
-  @override
   String get bgImage => 'My picture';
 
   @override
@@ -4791,4 +4785,73 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dropNothingNew =>
       'No songs Prism can play were in what you dropped.';
+
+  @override
+  String bgCrashedOff(String name) {
+    return 'Prism closed while drawing the $name background last time, so it is back to Cover. This phone\'s graphics can\'t show that one.';
+  }
+
+  @override
+  String get bgPhonePreviews =>
+      'Tap a style to use it. Try it shows it on the whole screen.';
+
+  @override
+  String get bgAsciiSmoke => 'ASCII smoke';
+
+  @override
+  String get bgAsciiSmokeDesc =>
+      'The song as rising ASCII smoke: each moment starts at the bottom (bass in the middle, treble at the sides), then sways and fades upwards.';
+
+  @override
+  String get bgAsciiDonut => 'ASCII donut';
+
+  @override
+  String get bgAsciiDonutDesc =>
+      'A spinning ring drawn in characters. It spins faster with the bass and swells where the music is loud; it leans towards the mouse and a click spins it.';
+
+  @override
+  String get bgRidges => 'Sound landscape';
+
+  @override
+  String get bgRidgesDesc =>
+      'The song as mountains: the front line is the sound right now, and every moment rolls back into the distance. The mouse raises a peak.';
+
+  @override
+  String get bgGalaxy => 'Galaxy';
+
+  @override
+  String get bgGalaxyDesc =>
+      'A slowly turning spiral galaxy. The core flares with the bass, the stars twinkle with the treble, the mouse pulls them in.';
+
+  @override
+  String get bgNumberOfRidges => 'Number of lines';
+
+  @override
+  String get bgLineWidth => 'Line width';
+
+  @override
+  String get bgSpectrumNote =>
+      'Reacts to the whole song (songs on this device; streamed ones only move by themselves).';
+
+  @override
+  String get bgLyrics => 'Lyrics';
+
+  @override
+  String get bgLyricsDesc =>
+      'The words of the song as they are sung: every letter rises in when it\'s sung and dances with the music, finished lines float away above, the next one waits below. Before the singing starts, and for songs without lyrics, the song\'s name takes the stage. Lyrics come from the same place as the lyrics panel.';
+
+  @override
+  String get bgTextSize => 'Text size';
+
+  @override
+  String get bgLyricsDemo1 => 'Every song has words';
+
+  @override
+  String get bgLyricsDemo2 => 'they rise in as they are sung';
+
+  @override
+  String get bgLyricsDemo3 => 'and dance along with the music';
+
+  @override
+  String get bgLyricsDemo4 => 'then drift away into the dark';
 }

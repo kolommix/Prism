@@ -44,7 +44,9 @@ import 'features/online/data/stream_cache.dart';
 import 'features/settings/data/settings_store.dart';
 import 'l10n/l10n.dart';
 
+import 'features/background/application/background_crash_guard.dart';
 import 'features/background/data/background_files.dart';
+import 'features/background/domain/background_config.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'core/app_version.dart';
 import 'features/update/update_installer.dart';
@@ -94,7 +96,13 @@ Future<void> main([List<String> args = const []]) async {
   final supportDir = await getApplicationSupportDirectory();
   final artworkDir = Directory(p.join(supportDir.path, 'artwork'));
   final prefs = SharedPreferencesAsync();
-  final settings = await SettingsStore(prefs).load();
+  var settings = await SettingsStore(prefs).load();
+  // Prism died while drawing an animated background last time (a phone GPU
+  // driver that can't take it): back to the cover, the app says which one.
+  if (BackgroundCrashGuard.start(supportDir, enable: Platform.isAndroid) != null) {
+    settings = settings.copyWith(background: settings.background.copyWith(style: BackgroundStyle.cover.name));
+    await SettingsStore(prefs).save(settings);
+  }
   await initAppLocaleData();
   try {
     appVersion = (await PackageInfo.fromPlatform()).version;

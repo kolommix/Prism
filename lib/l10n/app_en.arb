@@ -2523,8 +2523,6 @@
   "bgRainDesc": "Thin falling rain. The mouse is the wind.",
   "bgSnow": "Snow",
   "bgSnowDesc": "Flakes drifting down in layers.",
-  "bgGrain": "Film grain",
-  "bgGrainDesc": "A quiet tinted gradient with moving film grain.",
   "bgImage": "My picture",
   "bgImageDesc": "Your own picture behind the app. Blur and darken it below.",
   "bgVideo": "My video",
@@ -3070,5 +3068,32 @@
       }
     }
   },
-  "dropNothingNew": "No songs Prism can play were in what you dropped."
+  "dropNothingNew": "No songs Prism can play were in what you dropped.",
+  "bgCrashedOff": "Prism closed while drawing the {name} background last time, so it is back to Cover. This phone's graphics can't show that one.",
+  "@bgCrashedOff": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bgPhonePreviews": "Tap a style to use it. Try it shows it on the whole screen.",
+  "bgAsciiSmoke": "ASCII smoke",
+  "bgAsciiSmokeDesc": "The song as rising ASCII smoke: each moment starts at the bottom (bass in the middle, treble at the sides), then sways and fades upwards.",
+  "bgAsciiDonut": "ASCII donut",
+  "bgAsciiDonutDesc": "A spinning ring drawn in characters. It spins faster with the bass and swells where the music is loud; it leans towards the mouse and a click spins it.",
+  "bgRidges": "Sound landscape",
+  "bgRidgesDesc": "The song as mountains: the front line is the sound right now, and every moment rolls back into the distance. The mouse raises a peak.",
+  "bgGalaxy": "Galaxy",
+  "bgGalaxyDesc": "A slowly turning spiral galaxy. The core flares with the bass, the stars twinkle with the treble, the mouse pulls them in.",
+  "bgNumberOfRidges": "Number of lines",
+  "bgLineWidth": "Line width",
+  "bgSpectrumNote": "Reacts to the whole song (songs on this device; streamed ones only move by themselves).",
+  "bgLyrics": "Lyrics",
+  "bgLyricsDesc": "The words of the song as they are sung: every letter rises in when it's sung and dances with the music, finished lines float away above, the next one waits below. Before the singing starts, and for songs without lyrics, the song's name takes the stage. Lyrics come from the same place as the lyrics panel.",
+  "bgTextSize": "Text size",
+  "bgLyricsDemo1": "Every song has words",
+  "bgLyricsDemo2": "they rise in as they are sung",
+  "bgLyricsDemo3": "and dance along with the music",
+  "bgLyricsDemo4": "then drift away into the dark"
 }

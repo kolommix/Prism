@@ -3,6 +3,14 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (`.github/workflows/release.yml` reads it), so add one before tagging.
 
+## 1.4.0 (2026-11-11)
+- The Prism icon is the dot sphere again.
+- Samsung phones: Backgrounds no longer draws every style at once; if a background ever closes Prism, the next start goes back to Cover and says which one.
+- Equalizer: the points on the curve move together with it, dragging has no lag, sliders react to a tap at once; the playing sign calms down when paused.
+- Discord shows the new song faster.
+- Four new backgrounds that move with the whole song, not just the bass: ASCII smoke, ASCII donut, Sound landscape and Galaxy. Film grain is gone.
+- New background, Lyrics: the words of the song as they are sung, letter by letter, dancing with the music; sung lines float away.
+
 ## 1.3.0 (2026-11-11)
 
 ### Updating is one click now

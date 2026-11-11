@@ -72,7 +72,7 @@ void main() {
     final store = SettingsStore(SharedPreferencesAsync());
     final settingsBefore = live.read(settingsProvider);
     addTearDown(() => store.save(settingsBefore));
-    for (final style in ['matrix', 'constellation', 'ripple', 'mesh', 'aurora', 'blobs', 'starfield', 'rain', 'snow', 'grain']) {
+    for (final style in ['matrix', 'constellation', 'ripple', 'mesh', 'aurora', 'blobs', 'starfield', 'rain', 'snow', 'asciiSmoke', 'asciiDonut', 'ridges', 'galaxy', 'lyrics']) {
       live.read(settingsProvider.notifier).update((s) => s.copyWith(background: s.background.copyWith(style: style)));
       await wait(tester, 800);
       await binding.watchPerformance(() async {

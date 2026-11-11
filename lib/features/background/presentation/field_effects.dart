@@ -9,12 +9,12 @@ import 'package:path/path.dart' as p;
 import '../domain/background_config.dart';
 import 'background_effects.dart';
 
-/// Mesh gradient, aurora, liquid blobs and grain: one fragment shader, one draw
+/// Mesh gradient, aurora and liquid blobs: one fragment shader, one draw
 /// call, nothing per frame on the CPU beyond the uniforms.
 class ShaderFieldEffect extends BackgroundEffect {
   ShaderFieldEffect(this.mode, super.params, super.color, super.accent);
 
-  /// 0 mesh, 1 aurora, 2 blobs, 3 grain (see shaders/bg_field.frag).
+  /// 0 mesh, 1 aurora, 2 blobs (see shaders/bg_field.frag).
   final int mode;
 
   static Future<ui.FragmentProgram?>? _program;

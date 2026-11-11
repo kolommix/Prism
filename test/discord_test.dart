@@ -7,6 +7,19 @@ import 'package:path/path.dart' as p;
 import 'package:prism/features/desktop/data/discord_ipc.dart';
 
 void main() {
+  test('activityKey: same song a moment later is a repeat, a new song or pause is not', () {
+    Map<String, Object?> frame({String title = 'Song', bool playing = true, int now = 1700000000000, Duration pos = Duration.zero}) =>
+        activityFrame(title: title, artist: 'Band', album: 'LP', playing: playing, position: pos,
+            duration: const Duration(minutes: 3), nowMs: now, pid: 7);
+    final a = frame();
+    // 300 ms later, 300 ms further into the song: the same bar.
+    expect(activityKey(frame(now: 1700000000300, pos: const Duration(milliseconds: 300))), activityKey(a));
+    expect(activityKey(frame(title: 'Other')), isNot(activityKey(a)));
+    expect(activityKey(frame(playing: false)), isNot(activityKey(a)));
+    expect(activityKey(frame(pos: const Duration(seconds: 40))), isNot(activityKey(a)));
+    expect(activityKey(null), 'clear');
+  });
+
   test('frame encoding', () {
     final f = encodeFrame(1, {'a': 'Г©'});
     final (op, len) = decodeHeader(Uint8List.sublistView(f, 0, 8));

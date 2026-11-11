@@ -3863,12 +3863,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get bgSnowDesc => 'Снежинки падают слоями.';
 
   @override
-  String get bgGrain => 'Плёночное зерно';
-
-  @override
-  String get bgGrainDesc => 'Тихий цветной градиент с подвижным зерном.';
-
-  @override
   String get bgImage => 'Моя картинка';
 
   @override
@@ -4897,4 +4891,73 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get dropNothingNew =>
       'Среди перетащенного нет песен, которые Prism умеет играть.';
+
+  @override
+  String bgCrashedOff(String name) {
+    return 'В прошлый раз Prism закрылся, когда рисовал фон «$name», поэтому снова стоит «Обложка». Графика этого телефона его не тянет.';
+  }
+
+  @override
+  String get bgPhonePreviews =>
+      'Нажми на стиль, чтобы включить его. «Попробовать» покажет его на весь экран.';
+
+  @override
+  String get bgAsciiSmoke => 'ASCII-дым';
+
+  @override
+  String get bgAsciiSmokeDesc =>
+      'Песня в виде поднимающегося ASCII-дыма: каждый миг появляется внизу (басы в центре, верхи по краям), потом колышется и тает наверху.';
+
+  @override
+  String get bgAsciiDonut => 'ASCII-пончик';
+
+  @override
+  String get bgAsciiDonutDesc =>
+      'Вращающееся кольцо из символов. Крутится быстрее на басах и раздувается там, где музыка громче; наклоняется к мыши, клик раскручивает его.';
+
+  @override
+  String get bgRidges => 'Звуковой пейзаж';
+
+  @override
+  String get bgRidgesDesc =>
+      'Песня в виде гор: передняя линия — звук прямо сейчас, а каждый миг уплывает вдаль. Мышь поднимает вершину.';
+
+  @override
+  String get bgGalaxy => 'Галактика';
+
+  @override
+  String get bgGalaxyDesc =>
+      'Медленно вращающаяся спиральная галактика. Ядро вспыхивает на басах, звёзды мерцают на верхах, мышь притягивает их.';
+
+  @override
+  String get bgNumberOfRidges => 'Количество линий';
+
+  @override
+  String get bgLineWidth => 'Толщина линий';
+
+  @override
+  String get bgSpectrumNote =>
+      'Реагирует на всю песню (песни на этом устройстве; потоковые просто движутся сами).';
+
+  @override
+  String get bgLyrics => 'Текст песни';
+
+  @override
+  String get bgLyricsDesc =>
+      'Слова песни, пока их поют: каждая буква всплывает, когда её спели, и танцует под музыку, спетые строки уплывают вверх, следующая ждёт внизу. До начала пения и у песен без текста на сцене название песни. Текст берётся оттуда же, откуда в панели текста.';
+
+  @override
+  String get bgTextSize => 'Размер текста';
+
+  @override
+  String get bgLyricsDemo1 => 'У каждой песни есть слова';
+
+  @override
+  String get bgLyricsDemo2 => 'они всплывают, когда их поют';
+
+  @override
+  String get bgLyricsDemo3 => 'и танцуют вместе с музыкой';
+
+  @override
+  String get bgLyricsDemo4 => 'а потом уплывают в темноту';
 }

@@ -9,11 +9,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/prism_theme_extensions.dart';
 import '../../desktop/application/desktop_extras.dart';
+import '../../desktop/data/cover_lookup.dart';
+import '../../lyrics/application/lyrics_providers.dart';
+import '../../lyrics/domain/lrc.dart';
+import '../../../l10n/l10n.dart';
 import '../../player/application/player_providers.dart';
 import '../../settings/application/settings_controller.dart';
 import '../../../core/motion/busy_pc.dart';
 import '../../visualizer/domain/spectrum.dart';
 import '../../visualizer/presentation/visualizer.dart';
+import '../application/background_crash_guard.dart';
 import '../application/background_input.dart';
 import '../domain/background_config.dart';
 import 'background_effects.dart';
@@ -99,10 +104,12 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
   void _create() {
     final old = _effect;
     final effect = BackgroundEffect.create(widget.style, widget.params.sanitized(), Colors.white, Colors.white, config: _config);
+    effect.song = _song;
     _effect = effect;
     old?.dispose();
     unawaited(effect.prepare().then((_) {
       if (mounted && identical(_effect, effect)) {
+        BackgroundCrashGuard.drawing(widget.style.name);
         // A moment in, so a still frame isn't an empty one.
         if (widget.still && !effect.isStatic) effect.step(1.2);
         _repaint.value++;
@@ -184,6 +191,7 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
     }
     _updateParallax(dt);
     _updateBass(effect, dt);
+    _updateSongPosition(effect, dt);
     effect.step(dt);
     _repaint.value++;
   }
@@ -208,11 +216,24 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
   static const _parallaxReach = 14.0;
   final _parallax = ValueNotifier<Offset>(Offset.zero);
 
+  /// The spectrum the effect sees, smoothed (rises fast, falls slower).
+  final _levels = Float32List(BackgroundEffect.levelBands);
+
   void _updateBass(BackgroundEffect effect, double dt) {
     final s = _spectrum;
     final strength = effect.params.music;
-    if (s == null || widget.preview || strength <= 0 || !_playing || s.bands == 0 || s.frames == 0) {
+    final live = s != null && !widget.preview && strength > 0 && _playing && s.bands > 0 && s.frames > 0;
+    if (widget.preview && !widget.still && strength > 0) {
+      _demoMusic(effect, dt);
+      return;
+    }
+    if (!live) {
       _bass *= math.pow(0.9, dt * 30);
+      final fall = math.pow(0.88, dt * 30).toDouble();
+      for (var i = 0; i < _levels.length; i++) {
+        _levels[i] *= fall;
+        effect.levels[i] = _levels[i] * strength;
+      }
     } else {
       final elapsed = DateTime.now().difference(_baseAt);
       s.sample(_basePos + elapsed * _speed, _raw);
@@ -225,8 +246,47 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
       // Rises quickly but not in one frame: the whole picture doesn't jump.
       final toward = b > _bass ? 1 - math.pow(0.55, dt * 30) : 1 - math.pow(0.86, dt * 30);
       _bass += (b - _bass) * toward;
+      _spread(s.bands, dt);
+      for (var i = 0; i < _levels.length; i++) {
+        effect.levels[i] = _levels[i] * strength;
+      }
     }
     effect.bass = _bass * strength;
+  }
+
+  /// [_raw] (the analysis bands) into [_levels], quiet parts cut so the
+  /// shapes move instead of sitting half-lit.
+  void _spread(int bands, double dt) {
+    final n = _levels.length;
+    final up = 1 - math.pow(0.45, dt * 30).toDouble(), down = 1 - math.pow(0.84, dt * 30).toDouble();
+    for (var i = 0; i < n; i++) {
+      final from = i * bands ~/ n, to = math.max(from + 1, (i + 1) * bands ~/ n);
+      var sum = 0.0;
+      for (var b = from; b < to; b++) {
+        sum += _raw[b];
+      }
+      final v = ((sum / (to - from) - 0.38) / 0.55).clamp(0.0, 1.0);
+      _levels[i] += (v - _levels[i]) * (v > _levels[i] ? up : down);
+    }
+  }
+
+  /// The selected sample in the picker: made-up music (a beat and a moving
+  /// melody), so the styles that react to songs show how.
+  double _demoTime = 0;
+  void _demoMusic(BackgroundEffect effect, double dt) {
+    _demoTime += dt;
+    final t = _demoTime;
+    final beat = math.pow(math.max(0.0, math.cos(t * math.pi * 2)), 6).toDouble();
+    final strength = effect.params.music;
+    effect.bass = beat * 0.8 * strength;
+    final melody = 0.5 + 0.35 * math.sin(t * 0.9);
+    for (var i = 0; i < _levels.length; i++) {
+      final f = i / (_levels.length - 1);
+      final v = beat * math.max(0.0, 1 - f * 3) * 0.9 +
+          0.55 * math.exp(-math.pow((f - melody) / 0.12, 2)) * (0.6 + 0.4 * math.sin(t * 5 + i)) +
+          0.15 * (0.5 + 0.5 * math.sin(t * 3.1 + i * 1.7)) * (1 - f * 0.5);
+      effect.levels[i] = v * strength;
+    }
   }
 
   @override
@@ -249,6 +309,65 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
     super.dispose();
   }
 
+  // ----------------------------------------------------- song for the words
+
+  SongText? _song;
+  Duration _lyricsOffset = Duration.zero;
+  bool _demo = false;
+  double _demoClock = 0;
+  static const _demoLength = 17.0;
+
+  /// The playing song and its lyrics. The picker sample with nothing playing
+  /// gets a made-up one; the app background then only shows Prism's name.
+  void _watchSong(BuildContext context) {
+    final font = Theme.of(context).textTheme.titleLarge?.fontFamily;
+    final track = ref.watch(currentTrackProvider);
+    SongText song;
+    if (track == null) {
+      _demo = widget.preview;
+      song = widget.preview ? _demoSong(font) : SongText(title: 'Prism', fontFamily: font);
+    } else {
+      _demo = false;
+      final lyrics = ref.watch(currentLyricsProvider).value;
+      _lyricsOffset = ref.watch(currentLyricsOffsetProvider).value ?? Duration.zero;
+      song = SongText(
+        title: cleanSongTitle(track.title),
+        artist: track.displayArtist,
+        lyrics: lyrics == null || lyrics.isEmpty ? null : lyrics,
+        duration: track.duration,
+        fontFamily: font,
+      );
+    }
+    if (song != _song) {
+      _song = song;
+      _effect?.song = song;
+    }
+  }
+
+  static Lyrics? _demoLyrics;
+  static SongText _demoSong(String? font) {
+    final lines = [l10n.bgLyricsDemo1, l10n.bgLyricsDemo2, l10n.bgLyricsDemo3, l10n.bgLyricsDemo4];
+    final have = _demoLyrics;
+    final lyrics = have != null && have.lines.map((l) => l.text).join() == lines.join()
+        ? have
+        : _demoLyrics = Lyrics(
+            lines: [for (var i = 0; i < lines.length; i++) LyricLine(Duration(milliseconds: 2500 + i * 3500), lines[i])],
+            source: 'demo',
+          );
+    return SongText(title: 'Prism', artist: l10n.bgLyrics, lyrics: lyrics, duration: const Duration(seconds: 17), fontFamily: font);
+  }
+
+  void _updateSongPosition(BackgroundEffect effect, double dt) {
+    if (!widget.style.showsLyrics) return;
+    if (_demo) {
+      _demoClock = (_demoClock + dt) % _demoLength;
+      effect.songPosition = Duration(microseconds: (_demoClock * 1e6).round());
+      return;
+    }
+    final at = _playing ? _basePos + DateTime.now().difference(_baseAt) * _speed : _basePos;
+    effect.songPosition = at + _lyricsOffset;
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -262,7 +381,7 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
       effect.accent = accent;
     }
 
-    if (!widget.preview) {
+    if (!widget.preview || widget.style.showsLyrics) {
       final st = ref.watch(engineStateProvider).value;
       if (st != null) {
         _basePos = st.position;
@@ -270,6 +389,9 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
         _playing = st.playing;
       }
       _speed = ref.watch(tuningProvider.select((t) => t.value?.speed ?? 1));
+    }
+    if (widget.style.showsLyrics) _watchSong(context);
+    if (!widget.preview) {
       final track = ref.watch(currentTrackProvider);
       final wantsSpectrum = p.music > 0 && track != null && track.sourceId == 'local' && context.motion.decorative;
       _spectrum = wantsSpectrum ? ref.watch(spectrumProvider(track)).value : null;
@@ -281,7 +403,12 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
     final soft = widget.preview || bg.$3 ? 0.0 : bg.$1;
     final dim = widget.preview ? 0.0 : bg.$2;
     // Pictures take far more blur than small moving dots before it shows.
-    final blurReach = widget.style == BackgroundStyle.image || widget.style == BackgroundStyle.video || widget.style == BackgroundStyle.gradient ? 26.0 : 3.5;
+    final blurReach = switch (widget.style) {
+      BackgroundStyle.image || BackgroundStyle.video || BackgroundStyle.gradient => 26.0,
+      // Words must stay readable.
+      BackgroundStyle.lyrics => 1.0,
+      _ => 3.5,
+    };
     final strength = widget.preview ? 1.0 : ref.watch(settingsProvider.select((s) => s.background.strength));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _syncTimer();

@@ -421,8 +421,9 @@ class _BandColumn extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: GestureDetector(
-            onDoubleTap: () => onChanged(0),
+          // No double-tap here: it held every tap back 300 ms (the value on
+          // top types an exact one, double-click on the curve resets).
+          child: RepaintBoundary(
             child: RotatedBox(
               quarterTurns: 3,
               child: SliderTheme(
@@ -474,8 +475,8 @@ class _PreampSlider extends ConsumerWidget {
   }
 }
 
-/// A labelled horizontal slider with a short explanation; double-click the
-/// slider or click the value to reset.
+/// A labelled horizontal slider with a short explanation; click the value to
+/// reset.
 class _BigSlider extends StatelessWidget {
   const _BigSlider({
     required this.icon,
@@ -546,8 +547,9 @@ class _BigSlider extends StatelessWidget {
                     ?trailing,
                   ],
                 ),
-                GestureDetector(
-                  onDoubleTap: onReset,
+                // No double-tap: it held taps on the slider back 300 ms; the
+                // value above resets.
+                RepaintBoundary(
                   child: SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 4,

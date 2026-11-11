@@ -168,7 +168,7 @@ void main() {
     await wait(200);
 
     // The animated backgrounds behind the real pages.
-    for (final style in ['matrix', 'constellation', 'ripple', 'mesh', 'aurora', 'blobs', 'gradient', 'starfield', 'rain', 'snow', 'grain']) {
+    for (final style in ['matrix', 'constellation', 'ripple', 'mesh', 'aurora', 'blobs', 'gradient', 'starfield', 'rain', 'snow', 'asciiSmoke', 'asciiDonut', 'ridges', 'galaxy', 'lyrics']) {
       c().read(settingsProvider.notifier).update((s) => s.copyWith(background: s.background.copyWith(style: style)));
       go(Routes.library);
       await wait(1800);

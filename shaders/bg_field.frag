@@ -2,7 +2,7 @@
 #include <flutter/runtime_effect.glsl>
 
 // Procedural backgrounds on the GPU, one draw call per frame.
-// uMode: 0 mesh gradient, 1 aurora, 2 liquid blobs, 3 grain.
+// uMode: 0 mesh gradient, 1 aurora, 2 liquid blobs.
 
 uniform vec2 uSize;
 uniform float uTime;
@@ -93,12 +93,6 @@ vec3 blobs(vec2 uv, float aspect) {
   return ink * edge * (0.55 + 0.45 * rim) + uColorA * 0.03;
 }
 
-vec3 grain(vec2 frag) {
-  vec3 base = mix(uColorA, uColorB, smoothstep(0.0, 1.0, frag.y / uSize.y)) * 0.16;
-  float n = hash(floor(frag / max(1.0, uScale)) + floor(uTime * 18.0));
-  return base + (n - 0.5) * 0.16;
-}
-
 void main() {
   vec2 frag = FlutterFragCoord().xy;
   vec2 uv = frag / uSize;
@@ -108,10 +102,8 @@ void main() {
     c = mesh(uv);
   } else if (uMode < 1.5) {
     c = aurora(uv);
-  } else if (uMode < 2.5) {
-    c = blobs(uv, aspect);
   } else {
-    c = grain(frag);
+    c = blobs(uv, aspect);
   }
   // A little light follows the mouse.
   if (uPointer.x >= 0.0) {

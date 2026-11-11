@@ -46,6 +46,8 @@ class BackgroundPage extends ConsumerWidget {
       BackgroundStyle.constellation ||
       BackgroundStyle.starfield => l10n.numberOfStars,
       BackgroundStyle.ripple => l10n.dotsPerArea,
+      BackgroundStyle.galaxy => l10n.numberOfStars,
+      BackgroundStyle.ridges => l10n.bgNumberOfRidges,
       _ => l10n.bgDensity,
     };
     final sizeLabel = switch (style) {
@@ -53,6 +55,10 @@ class BackgroundPage extends ConsumerWidget {
       BackgroundStyle.constellation ||
       BackgroundStyle.starfield => l10n.starSize,
       BackgroundStyle.ripple => l10n.dotSize,
+      BackgroundStyle.asciiSmoke || BackgroundStyle.asciiDonut => l10n.symbolSize,
+      BackgroundStyle.galaxy => l10n.starSize,
+      BackgroundStyle.lyrics => l10n.bgTextSize,
+      BackgroundStyle.ridges => l10n.bgLineWidth,
       _ => l10n.bgSize,
     };
 
@@ -64,12 +70,12 @@ class BackgroundPage extends ConsumerWidget {
       BackgroundStyle.snow,
     };
     final usesDensity =
-        detail || flowing.contains(style) || style == BackgroundStyle.aurora;
+        detail || flowing.contains(style) || style == BackgroundStyle.aurora || style == BackgroundStyle.galaxy || style == BackgroundStyle.ridges;
     final usesSize =
         detail ||
         flowing.contains(style) ||
         style == BackgroundStyle.blobs ||
-        style == BackgroundStyle.grain;
+        style.showsSpectrum;
     final usesReach = detail || style == BackgroundStyle.rain;
     final moves =
         style != BackgroundStyle.gradient && style != BackgroundStyle.image;
@@ -93,6 +99,11 @@ class BackgroundPage extends ConsumerWidget {
       body: SmoothListView(
         padding: EdgeInsets.fromLTRB(16, 8, 16, bottomInset(context)),
         children: [
+          if (_touch)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
+              child: Text(l10n.bgPhonePreviews, style: Theme.of(context).textTheme.bodyMedium),
+            ),
           LayoutBuilder(
             builder: (context, c) {
               final perRow = c.maxWidth >= 720 ? 4 : 2;
@@ -125,7 +136,7 @@ class BackgroundPage extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(4, 0, 4, 20),
             child: Text(
-              style.description,
+              style.showsSpectrum ? '${style.description}\n${l10n.bgSpectrumNote}' : style.description,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
@@ -571,6 +582,14 @@ class _StyleCard extends StatelessWidget {
                     color: scheme.onSurfaceVariant,
                     size: 32,
                   ),
+                  // Phones: a plain sign per style. Some phone GPU drivers
+                  // (Samsung Exynos) crashed drawing all the samples at once;
+                  // the app's own background and Try it show the real thing.
+                  _ when _touch => Icon(
+                    _styleIcon(style),
+                    color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
+                    size: 32,
+                  ),
                   // Only the selected card moves: fourteen at once would be a waste.
                   _ => IgnorePointer(
                     child: LiveBackground(
@@ -607,6 +626,27 @@ class _StyleCard extends StatelessWidget {
     );
   }
 }
+
+IconData _styleIcon(BackgroundStyle s) => switch (s) {
+      BackgroundStyle.cover => Icons.image_outlined,
+      BackgroundStyle.mesh => Icons.blur_on_rounded,
+      BackgroundStyle.aurora => Icons.waves_rounded,
+      BackgroundStyle.blobs => Icons.bubble_chart_outlined,
+      BackgroundStyle.gradient => Icons.gradient_rounded,
+      BackgroundStyle.starfield => Icons.auto_awesome_outlined,
+      BackgroundStyle.rain => Icons.water_drop_outlined,
+      BackgroundStyle.snow => Icons.ac_unit_rounded,
+      BackgroundStyle.asciiSmoke => Icons.terminal_rounded,
+      BackgroundStyle.asciiDonut => Icons.donut_large_rounded,
+      BackgroundStyle.ridges => Icons.landscape_outlined,
+      BackgroundStyle.galaxy => Icons.cyclone_rounded,
+      BackgroundStyle.lyrics => Icons.lyrics_outlined,
+      BackgroundStyle.matrix => Icons.code_rounded,
+      BackgroundStyle.constellation => Icons.hub_outlined,
+      BackgroundStyle.ripple => Icons.blur_circular_rounded,
+      BackgroundStyle.image => Icons.photo_outlined,
+      BackgroundStyle.video => Icons.movie_outlined,
+    };
 
 class _Chips<T> extends StatelessWidget {
   const _Chips({

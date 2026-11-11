@@ -144,13 +144,16 @@ class _EqResponseCurveState extends State<EqResponseCurve> {
                       ),
                     Positioned.fill(
                       child: TweenAnimationBuilder<_Curve>(
-                        tween: _CurveTween(end: _Curve([for (final f in _freqs) eqResponseDb(settings, f)])),
-                        duration: context.motion.d(const Duration(milliseconds: 320)),
+                        tween: _CurveTween(end: _Curve([for (final f in _freqs) eqResponseDb(settings, f)], settings.gainsDb)),
+                        // While a finger or the mouse holds a point the curve
+                        // follows it at once; a glide there trailed behind.
+                        duration: _dragging != null ? Duration.zero : context.motion.d(const Duration(milliseconds: 320)),
                         curve: PrismMotion.curve,
                         builder: (context, curve, _) => CustomPaint(
                           painter: _CurvePainter(
                             points: curve.values,
-                            gains: settings.gainsDb,
+                            gains: curve.gains,
+                            target: settings.gainsDb,
                             active: _active,
                             enabled: settings.enabled,
                             line: look.monochrome ? scheme.onSurface : scheme.primary,
@@ -176,9 +179,12 @@ class _EqResponseCurveState extends State<EqResponseCurve> {
 
 double _xFor(double hz, double width) => math.log(hz / _minHz) / math.log(_maxHz / _minHz) * width;
 
+/// The response line and the band points, gliding together (points that
+/// jumped ahead of their line looked broken).
 class _Curve {
-  const _Curve(this.values);
+  const _Curve(this.values, this.gains);
   final List<double> values;
+  final List<double> gains;
 }
 
 class _CurveTween extends Tween<_Curve> {
@@ -187,7 +193,11 @@ class _CurveTween extends Tween<_Curve> {
   @override
   _Curve lerp(double t) {
     final a = begin!.values, b = end!.values;
-    return _Curve([for (var i = 0; i < b.length; i++) a[i] + (b[i] - a[i]) * t]);
+    final ga = begin!.gains, gb = end!.gains;
+    return _Curve(
+      [for (var i = 0; i < b.length; i++) a[i] + (b[i] - a[i]) * t],
+      [for (var i = 0; i < gb.length; i++) (i < ga.length ? ga[i] : gb[i]) + (gb[i] - (i < ga.length ? ga[i] : gb[i])) * t],
+    );
   }
 }
 
@@ -195,6 +205,7 @@ class _CurvePainter extends CustomPainter {
   _CurvePainter({
     required this.points,
     required this.gains,
+    required this.target,
     required this.active,
     required this.enabled,
     required this.line,
@@ -207,6 +218,9 @@ class _CurvePainter extends CustomPainter {
 
   final List<double> points;
   final List<double> gains;
+
+  /// Where the points are going: the readout shows this, not a value mid-glide.
+  final List<double> target;
   final int? active;
   final bool enabled;
   final Color line, grid, zero, label, bubble, onBubble;
@@ -286,7 +300,7 @@ class _CurvePainter extends CustomPainter {
     final a = active;
     if (a != null) {
       final x = _xFor(eqBandFrequencies[a], size.width);
-      final s = '${eqFreqLong(eqBandFrequencies[a])}  ${eqDbLabel(gains[a])}';
+      final s = '${eqFreqLong(eqBandFrequencies[a])}  ${eqDbLabel(target[a])}';
       tp.text = TextSpan(text: s, style: TextStyle(fontSize: 12, color: onBubble, fontWeight: FontWeight.w600));
       tp.layout();
       final w = tp.width + 16, h = tp.height + 8;

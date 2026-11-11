@@ -107,14 +107,30 @@ final discordPresenceProvider = Provider<void>((ref) {
     }
     final wantCover = s.discordCovers && !(t.artworkPath?.startsWith('https://') ?? false);
     final known = wantCover ? covers.cached(t) : null;
-    sendFor(t, known, id);
     if (wantCover && known == null && !covers.isSettled(t)) {
-      final found = await covers.find(t);
+      // A quick find goes out with the song in one update; a slow one follows.
+      final finding = covers.find(t);
+      final quick = await finding.timeout(const Duration(milliseconds: 600), onTimeout: () => null);
+      if (!ref.mounted || ref.read(currentTrackProvider)?.id != t.id) return;
+      sendFor(t, quick, id);
+      if (quick != null) return;
+      final found = await finding;
       // Still the same song and still on: show it with its cover now.
       if (found != null && ref.mounted && ref.read(currentTrackProvider)?.id == t.id && ref.read(settingsProvider).discordPresence) {
         sendFor(t, found, id);
       }
+      return;
     }
+    sendFor(t, known, id);
+  }
+
+  // A song change fires several of the listeners below at once (song, play
+  // state, position): one update for all of them.
+  Timer? soon;
+  ref.onDispose(() => soon?.cancel());
+  void schedule() {
+    soon?.cancel();
+    soon = Timer(const Duration(milliseconds: 80), () => unawaited(push()));
   }
 
   // Seeks: the progress bar on Discord has to jump too.
@@ -128,20 +144,20 @@ final discordPresenceProvider = Provider<void>((ref) {
     final jumped = (st.position - expected).abs() > const Duration(seconds: 3);
     lastPos = st.position;
     lastAt = now;
-    if (jumped) unawaited(push());
+    if (jumped) schedule();
   });
-  ref.listen(currentTrackProvider, (_, _) => unawaited(push()));
-  ref.listen(isPlayingProvider, (_, _) => unawaited(push()));
-  ref.listen(togetherProvider.select((s) => (s.connected, s.people.length)), (_, _) => unawaited(push()));
+  ref.listen(currentTrackProvider, (_, _) => schedule());
+  ref.listen(isPlayingProvider, (_, _) => schedule());
+  ref.listen(togetherProvider.select((s) => (s.connected, s.people.length)), (_, _) => schedule());
   ref.listen(settingsProvider.select((s) => (s.discordPresence, discordIdOf(s), s.discordCovers)), (old, v) {
     if (!v.$1) {
       if (old != null && old.$2.isNotEmpty) ready.then((_) => presence.update(old.$2, null));
       ref.read(discordStatusProvider.notifier).set(const DiscordStatus(DiscordLink.off));
     } else {
-      unawaited(push());
+      schedule();
     }
   });
-  unawaited(push());
+  schedule();
 });
 
 /// Windows mini player: a small always-on-top window with just the

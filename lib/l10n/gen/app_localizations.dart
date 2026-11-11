@@ -6150,18 +6150,6 @@ abstract class AppLocalizations {
   /// **'Flakes drifting down in layers.'**
   String get bgSnowDesc;
 
-  /// No description provided for @bgGrain.
-  ///
-  /// In en, this message translates to:
-  /// **'Film grain'**
-  String get bgGrain;
-
-  /// No description provided for @bgGrainDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'A quiet tinted gradient with moving film grain.'**
-  String get bgGrainDesc;
-
   /// No description provided for @bgImage.
   ///
   /// In en, this message translates to:
@@ -7697,6 +7685,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No songs Prism can play were in what you dropped.'**
   String get dropNothingNew;
+
+  /// No description provided for @bgCrashedOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Prism closed while drawing the {name} background last time, so it is back to Cover. This phone\'s graphics can\'t show that one.'**
+  String bgCrashedOff(String name);
+
+  /// No description provided for @bgPhonePreviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a style to use it. Try it shows it on the whole screen.'**
+  String get bgPhonePreviews;
+
+  /// No description provided for @bgAsciiSmoke.
+  ///
+  /// In en, this message translates to:
+  /// **'ASCII smoke'**
+  String get bgAsciiSmoke;
+
+  /// No description provided for @bgAsciiSmokeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The song as rising ASCII smoke: each moment starts at the bottom (bass in the middle, treble at the sides), then sways and fades upwards.'**
+  String get bgAsciiSmokeDesc;
+
+  /// No description provided for @bgAsciiDonut.
+  ///
+  /// In en, this message translates to:
+  /// **'ASCII donut'**
+  String get bgAsciiDonut;
+
+  /// No description provided for @bgAsciiDonutDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A spinning ring drawn in characters. It spins faster with the bass and swells where the music is loud; it leans towards the mouse and a click spins it.'**
+  String get bgAsciiDonutDesc;
+
+  /// No description provided for @bgRidges.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound landscape'**
+  String get bgRidges;
+
+  /// No description provided for @bgRidgesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The song as mountains: the front line is the sound right now, and every moment rolls back into the distance. The mouse raises a peak.'**
+  String get bgRidgesDesc;
+
+  /// No description provided for @bgGalaxy.
+  ///
+  /// In en, this message translates to:
+  /// **'Galaxy'**
+  String get bgGalaxy;
+
+  /// No description provided for @bgGalaxyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A slowly turning spiral galaxy. The core flares with the bass, the stars twinkle with the treble, the mouse pulls them in.'**
+  String get bgGalaxyDesc;
+
+  /// No description provided for @bgNumberOfRidges.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of lines'**
+  String get bgNumberOfRidges;
+
+  /// No description provided for @bgLineWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Line width'**
+  String get bgLineWidth;
+
+  /// No description provided for @bgSpectrumNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Reacts to the whole song (songs on this device; streamed ones only move by themselves).'**
+  String get bgSpectrumNote;
+
+  /// No description provided for @bgLyrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics'**
+  String get bgLyrics;
+
+  /// No description provided for @bgLyricsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The words of the song as they are sung: every letter rises in when it\'s sung and dances with the music, finished lines float away above, the next one waits below. Before the singing starts, and for songs without lyrics, the song\'s name takes the stage. Lyrics come from the same place as the lyrics panel.'**
+  String get bgLyricsDesc;
+
+  /// No description provided for @bgTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size'**
+  String get bgTextSize;
+
+  /// No description provided for @bgLyricsDemo1.
+  ///
+  /// In en, this message translates to:
+  /// **'Every song has words'**
+  String get bgLyricsDemo1;
+
+  /// No description provided for @bgLyricsDemo2.
+  ///
+  /// In en, this message translates to:
+  /// **'they rise in as they are sung'**
+  String get bgLyricsDemo2;
+
+  /// No description provided for @bgLyricsDemo3.
+  ///
+  /// In en, this message translates to:
+  /// **'and dance along with the music'**
+  String get bgLyricsDemo3;
+
+  /// No description provided for @bgLyricsDemo4.
+  ///
+  /// In en, this message translates to:
+  /// **'then drift away into the dark'**
+  String get bgLyricsDemo4;
 }
 
 class _AppLocalizationsDelegate

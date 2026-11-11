@@ -101,6 +101,20 @@ Map<String, Object?> activityFrame({
   };
 }
 
+/// What an activity shows, without the nonce and with the bar's times to the
+/// nearest two seconds: the same key twice is not worth one of Discord's few
+/// updates (about five per 20 s; more are held back, so the next song showed late).
+String activityKey(Map<String, Object?>? frame) {
+  if (frame == null) return 'clear';
+  Object? round(Object? v) => switch (v) {
+        final Map<Object?, Object?> m => {for (final e in m.entries) e.key: e.key == 'nonce' ? null : round(e.value)},
+        final List<Object?> l => [for (final x in l) round(x)],
+        final int n when n > 1000000000000 => (n / 2000).round(),
+        _ => v,
+      };
+  return jsonEncode(round(frame));
+}
+
 /// A paused bar's start: dropped too if Discord refuses, a running clock beats no status.
 bool _isAhead(Map<String, Object?> frame, Object? timestamps) {
   final start = timestamps is Map ? timestamps['start'] : null;
@@ -294,6 +308,7 @@ class DiscordPresence {
     final ipc = DiscordIpc();
     var client = '';
     Map<String, Object?>? last;
+    String? sentKey;
     String? reported;
 
     void report(DiscordLink link, {String? user, String? message}) {
@@ -316,17 +331,24 @@ class DiscordPresence {
           return;
         }
         report(DiscordLink.connected, user: ipc.userName);
+        sentKey = null; // a new connection shows nothing yet
       }
+      final key = activityKey(last);
+      if (key == sentKey) return;
       final frame = last ?? {'cmd': 'SET_ACTIVITY', 'nonce': 'clear', 'args': {'pid': pid}};
       final answer = ipc.send(1, frame);
       if (answer == null) {
+        sentKey = null;
         report(DiscordLink.notRunning); // Discord was closed; retried below
-      } else if (answer['evt'] == 'ERROR' && last != null) {
+        return;
+      }
+      sentKey = key;
+      if (answer['evt'] == 'ERROR' && last != null) {
         ipc.send(1, plainActivity(frame));
       }
     }
 
-    final retry = Timer.periodic(const Duration(seconds: 15), (_) {
+    final retry = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!ipc.connected) apply();
     });
     inbox.listen((msg) {

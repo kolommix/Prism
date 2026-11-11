@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/prism_theme_extensions.dart';
@@ -124,7 +125,10 @@ String _sourceLabel(String sourceId) => switch (sourceId) {
     };
 
 /// Three little bouncing bars – the universal "this is playing" sign.
-/// Freezes when paused or when motion is reduced.
+///
+/// Moves by real time while music plays; on pause the bars settle down to a
+/// calm, even rest (never freeze at odd heights) and the ticker stops. Reduced
+/// motion: always at rest.
 class NowPlayingBars extends ConsumerStatefulWidget {
   const NowPlayingBars({super.key, required this.color, this.size = 18});
 
@@ -136,15 +140,42 @@ class NowPlayingBars extends ConsumerStatefulWidget {
 }
 
 class _NowPlayingBarsState extends ConsumerState<NowPlayingBars> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+  late final Ticker _ticker = createTicker(_tick);
+  final _state = _BarsState();
+  Duration _last = Duration.zero;
+  bool _want = false;
+  bool _first = true;
 
   void _sync(bool playing) {
-    final run = playing && context.motion.decorative;
-    if (run && !_c.isAnimating) {
-      unawaited(_c.repeat());
-    } else if (!run && _c.isAnimating) {
-      _c.stop();
+    _want = playing && context.motion.decorative;
+    // A row that appears while music plays starts moving at once (scrolling
+    // back to it must not show a ramp up every time).
+    if (_first) {
+      _first = false;
+      _state.energy = _want ? 1 : 0;
+      _state.notify();
     }
+    final needs = _want || _state.energy > 0;
+    if (needs && !_ticker.isActive) {
+      _last = Duration.zero;
+      unawaited(_ticker.start());
+    } else if (!needs && _ticker.isActive) {
+      _ticker.stop();
+    }
+  }
+
+  void _tick(Duration now) {
+    final dt = _last == Duration.zero ? 0.0 : math.min(0.1, (now - _last).inMicroseconds / 1e6);
+    _last = now;
+    _state.time += dt;
+    // About a fifth of a second to start or settle.
+    final k = 1 - math.exp(-dt * 9);
+    _state.energy += ((_want ? 1.0 : 0.0) - _state.energy) * k;
+    if (!_want && _state.energy < 0.01) {
+      _state.energy = 0;
+      _ticker.stop();
+    }
+    _state.notify();
   }
 
   @override
@@ -155,33 +186,50 @@ class _NowPlayingBarsState extends ConsumerState<NowPlayingBars> with SingleTick
 
   @override
   void dispose() {
-    _c.dispose();
+    _ticker.dispose();
+    _state.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen(isPlayingProvider, (_, playing) => _sync(playing));
-    // The painter repaints from the controller: no widget rebuild per frame.
+    // The painter repaints from the state: no widget rebuild per frame.
     return SizedBox.square(
       dimension: widget.size,
-      child: CustomPaint(painter: _BarsPainter(_c, widget.color)),
+      child: CustomPaint(painter: _BarsPainter(_state, widget.color)),
     );
   }
 }
 
+class _BarsState extends ChangeNotifier {
+  double time = 0;
+
+  /// 0 at rest, 1 bouncing.
+  double energy = 0;
+
+  void notify() => notifyListeners();
+}
+
 class _BarsPainter extends CustomPainter {
-  _BarsPainter(this.t, this.color) : super(repaint: t);
-  final Animation<double> t;
+  _BarsPainter(this.s, this.color) : super(repaint: s);
+  final _BarsState s;
   final Color color;
+
+  // Two waves per bar at unrelated speeds: lively, never a visible loop.
+  static const _speedA = [7.1, 9.3, 6.2];
+  static const _speedB = [3.3, 4.7, 5.9];
+  static const _phase = [0.0, 1.9, 3.7];
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
     final w = size.width / 5;
     for (var i = 0; i < 3; i++) {
-      final phase = t.value * 2 * math.pi + i * 1.9;
-      final h = size.height * (0.35 + 0.65 * (0.5 + 0.5 * math.sin(phase)));
+      final wave = 0.5 + 0.3 * math.sin(s.time * _speedA[i] + _phase[i]) + 0.2 * math.sin(s.time * _speedB[i] + _phase[i] * 2);
+      // Rest: three even, low bars.
+      final level = 0.3 + s.energy * 0.7 * wave.clamp(0.0, 1.0);
+      final h = math.max(w, size.height * level);
       final x = w * (i * 2);
       canvas.drawRRect(
         RRect.fromRectAndRadius(Rect.fromLTWH(x, size.height - h, w, h), Radius.circular(w / 2)),
@@ -191,7 +239,7 @@ class _BarsPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_BarsPainter old) => old.t != t || old.color != color;
+  bool shouldRepaint(_BarsPainter old) => old.s != s || old.color != color;
 }
 
 /// Fades + slides list items in, staggered by [index] (first ~12 only, so

@@ -5,9 +5,40 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../../lyrics/domain/lrc.dart';
 import '../domain/background_config.dart';
 
 import 'field_effects.dart';
+import 'lyrics_effect.dart';
+import 'sound_effects.dart';
+
+/// The playing song, for the styles that show its words.
+class SongText {
+  const SongText({required this.title, this.artist = '', this.lyrics, this.duration = Duration.zero, this.fontFamily});
+
+  final String title;
+  final String artist;
+
+  /// Null while loading or when none were found.
+  final Lyrics? lyrics;
+  final Duration duration;
+
+  /// The theme's font, so the words look like the rest of Prism.
+  final String? fontFamily;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SongText &&
+      other.title == title &&
+      other.artist == artist &&
+      identical(other.lyrics, lyrics) &&
+      other.duration == duration &&
+      other.fontFamily == fontFamily;
+
+  @override
+  int get hashCode => Object.hash(title, artist, identityHashCode(lyrics), duration, fontFamily);
+}
+
 /// One animated background: state + how to draw it.
 ///
 /// Performance: everything is drawn in one `drawRawAtlas` / `drawRawPoints`
@@ -34,6 +65,26 @@ abstract class BackgroundEffect {
 
   /// 0..1+ bass already scaled by the music setting.
   double bass = 0;
+
+  /// The song's spectrum right now, low to high, 0..1+ each, scaled by the
+  /// music setting (all zero without music). Only local songs have one.
+  final Float32List levels = Float32List(levelBands);
+
+  static const levelBands = 32;
+
+  /// What plays, for styles that show words (null = nothing).
+  SongText? song;
+
+  /// Where in [song] we are, the lyrics timing fix included.
+  Duration songPosition = Duration.zero;
+
+  /// [levels] at 0..1 across the bands, smoothly in between.
+  double levelAt(double f) {
+    final x = f.clamp(0.0, 1.0) * (levelBands - 1);
+    final i = x.floor();
+    final j = math.min(levelBands - 1, i + 1);
+    return levels[i] + (levels[j] - levels[i]) * (x - i);
+  }
 
   final waves = <Shockwave>[];
 
@@ -76,7 +127,11 @@ abstract class BackgroundEffect {
       BackgroundStyle.mesh => ShaderFieldEffect(0, p, color, accent),
       BackgroundStyle.aurora => ShaderFieldEffect(1, p, color, accent),
       BackgroundStyle.blobs => ShaderFieldEffect(2, p, color, accent),
-      BackgroundStyle.grain => ShaderFieldEffect(3, p, color, accent),
+      BackgroundStyle.asciiSmoke => AsciiSmokeEffect(p, color, accent),
+      BackgroundStyle.asciiDonut => AsciiDonutEffect(p, color, accent),
+      BackgroundStyle.ridges => RidgesEffect(p, color, accent),
+      BackgroundStyle.galaxy => GalaxyEffect(p, color, accent),
+      BackgroundStyle.lyrics => LyricsEffect(p, color, accent),
       BackgroundStyle.starfield => StarfieldEffect(p, color, accent),
       BackgroundStyle.rain => PrecipitationEffect(false, p, color, accent),
       BackgroundStyle.snow => PrecipitationEffect(true, p, color, accent),
@@ -104,7 +159,7 @@ class Shockwave {
   double get power => strength * (1 - age / life) * (1 - age / life);
 }
 
-int _mixArgb(Color a, Color b, double t, double alpha) {
+int mixArgb(Color a, Color b, double t, double alpha) {
   final f = t.clamp(0.0, 1.0);
   final x = a.toARGB32(), y = b.toARGB32();
   final r = ((x >> 16 & 255) + ((y >> 16 & 255) - (x >> 16 & 255)) * f).round();
@@ -114,7 +169,7 @@ int _mixArgb(Color a, Color b, double t, double alpha) {
   return (al << 24) | (r << 16) | (g << 8) | bl;
 }
 
-Future<ui.Image> _renderSprites(int w, int h, void Function(Canvas) draw) async {
+Future<ui.Image> renderSprites(int w, int h, void Function(Canvas) draw) async {
   final rec = ui.PictureRecorder();
   draw(Canvas(rec));
   final pic = rec.endRecording();
@@ -124,7 +179,7 @@ Future<ui.Image> _renderSprites(int w, int h, void Function(Canvas) draw) async 
 }
 
 /// Preallocated sprite batch for `drawRawAtlas`.
-class _Batch {
+class SpriteBatch {
   Float32List _xf = Float32List(4 * 4096);
   Float32List _rects = Float32List(4 * 4096);
   Int32List _colors = Int32List(4096);
@@ -222,7 +277,7 @@ class MatrixEffect extends BackgroundEffect {
   List<_Rain> _rain = const [];
   Uint8List _glyphs = Uint8List(0);
   double _changeDebt = 0;
-  final _batch = _Batch();
+  final _batch = SpriteBatch();
 
   @override
   Future<void> prepare() async {
@@ -233,7 +288,7 @@ class MatrixEffect extends BackgroundEffect {
     _builtFor = key;
     final rows = (symbols.length / _perRow).ceil();
     final mirrored = MatrixGlyphs.parse(params.glyphs) == MatrixGlyphs.katakana;
-    final img = await _renderSprites((_perRow * sprite).round(), (rows * sprite).round(), (c) {
+    final img = await renderSprites((_perRow * sprite).round(), (rows * sprite).round(), (c) {
       for (var i = 0; i < symbols.length; i++) {
         final tp = TextPainter(
           text: TextSpan(
@@ -373,7 +428,7 @@ class MatrixEffect extends BackgroundEffect {
       if (a <= 0.015) return;
       final g = _glyphs[(col + row * _cols) % _glyphs.length];
       final l = (g % _perRow) * _sprite, t = (g ~/ _perRow) * _sprite;
-      _batch.add(scale, x, y, 0, l, t, l + _sprite, t + _sprite, _mixArgb(color, accent, h, a));
+      _batch.add(scale, x, y, 0, l, t, l + _sprite, t + _sprite, mixArgb(color, accent, h, a));
     }
 
     for (var c = 0; c < _rain.length; c++) {
@@ -627,7 +682,7 @@ class RippleEffect extends BackgroundEffect {
   ui.Image? _atlas;
   final _rnd = math.Random();
   final _drops = <_Drop>[];
-  final _batch = _Batch();
+  final _batch = SpriteBatch();
   double _spacing = 26;
   var _cols = 0, _rows = 0;
   Offset? _lastWake;
@@ -635,7 +690,7 @@ class RippleEffect extends BackgroundEffect {
 
   @override
   Future<void> prepare() async {
-    final img = await _renderSprites((_sprite * 3).round(), _sprite.round(), (c) {
+    final img = await renderSprites((_sprite * 3).round(), _sprite.round(), (c) {
       const m = _sprite / 2;
       c.drawCircle(const Offset(m, m), 3.6, Paint()..color = Colors.white);
       final stroke = Paint()
@@ -762,7 +817,7 @@ class RippleEffect extends BackgroundEffect {
           0,
           left + _sprite,
           _sprite,
-          _mixArgb(color, accent, level + heat, a),
+          mixArgb(color, accent, level + heat, a),
         );
       }
     }

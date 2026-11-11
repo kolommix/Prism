@@ -13,8 +13,12 @@ enum BackgroundStyle {
   starfield,
   rain,
   snow,
-  grain,
   matrix,
+  asciiSmoke,
+  asciiDonut,
+  ridges,
+  galaxy,
+  lyrics,
   constellation,
   ripple,
   image,
@@ -29,7 +33,11 @@ enum BackgroundStyle {
         BackgroundStyle.starfield => l10n.bgStarfield,
         BackgroundStyle.rain => l10n.bgRain,
         BackgroundStyle.snow => l10n.bgSnow,
-        BackgroundStyle.grain => l10n.bgGrain,
+        BackgroundStyle.asciiSmoke => l10n.bgAsciiSmoke,
+        BackgroundStyle.asciiDonut => l10n.bgAsciiDonut,
+        BackgroundStyle.ridges => l10n.bgRidges,
+        BackgroundStyle.galaxy => l10n.bgGalaxy,
+        BackgroundStyle.lyrics => l10n.bgLyrics,
         BackgroundStyle.matrix => l10n.matrix,
         BackgroundStyle.constellation => l10n.constellation,
         BackgroundStyle.ripple => l10n.ripple,
@@ -46,13 +54,23 @@ enum BackgroundStyle {
         BackgroundStyle.starfield => l10n.bgStarfieldDesc,
         BackgroundStyle.rain => l10n.bgRainDesc,
         BackgroundStyle.snow => l10n.bgSnowDesc,
-        BackgroundStyle.grain => l10n.bgGrainDesc,
+        BackgroundStyle.asciiSmoke => l10n.bgAsciiSmokeDesc,
+        BackgroundStyle.asciiDonut => l10n.bgAsciiDonutDesc,
+        BackgroundStyle.ridges => l10n.bgRidgesDesc,
+        BackgroundStyle.galaxy => l10n.bgGalaxyDesc,
+        BackgroundStyle.lyrics => l10n.bgLyricsDesc,
         BackgroundStyle.matrix => l10n.fallingSymbolsTheyLightUpAnd,
         BackgroundStyle.constellation => l10n.driftingStarsJoinedByLinesThe,
         BackgroundStyle.ripple => l10n.aGridOfDotsLikeA,
         BackgroundStyle.image => l10n.bgImageDesc,
         BackgroundStyle.video => l10n.bgVideoDesc,
       };
+
+  /// Draws the song's whole spectrum, not just the bass (local songs).
+  bool get showsSpectrum => this == asciiSmoke || this == asciiDonut || this == ridges || this == galaxy || this == lyrics;
+
+  /// Shows the song's words (needs the song, its lyrics and the position).
+  bool get showsLyrics => this == lyrics;
 
   /// Uses the symbol, line or dot settings (the original three).
   bool get hasDetailSettings => this == matrix || this == constellation || this == ripple;
@@ -271,6 +289,10 @@ abstract class BackgroundConfig with _$BackgroundConfig {
         BackgroundStyle.matrix => matrixDefaults,
         BackgroundStyle.constellation => constellationDefaults,
         BackgroundStyle.ripple => rippleDefaults,
+        // Brighter by default: thin symbols and lines vanish at 0.7.
+        BackgroundStyle.asciiSmoke || BackgroundStyle.asciiDonut || BackgroundStyle.ridges => const BgParams(brightness: 0.85, music: 1.2),
+        BackgroundStyle.galaxy => const BgParams(brightness: 0.85, music: 1.0),
+        BackgroundStyle.lyrics => const BgParams(brightness: 0.95, music: 1.0),
         _ => const BgParams(),
       };
 }
