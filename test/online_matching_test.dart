@@ -42,6 +42,44 @@ void main() {
   });
 
   group('MatchScorer', () {
+    group('not a song', () {
+      // A friend's import of "Дора - Трудный возраст" saved a documentary
+      // called "Трудный возраст".
+      test('a documentary with the song''s name is not taken', () {
+        final wanted = want('Трудный возраст', 'Дора');
+        final doc = yt('Трудный возраст | Документальный фильм', 'Россия 1', sec: 52 * 60);
+        final song = yt('Дора - Трудный возраст', 'Дора', sec: 158, id: 101);
+        expect(MatchScorer.score(wanted, doc).value, lessThan(MatchScorer.acceptThreshold));
+        expect(MatchScorer.best(wanted, [doc, song])!.track, song);
+      });
+
+      test('same name, other uploader, no length to compare: not taken', () {
+        final s = MatchScorer.score(want('Трудный возраст', 'Дора'), yt('Трудный возраст', 'Случайный канал', sec: 600));
+        expect(s.value, lessThan(MatchScorer.acceptThreshold));
+      });
+
+      test('a review, an interview, an hour-long video', () {
+        final wanted = want('Blinding Lights', 'The Weeknd', sec: 200);
+        for (final c in [
+          yt('The Weeknd - Blinding Lights REACTION', 'Some Reactor', sec: 610),
+          yt('The Weeknd Blinding Lights interview', 'News 24', sec: 900),
+          yt('The Weeknd - Blinding Lights (1 hour)', 'TheWeekndVEVO', sec: 3600),
+        ]) {
+          expect(MatchScorer.score(wanted, c).value, lessThan(MatchScorer.acceptThreshold), reason: c.title);
+        }
+      });
+
+      test('a song that has such a word in its name still matches', () {
+        final s = MatchScorer.score(want('Bad News', 'Kanye West', sec: 238), yt('Kanye West - Bad News', 'Kanye West - Topic', sec: 239));
+        expect(s.confidence, MatchConfidence.high);
+      });
+
+      test('same name, other uploader, same length: still offered as "check it"', () {
+        final s = MatchScorer.score(want('Трудный возраст', 'Дора', sec: 158), yt('Трудный возраст', 'music4you', sec: 158));
+        expect(s.confidence, MatchConfidence.low);
+      });
+    });
+
     test('same song in the local library is high', () {
       final s = MatchScorer.score(want('Blinding Lights', 'The Weeknd', sec: 200), local('Blinding Lights', 'The Weeknd', sec: 201));
       expect(s.confidence, MatchConfidence.high);

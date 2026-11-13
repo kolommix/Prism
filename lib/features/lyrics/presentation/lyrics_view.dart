@@ -13,6 +13,7 @@ import '../../player/presentation/widgets/live_position.dart';
 import '../../settings/application/settings_controller.dart';
 import '../application/lyrics_providers.dart';
 import '../domain/lrc.dart';
+import '../application/lyrics_window.dart';
 
 /// Lyrics of the current song. Synced lyrics get a karaoke wipe on the current
 /// line, follow playback smoothly and can be tapped to seek.
@@ -238,6 +239,22 @@ class _SyncedLyricsState extends ConsumerState<_SyncedLyrics> with TickerProvide
           ),
         ),
       ),
+      if (LyricsWindowController.supported)
+        Positioned(
+          right: 44,
+          top: 4,
+          child: Consumer(
+            builder: (context, ref, _) {
+              final open = ref.watch(lyricsWindowProvider.select((s) => s.open));
+              return IconButton(
+                tooltip: l10n.lyricsWindowButton,
+                isSelected: open,
+                icon: Icon(Icons.picture_in_picture_alt_outlined, size: 18, color: open ? context.look.led : scheme.onSurfaceVariant),
+                onPressed: () => ref.read(lyricsWindowProvider.notifier).toggle(),
+              );
+            },
+          ),
+        ),
       Positioned(
         right: 4,
         top: 4,

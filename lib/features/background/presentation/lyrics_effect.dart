@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 import '../../lyrics/domain/lrc.dart';
 import 'background_effects.dart';
 
-/// One line of words, drawn once into a picture; every letter is a piece of
-/// that picture, so letters move on their own at the cost of one draw call.
+/// One line of words: its letters drawn once into a picture; every letter is a
+/// piece of that picture, so letters move on their own at the cost of one draw call.
 class _Line {
   _Line(this.image, this.width, this.height, this.dpr, this.src, this.centers, this.starts, this.slot)
       : age = Float32List(src.length)..fillRange(0, src.length, -1);
@@ -139,18 +139,30 @@ class LyricsEffect extends BackgroundEffect {
     return len <= 0 ? 1 : ((t - line.time).inMicroseconds / len).clamp(0.0, 1.0);
   }
 
-  _Line? _make(String text, {String sub = '', required double font, required double maxWidth, double? dpr, int maxLines = 3, double slot = 0}) {
+  /// Scripts whose letters join or stack (Arabic, Indic and the like): cut
+  /// out of the whole drawn line, because a letter drawn alone looks different.
+  static final _joined = RegExp(r'[\u0590-\u08FF\u0900-\u0DFF\u0E00-\u0EFF\u1000-\u109F\u1780-\u17FF\uFB1D-\uFDFF\uFE70-\uFEFF]');
+
+  /// [whole]: one picture of the line as laid out (the sliding name), with
+  /// room above and below so tall marks aren't cut. Otherwise every letter is
+  /// drawn alone into its own padded cell: a letter's ink reaches outside its
+  /// box (the mark on Й and Ё, tails of щ ц р у, f and j), so cutting boxes out
+  /// of the drawn line clipped those and left pieces of the neighbours behind.
+  _Line? _make(String text,
+      {String sub = '', required double font, required double maxWidth, double? dpr, int maxLines = 3, double slot = 0, bool whole = false}) {
     if (text.trim().isEmpty && sub.trim().isEmpty) return null;
     final family = _for?.fontFamily;
     final d = dpr ?? _dpr;
     final full = sub.isEmpty ? text : '$text\n$sub';
+    final main = ui.TextStyle(color: const Color(0xFFFFFFFF), fontSize: font, fontWeight: FontWeight.w600, height: 1.12, fontFamily: family);
+    final small = ui.TextStyle(color: const Color(0xB3FFFFFF), fontSize: font * 0.42, fontWeight: FontWeight.w500, height: 1.7, fontFamily: family);
     ui.Paragraph build(double width) {
       final b = ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: TextAlign.center, maxLines: maxLines + (sub.isEmpty ? 0 : 1), ellipsis: '…'))
-        ..pushStyle(ui.TextStyle(color: const Color(0xFFFFFFFF), fontSize: font, fontWeight: FontWeight.w600, height: 1.12, fontFamily: family))
+        ..pushStyle(main)
         ..addText(text);
       if (sub.isNotEmpty) {
         b
-          ..pushStyle(ui.TextStyle(color: const Color(0xB3FFFFFF), fontSize: font * 0.42, fontWeight: FontWeight.w500, height: 1.7, fontFamily: family))
+          ..pushStyle(small)
           ..addText('\n$sub');
       }
       return b.build()..layout(ui.ParagraphConstraints(width: width));
@@ -164,33 +176,82 @@ class LyricsEffect extends BackgroundEffect {
       para = build(tight);
     }
     final w = para.width, h = para.height;
-    final rec = ui.PictureRecorder();
-    Canvas(rec)
-      ..scale(d)
-      ..drawParagraph(para, Offset.zero);
-    final pic = rec.endRecording();
-    final img = pic.toImageSync((w * d).ceil().clamp(1, 8192), (h * d).ceil().clamp(1, 8192));
-    pic.dispose();
-    final src = <Rect>[], centers = <Offset>[], starts = <int>[];
+    // Where every letter is in the line.
+    final boxes = <Rect>[], chars = <String>[], starts = <int>[];
     var i = 0;
     for (final ch in full.characters) {
       final end = i + ch.length;
       if (ch.trim().isNotEmpty) {
-        final boxes = para.getBoxesForRange(i, end);
-        if (boxes.isNotEmpty) {
-          final r = boxes.first.toRect();
-          src.add(Rect.fromLTRB(r.left * d - 0.5, r.top * d, r.right * d + 0.5, r.bottom * d));
-          centers.add(r.center);
+        final found = para.getBoxesForRange(i, end);
+        if (found.isNotEmpty) {
+          boxes.add(found.first.toRect());
+          chars.add(ch);
           starts.add(i);
         }
       }
       i = end;
     }
-    para.dispose();
-    if (src.isEmpty) {
-      img.dispose();
+    if (boxes.isEmpty) {
+      para.dispose();
       return null;
     }
+    final centers = [for (final r in boxes) r.center];
+    final rec = ui.PictureRecorder();
+    final canvas = Canvas(rec)..scale(d);
+
+    if (whole || _joined.hasMatch(full)) {
+      final pad = whole ? (font * 0.3).ceilToDouble() : 0.0;
+      canvas.drawParagraph(para, Offset(0, pad));
+      para.dispose();
+      final pic = rec.endRecording();
+      final img = pic.toImageSync((w * d).ceil().clamp(1, 8192), ((h + pad * 2) * d).ceil().clamp(1, 8192));
+      pic.dispose();
+      final src = [for (final r in boxes) Rect.fromLTRB(r.left * d - 0.5, (r.top + pad) * d, r.right * d + 0.5, (r.bottom + pad) * d)];
+      return _Line(img, w, h + pad * 2, d, src, [for (final c in centers) c.translate(0, pad)], starts, slot);
+    }
+    para.dispose();
+
+    // One cell per different letter, in rows.
+    const rowWidth = 2000.0;
+    final cells = <String, Rect>{};
+    final src = <Rect>[];
+    var x = 0.0, y = 0.0, rowH = 0.0, atlasW = 1.0;
+    for (var g = 0; g < boxes.length; g++) {
+      final isSub = starts[g] > text.length;
+      final key = isSub ? '\n${chars[g]}' : chars[g];
+      var cell = cells[key];
+      if (cell == null) {
+        final size = isSub ? font * 0.42 : font;
+        final pad = (size * 0.32).ceilToDouble();
+        final cw = boxes[g].width.ceilToDouble() + pad * 2, chh = boxes[g].height.ceilToDouble() + pad * 2;
+        if (x > 0 && x + cw > rowWidth) {
+          x = 0;
+          y += rowH;
+          rowH = 0;
+        }
+        cell = Rect.fromLTWH(x, y, cw, chh);
+        cells[key] = cell;
+        x += cw;
+        rowH = math.max(rowH, chh);
+        atlasW = math.max(atlasW, x);
+        final one = (ui.ParagraphBuilder(ui.ParagraphStyle(maxLines: 1))
+              ..pushStyle(isSub ? small : main)
+              ..addText(chars[g]))
+            .build()
+          ..layout(const ui.ParagraphConstraints(width: double.infinity));
+        // The letter sits where its box is: in the middle of the cell.
+        canvas
+          ..save()
+          ..clipRect(cell)
+          ..drawParagraph(one, Offset(cell.left + pad + (boxes[g].width.ceilToDouble() - boxes[g].width) / 2, cell.top + pad + (boxes[g].height.ceilToDouble() - boxes[g].height) / 2))
+          ..restore();
+        one.dispose();
+      }
+      src.add(Rect.fromLTRB(cell.left * d, cell.top * d, cell.right * d, cell.bottom * d));
+    }
+    final pic = rec.endRecording();
+    final img = pic.toImageSync((atlasW * d).ceil().clamp(1, 8192), ((y + rowH) * d).ceil().clamp(1, 8192));
+    pic.dispose();
     return _Line(img, w, h, d, src, centers, starts, slot);
   }
 
@@ -214,11 +275,11 @@ class LyricsEffect extends BackgroundEffect {
     final s = _for!;
     final text = s.artist.isEmpty ? '${s.title}     ' : '${s.title}  ·  ${s.artist}     ';
     var font = math.min(size.height * 0.3, 260.0);
-    var g = _make(text, font: font, maxWidth: 1e6, dpr: 1, maxLines: 1);
+    var g = _make(text, font: font, maxWidth: 1e6, dpr: 1, maxLines: 1, whole: true);
     if (g != null && g.width > 6000) {
       font *= 6000 / g.width;
       g.dispose();
-      g = _make(text, font: font, maxWidth: 1e6, dpr: 1, maxLines: 1);
+      g = _make(text, font: font, maxWidth: 1e6, dpr: 1, maxLines: 1, whole: true);
     }
     _ghost = g;
   }

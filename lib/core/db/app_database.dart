@@ -84,7 +84,7 @@ class LyricsCache extends Table {
   TextColumn get synced => text().nullable()();
   TextColumn get plain => text().nullable()();
 
-  /// `lrc-file`, `embedded`, `lrclib`, or `none` (nothing found – don't ask again soon).
+  /// `lrc-file`, `embedded`, `lrclib`, or `none`/`none2` (nothing found – don't ask again soon).
   TextColumn get source => text()();
   DateTimeColumn get fetchedAt => dateTime().withDefault(currentDateAndTime)();
 

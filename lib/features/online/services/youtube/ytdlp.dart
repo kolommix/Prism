@@ -130,6 +130,12 @@ class YtDlp {
         // scanning adds its certificate to Windows only.
         '--compat-options', 'no-certifi',
         '--concurrent-fragments', '4',
+        // A network that blocks or slows YouTube must fail in seconds, not
+        // after yt-dlp's ten patient retries per request.
+        '--socket-timeout', '15',
+        '--retries', '3',
+        '--fragment-retries', '3',
+        '--extractor-retries', '1',
         '-f', 'bestaudio[ext=m4a]/bestaudio',
         if (ffmpeg != null) ...['--ffmpeg-location', ffmpeg],
         if (proxy != null) ...['--proxy', 'http://$proxy'],

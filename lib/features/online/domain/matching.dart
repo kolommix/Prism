@@ -97,6 +97,26 @@ const _fanVariants = {
   'mashup',
 };
 
+/// Words of videos that are not a song at all (a film, a talk, a review).
+/// The documentary called "Трудный возраст" is not Дора's song of that name.
+const _notMusicWords = [
+  'documentary', 'full movie', 'movie', 'film', 'trailer', 'teaser', 'interview', 'reaction', 'react', 'review',
+  'podcast', 'news', 'lecture', 'episode', 'gameplay', 'walkthrough', 'lets play', 'tutorial', 'how to', 'vlog',
+  'livestream', 'stream', 'documental', 'audiobook', 'sermon', 'talk show', 'explained', 'analysis', 'unboxing',
+  'документальный', 'документалка', 'фильм', 'кино о', 'трейлер', 'интервью', 'реакция', 'обзор', 'подкаст',
+  'новости', 'лекция', 'серия', 'выпуск', 'прохождение', 'урок', 'влог', 'стрим', 'сериал', 'мультфильм',
+  'аудиокнига', 'проповедь', 'ток шоу', 'разбор', 'репортаж', 'передача', 'эфир',
+];
+
+/// The "not music" words in [raw] (normalized), for [MatchScorer].
+Set<String> notMusicWordsIn(String raw) {
+  final s = ' ${normalizeForSearch(raw)} ';
+  return {
+    for (final w in _notMusicWords)
+      if (s.contains(' ${normalizeForSearch(w)} ')) w,
+  };
+}
+
 final _brackets = RegExp(r'\s*[\(\[\{【]([^\)\]\}】]*)[\)\]\}】]');
 final _dashTail = RegExp(r'\s+[-–—]\s+([^-–—]+)$');
 final _featOutside = RegExp(r'\s+(?:feat|ft|featuring)\.?\s+.*$', caseSensitive: false);
@@ -104,7 +124,11 @@ final _titleDash = RegExp(r'\s+[-–—|]\s+');
 final _channelNoise = RegExp(r'\s*(?:-\s*topic|vevo|official)\s*$', caseSensitive: false);
 
 /// Removes "(Official Video)", "- Remastered 2011", "feat. X" and similar.
-String cleanTitle(String raw) {
+String cleanTitle(String raw) => normalizeForSearch(cleanTitleText(raw));
+
+/// [cleanTitle] with the letters as they are (for searching catalogues, which
+/// match "Трудный" but not "трудныи").
+String cleanTitleText(String raw) {
   var s = raw.replaceAllMapped(_brackets, (m) => _noise.hasMatch(normalizeLoose(m[1]!)) ? '' : ' ${m[1]} ');
   // Strip noisy "- …" tails repeatedly ("Song - 2011 Remaster - Mono").
   while (true) {
@@ -113,7 +137,7 @@ String cleanTitle(String raw) {
     s = s.substring(0, m.start);
   }
   s = s.replaceFirst(_featOutside, '');
-  return normalizeForSearch(s);
+  return s.replaceAll(RegExp(r'\s+'), ' ').trim();
 }
 
 /// Lower-case + accents stripped, punctuation kept (for the noise regex).
@@ -285,8 +309,27 @@ abstract final class MatchScorer {
       note ??= l10n.notThe(v);
     }
 
+    // Not a song: a film, an interview, a review… with the song's name.
+    if (online) {
+      final notMusic = notMusicWordsIn(candidate.title).difference(notMusicWordsIn(wanted.title));
+      if (notMusic.isNotEmpty) {
+        value *= 0.3;
+        note ??= l10n.matchNotMusic;
+      }
+      // Far longer than any song (and than the wanted one): a film or a mix.
+      final longest = math.max(wanted.durationMs, 12 * 60 * 1000);
+      if (candidate.durationMs > longest + 3 * 60 * 1000) {
+        value *= 0.3;
+        note ??= l10n.matchTooLong;
+      }
+    }
+
     value = math.min(value, title + 0.2);
-    if (artist < 0.3) value = math.min(value, 0.62);
+    if (artist < 0.3) {
+      // Someone else's upload with the same name. Only a matching length
+      // makes it worth a "check it"; otherwise it is not taken.
+      value = math.min(value, online && duration < 0.7 ? acceptThreshold - 0.01 : 0.62);
+    }
     if (online && candidate.artist.toLowerCase().endsWith(' - topic')) value += 0.03;
     return MatchScore(
       value: value.clamp(0, 1).toDouble(),

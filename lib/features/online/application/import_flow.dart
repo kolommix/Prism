@@ -7,11 +7,13 @@ import '../../../l10n/l10n.dart';
 import '../../playlists/domain/playlist_share.dart';
 import '../data/import_repository.dart';
 import '../data/network_check.dart';
+import '../data/photo_reader.dart';
 import '../domain/external_track.dart';
 import '../domain/import_intake.dart';
 import '../domain/import_parsers.dart';
 import '../domain/link_parser.dart';
 import '../domain/online_error.dart';
+import '../domain/photo_songs.dart';
 import '../services/link_only/link_modules.dart';
 import 'import_downloader.dart';
 import 'online_providers.dart';
@@ -59,6 +61,28 @@ class ImportFlow {
   /// Reads a playlist file (CSV, JSON, M3U, .liner).
   List<ImportedList> readFile(String name, String text) => parseImportFile(name, text);
 
+  /// Reads the song names in screenshots or photos of a playlist (several
+  /// pictures of one long list become one list). Nothing leaves the device;
+  /// the songs are then found like any other import.
+  Future<List<ImportedList>> readPhotos(List<String> paths, {PhotoReader reader = const PhotoReader()}) async {
+    final songs = <ExternalTrack>[];
+    var readAny = false;
+    for (final path in paths) {
+      try {
+        songs.addAll(songsFromPhoto(await reader.read(path)));
+        readAny = true;
+      } on PhotoReadException {
+        // Try the other pictures.
+      }
+    }
+    if (!readAny) throw ImportFormatException(l10n.photoCantRead);
+    final unique = dedupeSongs(songs);
+    if (unique.isEmpty) throw ImportFormatException(l10n.photoNoSongs);
+    return [
+      ImportedList(name: l10n.photoListName(dateShort(DateTime.now())), origin: OnlineService.file, tracks: unique),
+    ];
+  }
+
   /// Reads a piece of text: a shared playlist, a link or a file path.
   Future<List<ImportedList>> readText(String text) async {
     switch (classifyImportText(text)) {
@@ -68,6 +92,8 @@ class ImportFlow {
         return readLink(link);
       case FileInput(:final path):
         return readFile(path, decodeImportBytes(await File(path).readAsBytes()));
+      case PhotosInput(:final paths):
+        return readPhotos(paths);
       case UnknownInput():
         throw ImportFormatException(l10n.notALinkPrismCanRead);
     }

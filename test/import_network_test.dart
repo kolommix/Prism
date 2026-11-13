@@ -143,5 +143,56 @@ void main() {
       expect(identical(await c.explain(e), e), isTrue);
       expect(asked, 0);
     });
+
+    test('one blocked "am I online" address does not mean offline', () async {
+      final c = NetworkCheck(
+        client: () => MockClient((r) async {
+          if (r.url.host.contains('msftconnecttest')) throw const SocketException('blocked');
+          return http.Response('', 204);
+        }),
+      );
+      expect(await c.internetWorks(), isTrue);
+    });
+
+    test('a service is reachable when all its addresses answer, whatever the answer', () async {
+      final asked = <String>[];
+      NetworkCheck net({String? dead}) => NetworkCheck(
+            client: () => MockClient((r) async {
+              asked.add(r.url.host);
+              if (r.url.host == dead) throw const SocketException('blocked');
+              return http.Response('', 404);
+            }),
+          );
+      expect(await net().reachable(OnlineService.youtube), isTrue);
+      expect(asked, ['www.youtube.com'], reason: 'searching needs only youtube.com');
+      expect(await net(dead: 'redirector.googlevideo.com').reachable(OnlineService.youtube), isTrue);
+      expect(await net(dead: 'redirector.googlevideo.com').reachable(OnlineService.youtube, saving: true), isFalse, reason: 'saving needs the audio servers too');
+      expect(await net(dead: 'api.music.yandex.net').reachable(OnlineService.yandex), isFalse);
+      expect(await net().reachable(OnlineService.file), isTrue);
+    });
+
+    test('a changed connection (VPN on) is noticed once', () async {
+      var sig = 'wifi';
+      var fired = 0;
+      final w = NetworkWatch(signature: () async => sig, every: const Duration(milliseconds: 10));
+      w.start(() => fired++);
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(fired, 0, reason: 'nothing changed');
+      sig = 'wifi;vpn';
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(fired, 1);
+      expect(w.watching, isFalse);
+      sig = 'wifi';
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      expect(fired, 1, reason: 'stopped after the first change');
+    });
+
+    test('reading the real adapters does not throw', () async {
+      expect(await NetworkWatch.currentSignature(), isNotEmpty);
+    });
+
+    test('yt-dlp gives up on a dead connection in seconds', () {
+      expect(YtDlp.args('id', 'out'), containsAllInOrder(['--socket-timeout', '15', '--retries', '3']));
+    });
   });
 }

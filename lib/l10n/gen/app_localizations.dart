@@ -6459,7 +6459,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyWindowsText.
   ///
   /// In en, this message translates to:
-  /// **'Needs no special permissions and does not use the Windows location API. Before version 1.2 a library started the Windows location service at launch, so Windows could list Prism as using location. Prism never read or sent the result, and that library is gone.'**
+  /// **'Needs no special permissions and does not use the Windows location API. Before version 1.2 a library started the Windows location service at launch, so Windows could list Prism as using location. Prism never read or sent the result, and that library is gone. Hotkeys are registered one combination at a time: Prism hears only those, never other keys you type.'**
   String get privacyWindowsText;
 
   /// No description provided for @privacySentTitle.
@@ -6531,7 +6531,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacySentImportWhat.
   ///
   /// In en, this message translates to:
-  /// **'Only when you import: the link you gave. A copied link stays on this device until you tap Import.'**
+  /// **'Only when you import: the link you gave. A copied link stays on this device until you tap Import. A photo or screenshot is read on this device: the picture is never sent, only the song names found are looked up like any import.'**
   String get privacySentImportWhat;
 
   /// No description provided for @privacySentOnline.
@@ -7805,6 +7805,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'then drift away into the dark'**
   String get bgLyricsDemo4;
+
+  /// No description provided for @importResumesOnNetworkChange.
+  ///
+  /// In en, this message translates to:
+  /// **'It also goes on by itself as soon as the connection changes, for example when a VPN is switched on.'**
+  String get importResumesOnNetworkChange;
+
+  /// No description provided for @photoButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get photoButton;
+
+  /// No description provided for @photoPickTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshots or photos of a playlist'**
+  String get photoPickTitle;
+
+  /// No description provided for @photoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Or a screenshot or photo of a playlist: Prism reads the song names in it, on this phone'**
+  String get photoHint;
+
+  /// No description provided for @photoHintDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Or a screenshot or photo of a playlist (drop it here too): Prism reads the song names in it, on this PC'**
+  String get photoHintDrop;
+
+  /// No description provided for @photoReading.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Reading the song names in the picture…} other{Reading the song names in {count} pictures…}}'**
+  String photoReading(int count);
+
+  /// No description provided for @photoCantRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Prism couldn\'t read this picture. Try a PNG or JPG screenshot.'**
+  String get photoCantRead;
+
+  /// No description provided for @photoNoSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'No song names found in the picture. A screenshot of the list itself works best: song names with their artists, not too small.'**
+  String get photoNoSongs;
+
+  /// No description provided for @photoListName.
+  ///
+  /// In en, this message translates to:
+  /// **'From a photo, {date}'**
+  String photoListName(String date);
+
+  /// No description provided for @matchNotMusic.
+  ///
+  /// In en, this message translates to:
+  /// **'not a song (a film, talk or review)'**
+  String get matchNotMusic;
+
+  /// No description provided for @matchTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'far too long for this song'**
+  String get matchTooLong;
+
+  /// No description provided for @hotkeyPlayPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Play / pause'**
+  String get hotkeyPlayPause;
+
+  /// No description provided for @hotkeyNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next song'**
+  String get hotkeyNext;
+
+  /// No description provided for @hotkeyPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous song'**
+  String get hotkeyPrevious;
+
+  /// No description provided for @hotkeyVolumeUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume up'**
+  String get hotkeyVolumeUp;
+
+  /// No description provided for @hotkeyVolumeDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume down'**
+  String get hotkeyVolumeDown;
+
+  /// No description provided for @hotkeyMute.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute / unmute'**
+  String get hotkeyMute;
+
+  /// No description provided for @hotkeySeekForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward 10 s'**
+  String get hotkeySeekForward;
+
+  /// No description provided for @hotkeySeekBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back 10 s'**
+  String get hotkeySeekBack;
+
+  /// No description provided for @hotkeyLyricsWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show / hide floating lyrics'**
+  String get hotkeyLyricsWindow;
+
+  /// No description provided for @hotkeyShowPrism.
+  ///
+  /// In en, this message translates to:
+  /// **'Show / hide Prism'**
+  String get hotkeyShowPrism;
+
+  /// No description provided for @keySpace.
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get keySpace;
+
+  /// No description provided for @hotkeysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hotkeys'**
+  String get hotkeysTitle;
+
+  /// No description provided for @hotkeysFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'They work everywhere, also while Prism is hidden or a game is in front. Inside Prism also: Space plays or pauses, Ctrl + arrows skip and change the volume.'**
+  String get hotkeysFooter;
+
+  /// No description provided for @hotkeysEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Hotkeys'**
+  String get hotkeysEnabled;
+
+  /// No description provided for @hotkeysEnabledSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Control the music from any app'**
+  String get hotkeysEnabledSubtitle;
+
+  /// No description provided for @hotkeyTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Another app already uses these keys: choose others'**
+  String get hotkeyTaken;
+
+  /// No description provided for @hotkeyNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get hotkeyNone;
+
+  /// No description provided for @hotkeysReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the standard keys'**
+  String get hotkeysReset;
+
+  /// No description provided for @hotkeyPressKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Press the keys you want, for example Ctrl + Alt + a key.'**
+  String get hotkeyPressKeys;
+
+  /// No description provided for @hotkeyNeedsModifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Ctrl, Alt, Shift or Win: a key alone would stop working in every other app.'**
+  String get hotkeyNeedsModifier;
+
+  /// No description provided for @hotkeyClear.
+  ///
+  /// In en, this message translates to:
+  /// **'No key'**
+  String get hotkeyClear;
+
+  /// No description provided for @lyricsWindowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating lyrics'**
+  String get lyricsWindowTitle;
+
+  /// No description provided for @lyricsWindowFooter.
+  ///
+  /// In en, this message translates to:
+  /// **'A small window with the line being sung, on top of everything, also over games and while Prism is hidden. Drag it to move it, drag its sides to make it wider, right-click it for more.'**
+  String get lyricsWindowFooter;
+
+  /// No description provided for @lyricsWindowShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show floating lyrics'**
+  String get lyricsWindowShow;
+
+  /// No description provided for @lyricsWindowShowSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Always on top, see-through'**
+  String get lyricsWindowShowSubtitle;
+
+  /// No description provided for @lyricsWindowSeeThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'See-through'**
+  String get lyricsWindowSeeThrough;
+
+  /// No description provided for @lyricsWindowTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Text size'**
+  String get lyricsWindowTextSize;
+
+  /// No description provided for @lyricsWindowLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Clicks go through it'**
+  String get lyricsWindowLocked;
+
+  /// No description provided for @lyricsWindowLockedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'It can\'t be moved then: turn this off here to move it'**
+  String get lyricsWindowLockedSubtitle;
+
+  /// No description provided for @lyricsWindowLock.
+  ///
+  /// In en, this message translates to:
+  /// **'Lock (clicks go through)'**
+  String get lyricsWindowLock;
+
+  /// No description provided for @lyricsWindowBigger.
+  ///
+  /// In en, this message translates to:
+  /// **'Bigger text'**
+  String get lyricsWindowBigger;
+
+  /// No description provided for @lyricsWindowSmaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Smaller text'**
+  String get lyricsWindowSmaller;
+
+  /// No description provided for @lyricsWindowMoreSeeThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'More see-through'**
+  String get lyricsWindowMoreSeeThrough;
+
+  /// No description provided for @lyricsWindowLessSeeThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'Less see-through'**
+  String get lyricsWindowLessSeeThrough;
+
+  /// No description provided for @lyricsWindowButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating lyrics'**
+  String get lyricsWindowButton;
 }
 
 class _AppLocalizationsDelegate

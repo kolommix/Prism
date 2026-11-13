@@ -2595,7 +2595,7 @@
   "privacyPermRingtoneWhy": "Sets a ringtone made in the editor. You allow it on a system screen when you use it.",
   "privacyPermsFooter": "Never asked for: location, Bluetooth, Wi-Fi details, phone state, contacts, accounts, advertising id.",
   "privacyWindowsTitle": "Windows",
-  "privacyWindowsText": "Needs no special permissions and does not use the Windows location API. Before version 1.2 a library started the Windows location service at launch, so Windows could list Prism as using location. Prism never read or sent the result, and that library is gone.",
+  "privacyWindowsText": "Needs no special permissions and does not use the Windows location API. Before version 1.2 a library started the Windows location service at launch, so Windows could list Prism as using location. Prism never read or sent the result, and that library is gone. Hotkeys are registered one combination at a time: Prism hears only those, never other keys you type.",
   "privacySentTitle": "What leaves this device",
   "privacySentFooter": "Every server sees your IP address, like with any internet request. Prism never looks up where that address is.",
   "privacySentUpdates": "Update check: GitHub",
@@ -2607,7 +2607,7 @@
   "privacySentFonts": "Font: Google Fonts",
   "privacySentFontsWhat": "Downloads the app font once. Sends nothing about you or your music.",
   "privacySentImport": "Import: Spotify, YouTube, SoundCloud, Deezer, Apple Music, Yandex Music",
-  "privacySentImportWhat": "Only when you import: the link you gave. A copied link stays on this device until you tap Import.",
+  "privacySentImportWhat": "Only when you import: the link you gave. A copied link stays on this device until you tap Import. A photo or screenshot is read on this device: the picture is never sent, only the song names found are looked up like any import.",
   "privacySentOnline": "Online songs: YouTube, SoundCloud",
   "privacySentOnlineWhat": "If you turn them on: song searches and the songs you play.",
   "privacySentFixer": "Song info fixer: MusicBrainz, Cover Art Archive, Apple, AcoustID",
@@ -3095,5 +3095,65 @@
   "bgLyricsDemo1": "Every song has words",
   "bgLyricsDemo2": "they rise in as they are sung",
   "bgLyricsDemo3": "and dance along with the music",
-  "bgLyricsDemo4": "then drift away into the dark"
+  "bgLyricsDemo4": "then drift away into the dark",
+  "importResumesOnNetworkChange": "It also goes on by itself as soon as the connection changes, for example when a VPN is switched on.",
+  "photoButton": "Photo",
+  "photoPickTitle": "Screenshots or photos of a playlist",
+  "photoHint": "Or a screenshot or photo of a playlist: Prism reads the song names in it, on this phone",
+  "photoHintDrop": "Or a screenshot or photo of a playlist (drop it here too): Prism reads the song names in it, on this PC",
+  "photoReading": "{count, plural, one{Reading the song names in the picture…} other{Reading the song names in {count} pictures…}}",
+  "@photoReading": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "photoCantRead": "Prism couldn't read this picture. Try a PNG or JPG screenshot.",
+  "photoNoSongs": "No song names found in the picture. A screenshot of the list itself works best: song names with their artists, not too small.",
+  "photoListName": "From a photo, {date}",
+  "@photoListName": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "matchNotMusic": "not a song (a film, talk or review)",
+  "matchTooLong": "far too long for this song",
+  "hotkeyPlayPause": "Play / pause",
+  "hotkeyNext": "Next song",
+  "hotkeyPrevious": "Previous song",
+  "hotkeyVolumeUp": "Volume up",
+  "hotkeyVolumeDown": "Volume down",
+  "hotkeyMute": "Mute / unmute",
+  "hotkeySeekForward": "Forward 10 s",
+  "hotkeySeekBack": "Back 10 s",
+  "hotkeyLyricsWindow": "Show / hide floating lyrics",
+  "hotkeyShowPrism": "Show / hide Prism",
+  "keySpace": "Space",
+  "hotkeysTitle": "Hotkeys",
+  "hotkeysFooter": "They work everywhere, also while Prism is hidden or a game is in front. Inside Prism also: Space plays or pauses, Ctrl + arrows skip and change the volume.",
+  "hotkeysEnabled": "Hotkeys",
+  "hotkeysEnabledSubtitle": "Control the music from any app",
+  "hotkeyTaken": "Another app already uses these keys: choose others",
+  "hotkeyNone": "None",
+  "hotkeysReset": "Back to the standard keys",
+  "hotkeyPressKeys": "Press the keys you want, for example Ctrl + Alt + a key.",
+  "hotkeyNeedsModifier": "Add Ctrl, Alt, Shift or Win: a key alone would stop working in every other app.",
+  "hotkeyClear": "No key",
+  "lyricsWindowTitle": "Floating lyrics",
+  "lyricsWindowFooter": "A small window with the line being sung, on top of everything, also over games and while Prism is hidden. Drag it to move it, drag its sides to make it wider, right-click it for more.",
+  "lyricsWindowShow": "Show floating lyrics",
+  "lyricsWindowShowSubtitle": "Always on top, see-through",
+  "lyricsWindowSeeThrough": "See-through",
+  "lyricsWindowTextSize": "Text size",
+  "lyricsWindowLocked": "Clicks go through it",
+  "lyricsWindowLockedSubtitle": "It can't be moved then: turn this off here to move it",
+  "lyricsWindowLock": "Lock (clicks go through)",
+  "lyricsWindowBigger": "Bigger text",
+  "lyricsWindowSmaller": "Smaller text",
+  "lyricsWindowMoreSeeThrough": "More see-through",
+  "lyricsWindowLessSeeThrough": "Less see-through",
+  "lyricsWindowButton": "Floating lyrics"
 }

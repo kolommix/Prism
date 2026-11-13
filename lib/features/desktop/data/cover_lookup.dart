@@ -7,6 +7,7 @@ import '../../library/data/search_text.dart';
 import '../../library/domain/track.dart';
 import '../../online/domain/external_track.dart';
 import '../../online/domain/matching.dart';
+import '../../online/domain/song_identity.dart';
 import '../../../l10n/l10n.dart';
 
 /// What the public catalogues know about a song, for the Discord status.
@@ -146,25 +147,37 @@ class CoverLookup {
 
   Future<CoverInfo?> find(Track t) async {
     if (_cache.containsKey(t.id)) return _cache[t.id];
-    final title = cleanSongTitle(t.title);
-    final hasArtist = t.artist.isNotEmpty || t.albumArtist.isNotEmpty;
+    // The song as people name it: no "(Official Video)", no "ArtistVEVO",
+    // "Artist - Song" titles of videos and untagged files split.
+    final named = songAsNamed(t.copyWith(title: cleanSongTitle(t.title)));
+    final title = named.title;
+    final hasArtist = named.artists.isNotEmpty;
+    final guessedArtist = artistFromTitle(t, named);
     final wanted = ExternalTrack(
       service: OnlineService.file,
       title: title,
-      artists: hasArtist ? [t.displayArtist] : const [],
+      artists: named.artists,
       durationMs: t.durationMs,
     );
-    final queries = {
-      if (hasArtist) '${t.displayArtist} $title' else title,
-      if (!hasArtist) shortQuery(title),
-    };
+    final artist = hasArtist ? named.artists.first : '';
+    final clean = cleanTitleText(title);
+    // Most precise first; Deezer also understands fields.
+    final queries = <(String, bool)>[
+      if (hasArtist) ('$artist $clean', false),
+      if (hasArtist) ('artist:"$artist" track:"$clean"', true),
+      if (hasArtist) (clean, false),
+      if (!hasArtist) (title, false),
+      if (!hasArtist) (shortQuery(title), false),
+    ];
     CoverInfo? found;
     var answered = false, failed = false;
+    final asked = <String>{};
     search:
-    for (final query in queries) {
-      for (final source in [_itunes, _deezer]) {
+    for (final (query, deezerOnly) in queries) {
+      if (query.trim().isEmpty || !asked.add(query)) continue;
+      for (final source in [if (!deezerOnly) _itunes, _deezer]) {
         try {
-          found = _best(wanted, await source(query));
+          found = _best(wanted, await source(query), strict: guessedArtist);
           answered = true;
         } on Object {
           failed = true;
@@ -178,7 +191,7 @@ class CoverLookup {
     return found;
   }
 
-  CoverInfo? _best(ExternalTrack wanted, List<(Track, CoverInfo)> results) {
+  CoverInfo? _best(ExternalTrack wanted, List<(Track, CoverInfo)> results, {bool strict = false}) {
     if (results.isEmpty) return null;
     if (wanted.artists.isEmpty) {
       for (final r in results) {
@@ -187,12 +200,26 @@ class CoverLookup {
       return null;
     }
     final best = MatchScorer.best(wanted, [for (final r in results) r.$1]);
-    if (best == null || best.score.value < _minScore) return null;
+    // An artist read out of a title is a guess: ask for more.
+    if (best == null || best.score.value < (strict ? 0.7 : _minScore)) return null;
     return results.firstWhere((r) => identical(r.$1, best.track)).$2;
   }
 
+  /// Apple's catalogue differs per country: Russian songs are often only in
+  /// the Russian store, so a Cyrillic name is looked up there too.
   Future<List<(Track, CoverInfo)>> _itunes(String q) async {
-    final uri = Uri.https('itunes.apple.com', '/search', {'term': q, 'entity': 'song', 'limit': '8'});
+    final results = await _itunesIn(q, null);
+    if (results.isNotEmpty || !RegExp(r'[Ѐ-ӿ]').hasMatch(q)) return results;
+    return _itunesIn(q, 'RU');
+  }
+
+  Future<List<(Track, CoverInfo)>> _itunesIn(String q, String? country) async {
+    final uri = Uri.https('itunes.apple.com', '/search', {
+      'term': q,
+      'entity': 'song',
+      'limit': '8',
+      'country': ?country,
+    });
     final res = await _client.get(uri).timeout(const Duration(seconds: 6));
     if (res.statusCode != 200) throw http.ClientException('Apple: ${res.statusCode}');
     return parseITunes(utf8.decode(res.bodyBytes));

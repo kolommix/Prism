@@ -62,9 +62,17 @@ class ImportDownloader extends Notifier<ImportDownload?> {
   Timer? _retryTimer;
   final _attempts = <int, int>{};
 
+  /// While stopped because YouTube can't be reached: a VPN switched on (or
+  /// any other change of the connection) starts saving again at once.
+  NetworkWatch? _watching;
+  NetworkWatch get _watch => _watching ??= ref.read(networkWatchFactoryProvider)();
+
   @override
   ImportDownload? build() {
-    ref.onDispose(() => _retryTimer?.cancel());
+    ref.onDispose(() {
+      _retryTimer?.cancel();
+      _watching?.stop();
+    });
     return null;
   }
 
@@ -72,6 +80,7 @@ class ImportDownloader extends Notifier<ImportDownload?> {
     _stop = true;
     _stoppedByUser = true;
     _retryTimer?.cancel();
+    _watching?.stop();
   }
 
   /// Downloads whatever this job has waiting. Safe to call often.
@@ -86,6 +95,7 @@ class ImportDownloader extends Notifier<ImportDownload?> {
   /// Tries the songs that failed before as well.
   void retry(int jobId) {
     _retryTimer?.cancel();
+    _watching?.stop();
     _failed.clear();
     poke(jobId);
   }
@@ -123,6 +133,12 @@ class ImportDownloader extends Notifier<ImportDownload?> {
           // towards stopping.
           final blocked = e is OnlineException && e.kind == OnlineErrorKind.notFound;
           if (!blocked && ++inARow >= giveUpAfter) _stop = true;
+          // YouTube doesn't answer from here at all (blocked on this
+          // network, no VPN): the next songs would only time out too.
+          if (!_stop && e is OnlineException && e.kind == OnlineErrorKind.offline) {
+            final service = e.service ?? OnlineService.youtube;
+            if (!await ref.read(networkCheckProvider).reachable(service, saving: true)) _stop = true;
+          }
         } finally {
           _claimed.remove(item.id);
         }
@@ -143,9 +159,16 @@ class ImportDownloader extends Notifier<ImportDownload?> {
         final attempt = _attempts[jobId] ?? 0;
         _attempts[jobId] = attempt + 1;
         final wait = importRetryDelay(attempt);
-        message = '${message ?? ''} ${l10n.importRetryIn(wait.inMinutes)}'.trim();
+        final unreachable = lastError is OnlineException && (lastError as OnlineException).kind == OnlineErrorKind.offline;
+        message = '${message ?? ''} ${l10n.importRetryIn(wait.inMinutes)}${unreachable ? ' ${l10n.importResumesOnNetworkChange}' : ''}'.trim();
         _retryTimer?.cancel();
         _retryTimer = Timer(wait, () => retry(jobId));
+        if (unreachable) {
+          _watch.start(() {
+            _attempts.remove(jobId);
+            retry(jobId);
+          });
+        }
       } else if (failed == 0) {
         _attempts.remove(jobId);
       }

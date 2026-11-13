@@ -119,18 +119,31 @@ class ImportRunner extends Notifier<ImportRun?> {
   Timer? _retry;
   final _attempts = <int, int>{};
 
+  /// While paused because a service can't be reached: a VPN switched on (or
+  /// any other change of the connection) starts the import again at once.
+  NetworkWatch? _watching;
+  NetworkWatch get _watch => _watching ??= ref.read(networkWatchFactoryProvider)();
+
   @override
-  ImportRun? build() => null;
+  ImportRun? build() {
+    ref.onDispose(() {
+      _retry?.cancel();
+      _watching?.stop();
+    });
+    return null;
+  }
 
   bool isRunning(int jobId) => state?.jobId == jobId && state!.running;
 
   void pause() {
     _stop = true;
     _retry?.cancel();
+    _watching?.stop();
   }
 
   Future<void> run(int jobId) async {
     _retry?.cancel();
+    _watching?.stop();
     if (state?.running ?? false) {
       if (state!.jobId == jobId) return;
       pause();
@@ -147,6 +160,7 @@ class ImportRunner extends Notifier<ImportRun?> {
     final total = queue.length;
     var done = 0;
     String? pauseMessage;
+    var unreachable = false;
     final retries = <int, int>{};
     state = ImportRun(jobId: jobId, done: 0, total: total);
 
@@ -171,12 +185,20 @@ class ImportRunner extends Notifier<ImportRun?> {
           // One slow answer or dropped connection is common on a weak or
           // filtered network: try the song again a little later before the
           // whole import pauses.
-          if (e.isTransient && n <= transientRetries && !_stop) {
+          //
+          // Unless the service doesn't answer from here at all (blocked on
+          // this network, no VPN): then waiting for more timeouts only
+          // keeps the user in the dark for minutes. Say so right away.
+          final service = e.service;
+          final blockedHere = e.kind == OnlineErrorKind.offline && service != null && !await ref.read(networkCheckProvider).reachable(service);
+          if (!blockedHere && e.isTransient && n <= transientRetries && !_stop) {
             queue.insert(0, item);
             await Future<void>.delayed(transientWait * n);
             continue;
           }
           // Offline / rate limited / server down: stop, keep the song pending.
+          queue.insert(0, item);
+          unreachable = e.kind == OnlineErrorKind.offline;
           pauseMessage = (await ref.read(networkCheckProvider).explain(e)).message;
           _stop = true;
           break;
@@ -222,7 +244,7 @@ class ImportRunner extends Notifier<ImportRun?> {
             ? null
             : pauseMessage == null
             ? l10n.pausedSongsLeft(left)
-            : '$pauseMessage ${l10n.importRetryIn(importRetryDelay(_attempts[jobId] ?? 0).inMinutes)}',
+            : '$pauseMessage ${l10n.importRetryIn(importRetryDelay(_attempts[jobId] ?? 0).inMinutes)}${unreachable ? ' ${l10n.importResumesOnNetworkChange}' : ''}',
       );
     }
     // A service said wait: go on by itself later, nobody has to press Resume.
@@ -230,6 +252,12 @@ class ImportRunner extends Notifier<ImportRun?> {
       final attempt = _attempts[jobId] ?? 0;
       _attempts[jobId] = attempt + 1;
       _retry = Timer(importRetryDelay(attempt), () => unawaited(run(jobId)));
+      if (unreachable) {
+        _watch.start(() {
+          _attempts.remove(jobId);
+          unawaited(run(jobId));
+        });
+      }
     } else if (left == 0) {
       _attempts.remove(jobId);
     }

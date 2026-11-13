@@ -7,6 +7,7 @@ import '../../playlists/domain/playlist_share.dart';
 import 'import_parsers.dart';
 import 'link_parser.dart';
 import 'online_error.dart';
+import 'photo_songs.dart';
 
 /// File types the import screen takes.
 const importFileExtensions = ['csv', 'tsv', 'txt', 'json', 'm3u', 'm3u8', shareExtension];
@@ -39,6 +40,12 @@ class FileInput extends ImportInput {
   final String path;
 }
 
+/// Screenshots or photos of a playlist: their song names are read.
+class PhotosInput extends ImportInput {
+  const PhotosInput(this.paths);
+  final List<String> paths;
+}
+
 /// Nothing Prism can read.
 class UnknownInput extends ImportInput {
   const UnknownInput();
@@ -53,6 +60,7 @@ ImportInput classifyImportText(String text) {
   if (link != null) return ServiceLinkInput(link);
   // A single line that names a playlist file (a path from the command line).
   if (!t.contains('\n') && !t.contains('://') && isImportFile(t)) return FileInput(t);
+  if (!t.contains('\n') && !t.contains('://') && isPhotoFile(t)) return PhotosInput([t]);
   return const UnknownInput();
 }
 
@@ -70,8 +78,18 @@ String describeLink(ParsedLink l) => '${l.service.label} ${switch (l.kind) {
 class ImportRequest {
   const ImportRequest.text(String this.text)
       : fileName = null,
+        fileText = null,
+        photos = const [];
+  const ImportRequest.file(String this.fileName, String this.fileText)
+      : text = null,
+        photos = const [];
+  const ImportRequest.photos(this.photos)
+      : text = null,
+        fileName = null,
         fileText = null;
-  const ImportRequest.file(String this.fileName, String this.fileText) : text = null;
+
+  /// Pictures to read song names from.
+  final List<String> photos;
 
   final String? text;
   final String? fileName;

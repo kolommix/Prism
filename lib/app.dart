@@ -40,6 +40,8 @@ import 'features/together/application/together_controller.dart';
 import 'features/update/update_check.dart';
 import 'features/update/update_installer.dart';
 import 'features/onboarding/presentation/welcome_tour.dart';
+import 'features/hotkeys/application/hotkey_controller.dart';
+import 'features/lyrics/application/lyrics_window.dart';
 /// Windows integration instance (null on Android / in tests).
 final windowsIntegrationProvider = Provider<WindowsDesktopIntegration?>((ref) => null);
 
@@ -259,6 +261,9 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     ref.listen(loudnessControllerProvider, (_, _) {});
     // Finds missing covers and artists in the background (if on).
     ref.listen(autoTaggerProvider, (_, _) {});
+    // Windows: system-wide hotkeys and the floating lyrics window.
+    ref.listen(hotkeysProvider, (_, _) {});
+    ref.listen(lyricsWindowProvider, (_, _) {});
     // Records listens for smart playlists and stats (never changes value).
     ref.watch(playRecorderProvider);
     // Android home-screen widget + Discord presence (no-ops elsewhere).

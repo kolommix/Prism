@@ -3954,7 +3954,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyWindowsText =>
-      'Needs no special permissions and does not use the Windows location API. Before version 1.2 a library started the Windows location service at launch, so Windows could list Prism as using location. Prism never read or sent the result, and that library is gone.';
+      'Needs no special permissions and does not use the Windows location API. Before version 1.2 a library started the Windows location service at launch, so Windows could list Prism as using location. Prism never read or sent the result, and that library is gone. Hotkeys are registered one combination at a time: Prism hears only those, never other keys you type.';
 
   @override
   String get privacySentTitle => 'What leaves this device';
@@ -3997,7 +3997,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacySentImportWhat =>
-      'Only when you import: the link you gave. A copied link stays on this device until you tap Import.';
+      'Only when you import: the link you gave. A copied link stays on this device until you tap Import. A photo or screenshot is read on this device: the picture is never sent, only the song names found are looked up like any import.';
 
   @override
   String get privacySentOnline => 'Online songs: YouTube, SoundCloud';
@@ -4854,4 +4854,163 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bgLyricsDemo4 => 'then drift away into the dark';
+
+  @override
+  String get importResumesOnNetworkChange =>
+      'It also goes on by itself as soon as the connection changes, for example when a VPN is switched on.';
+
+  @override
+  String get photoButton => 'Photo';
+
+  @override
+  String get photoPickTitle => 'Screenshots or photos of a playlist';
+
+  @override
+  String get photoHint =>
+      'Or a screenshot or photo of a playlist: Prism reads the song names in it, on this phone';
+
+  @override
+  String get photoHintDrop =>
+      'Or a screenshot or photo of a playlist (drop it here too): Prism reads the song names in it, on this PC';
+
+  @override
+  String photoReading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Reading the song names in $count pictures…',
+      one: 'Reading the song names in the picture…',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get photoCantRead =>
+      'Prism couldn\'t read this picture. Try a PNG or JPG screenshot.';
+
+  @override
+  String get photoNoSongs =>
+      'No song names found in the picture. A screenshot of the list itself works best: song names with their artists, not too small.';
+
+  @override
+  String photoListName(String date) {
+    return 'From a photo, $date';
+  }
+
+  @override
+  String get matchNotMusic => 'not a song (a film, talk or review)';
+
+  @override
+  String get matchTooLong => 'far too long for this song';
+
+  @override
+  String get hotkeyPlayPause => 'Play / pause';
+
+  @override
+  String get hotkeyNext => 'Next song';
+
+  @override
+  String get hotkeyPrevious => 'Previous song';
+
+  @override
+  String get hotkeyVolumeUp => 'Volume up';
+
+  @override
+  String get hotkeyVolumeDown => 'Volume down';
+
+  @override
+  String get hotkeyMute => 'Mute / unmute';
+
+  @override
+  String get hotkeySeekForward => 'Forward 10 s';
+
+  @override
+  String get hotkeySeekBack => 'Back 10 s';
+
+  @override
+  String get hotkeyLyricsWindow => 'Show / hide floating lyrics';
+
+  @override
+  String get hotkeyShowPrism => 'Show / hide Prism';
+
+  @override
+  String get keySpace => 'Space';
+
+  @override
+  String get hotkeysTitle => 'Hotkeys';
+
+  @override
+  String get hotkeysFooter =>
+      'They work everywhere, also while Prism is hidden or a game is in front. Inside Prism also: Space plays or pauses, Ctrl + arrows skip and change the volume.';
+
+  @override
+  String get hotkeysEnabled => 'Hotkeys';
+
+  @override
+  String get hotkeysEnabledSubtitle => 'Control the music from any app';
+
+  @override
+  String get hotkeyTaken =>
+      'Another app already uses these keys: choose others';
+
+  @override
+  String get hotkeyNone => 'None';
+
+  @override
+  String get hotkeysReset => 'Back to the standard keys';
+
+  @override
+  String get hotkeyPressKeys =>
+      'Press the keys you want, for example Ctrl + Alt + a key.';
+
+  @override
+  String get hotkeyNeedsModifier =>
+      'Add Ctrl, Alt, Shift or Win: a key alone would stop working in every other app.';
+
+  @override
+  String get hotkeyClear => 'No key';
+
+  @override
+  String get lyricsWindowTitle => 'Floating lyrics';
+
+  @override
+  String get lyricsWindowFooter =>
+      'A small window with the line being sung, on top of everything, also over games and while Prism is hidden. Drag it to move it, drag its sides to make it wider, right-click it for more.';
+
+  @override
+  String get lyricsWindowShow => 'Show floating lyrics';
+
+  @override
+  String get lyricsWindowShowSubtitle => 'Always on top, see-through';
+
+  @override
+  String get lyricsWindowSeeThrough => 'See-through';
+
+  @override
+  String get lyricsWindowTextSize => 'Text size';
+
+  @override
+  String get lyricsWindowLocked => 'Clicks go through it';
+
+  @override
+  String get lyricsWindowLockedSubtitle =>
+      'It can\'t be moved then: turn this off here to move it';
+
+  @override
+  String get lyricsWindowLock => 'Lock (clicks go through)';
+
+  @override
+  String get lyricsWindowBigger => 'Bigger text';
+
+  @override
+  String get lyricsWindowSmaller => 'Smaller text';
+
+  @override
+  String get lyricsWindowMoreSeeThrough => 'More see-through';
+
+  @override
+  String get lyricsWindowLessSeeThrough => 'Less see-through';
+
+  @override
+  String get lyricsWindowButton => 'Floating lyrics';
 }

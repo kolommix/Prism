@@ -1,3 +1,5 @@
+import java.net.URI
+import java.security.MessageDigest
 import java.util.Properties
 
 plugins {
@@ -60,6 +62,75 @@ android {
             signingConfig = if (keyProps.isNotEmpty()) signingConfigs.getByName("release")
             else signingConfigs.getByName("debug")
         }
+    }
+}
+
+dependencies {
+    // Reads song names in photos and screenshots, on the phone (no internet).
+    implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
+}
+
+// Tesseract's English + Russian reading data (tessdata_fast 4.1.0), fetched at
+// build time and checked byte for byte, then shipped inside the app as assets.
+abstract class FetchTessdata : DefaultTask() {
+    @get:Input
+    abstract val files: MapProperty<String, String>
+
+    @get:Internal
+    abstract val cacheDir: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun fetch() {
+        val out = outputDir.get().asFile.resolve("tessdata").apply { mkdirs() }
+        val cache = cacheDir.get().asFile.apply { mkdirs() }
+        for ((name, sha) in files.get()) {
+            val cached = cache.resolve(name)
+            if (!cached.exists() || sha256(cached) != sha) {
+                val url = "https://github.com/tesseract-ocr/tessdata_fast/raw/4.1.0/$name"
+                val tmp = cache.resolve("$name.part")
+                URI(url).toURL().openStream().use { input -> tmp.outputStream().use { input.copyTo(it) } }
+                val got = sha256(tmp)
+                if (got != sha) {
+                    tmp.delete()
+                    throw GradleException("$name: checksum $got, expected $sha")
+                }
+                tmp.renameTo(cached.also { it.delete() })
+            }
+            cached.copyTo(out.resolve(name), overwrite = true)
+        }
+    }
+
+    private fun sha256(f: File): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        f.inputStream().use { s ->
+            val buf = ByteArray(1 shl 16)
+            while (true) {
+                val n = s.read(buf)
+                if (n < 0) break
+                md.update(buf, 0, n)
+            }
+        }
+        return md.digest().joinToString("") { "%02x".format(it) }
+    }
+}
+
+val fetchTessdata = tasks.register<FetchTessdata>("fetchTessdata") {
+    files.set(
+        mapOf(
+            "eng.traineddata" to "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+            "rus.traineddata" to "e16e5e036cce1d9ec2b00063cf8b54472625b9e14d893a169e2b0dedeb4df225",
+        ),
+    )
+    cacheDir.set(File(gradle.gradleUserHomeDir, "caches/prism-tessdata"))
+    outputDir.set(layout.buildDirectory.dir("generated/tessdata"))
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(fetchTessdata, FetchTessdata::outputDir)
     }
 }
 

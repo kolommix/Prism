@@ -16,6 +16,8 @@ import '../../playlists/presentation/playlist_dialogs.dart';
 import '../application/import_flow.dart';
 import '../application/online_providers.dart';
 import '../data/import_repository.dart';
+import '../data/photo_reader.dart';
+import '../domain/photo_songs.dart';
 import 'import_job_page.dart';
 import '../domain/external_track.dart';
 import '../domain/import_intake.dart';
@@ -157,7 +159,9 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   Future<void> _openInbox() async {
     for (final r in ref.read(importInboxProvider.notifier).takeAll()) {
       if (!mounted) return;
-      if (r.fileName != null) {
+      if (r.photos.isNotEmpty) {
+        await _importPhotos(r.photos);
+      } else if (r.fileName != null) {
         await _importFile(r.fileName!, r.fileText ?? '');
       } else {
         await _importText(r.text ?? '');
@@ -211,6 +215,23 @@ class _ImportPageState extends ConsumerState<ImportPage> {
   Future<void> _importFile(String name, String text) {
     final flow = ref.read(importFlowProvider);
     return _run(l10n.reading(name), () async => flow.readFile(name, text));
+  }
+
+  /// Screenshots or photos of a playlist: the song names in them are read here.
+  Future<void> _importPhotos(List<String> paths) {
+    final flow = ref.read(importFlowProvider);
+    return _run(l10n.photoReading(paths.length), () => flow.readPhotos(paths), retry: () => _importPhotos(paths));
+  }
+
+  Future<void> _pickPhotos() async {
+    final files = await FilePicker.pickFiles(
+      dialogTitle: l10n.photoPickTitle,
+      type: Platform.isAndroid ? FileType.image : FileType.custom,
+      allowedExtensions: Platform.isAndroid ? null : photoExtensions,
+    );
+    final paths = [for (final f in files) ?f.path];
+    if (paths.isEmpty || !mounted) return;
+    await _importPhotos(paths);
   }
 
   Future<void> _submit() async {
@@ -427,6 +448,25 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                           ),
                         ],
                       ),
+                      if (PhotoReader.supported) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                Platform.isWindows ? l10n.photoHintDrop : l10n.photoHint,
+                                style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            OutlinedButton.icon(
+                              onPressed: busy == null ? _pickPhotos : null,
+                              icon: const Icon(Icons.image_outlined, size: 18),
+                              label: Text(l10n.photoButton),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

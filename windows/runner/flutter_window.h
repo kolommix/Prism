@@ -9,6 +9,9 @@
 #include <memory>
 
 #include "drop_bridge.h"
+#include "hotkey_bridge.h"
+#include "lyrics_window.h"
+#include "ocr_bridge.h"
 #include "smtc_bridge.h"
 #include "tray_bridge.h"
 #include "frame_pump.h"
@@ -48,6 +51,15 @@ class FlutterWindow : public Win32Window {
 
   // Notification-area icon (see tray_bridge.h).
   std::unique_ptr<TrayBridge> tray_bridge_;
+
+  // Always-on-top lyrics (see lyrics_window.h).
+  std::unique_ptr<LyricsWindow> lyrics_window_;
+
+  // System-wide hotkeys (see hotkey_bridge.h).
+  std::unique_ptr<HotkeyBridge> hotkey_bridge_;
+
+  // Reads the text in pictures (see ocr_bridge.h).
+  std::unique_ptr<OcrBridge> ocr_bridge_;
 
   // Files and links dropped on the window (see drop_bridge.h).
   std::unique_ptr<DropBridge> drop_bridge_;

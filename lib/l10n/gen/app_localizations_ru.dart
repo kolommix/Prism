@@ -4038,7 +4038,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get privacyWindowsText =>
-      'Не требует особых разрешений и не использует службу определения местоположения Windows. До версии 1.2 одна библиотека запускала её при старте, поэтому Windows могла показывать, что Prism использует местоположение. Prism не читал и не отправлял результат, эта библиотека удалена.';
+      'Не требует особых разрешений и не использует службу определения местоположения Windows. До версии 1.2 одна библиотека запускала её при старте, поэтому Windows могла показывать, что Prism использует местоположение. Prism не читал и не отправлял результат, эта библиотека удалена. Горячие клавиши регистрируются по одной комбинации: Prism слышит только их и никогда не видит другие нажатия.';
 
   @override
   String get privacySentTitle => 'Что покидает устройство';
@@ -4081,7 +4081,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get privacySentImportWhat =>
-      'Только при импорте: ссылка, которую вы указали. Скопированная ссылка остаётся на устройстве, пока вы не нажмёте «Импорт».';
+      'Только при импорте: ссылка, которую вы указали. Скопированная ссылка остаётся на устройстве, пока вы не нажмёте «Импорт». Фото или скриншот читается прямо на устройстве: сама картинка никуда не отправляется, найденные названия песен ищутся как при любом импорте.';
 
   @override
   String get privacySentOnline => 'Онлайн-песни: YouTube, SoundCloud';
@@ -4960,4 +4960,165 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get bgLyricsDemo4 => 'а потом уплывают в темноту';
+
+  @override
+  String get importResumesOnNetworkChange =>
+      'Продолжит сам и раньше, как только изменится подключение, например включится VPN.';
+
+  @override
+  String get photoButton => 'Фото';
+
+  @override
+  String get photoPickTitle => 'Скриншоты или фото плейлиста';
+
+  @override
+  String get photoHint =>
+      'Или скриншот или фото плейлиста: Prism прочитает в нём названия песен, прямо на телефоне';
+
+  @override
+  String get photoHintDrop =>
+      'Или скриншот или фото плейлиста (можно перетащить сюда): Prism прочитает в нём названия песен, прямо на этом ПК';
+
+  @override
+  String photoReading(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Читаю названия песен на $count картинках…',
+      many: 'Читаю названия песен на $count картинках…',
+      few: 'Читаю названия песен на $count картинках…',
+      one: 'Читаю названия песен на картинке…',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get photoCantRead =>
+      'Prism не смог прочитать эту картинку. Попробуйте скриншот в PNG или JPG.';
+
+  @override
+  String get photoNoSongs =>
+      'На картинке не нашлось названий песен. Лучше всего подходит скриншот самого списка: названия с исполнителями, не слишком мелко.';
+
+  @override
+  String photoListName(String date) {
+    return 'С фото, $date';
+  }
+
+  @override
+  String get matchNotMusic => 'не песня (фильм, разговор или обзор)';
+
+  @override
+  String get matchTooLong => 'слишком длинное для этой песни';
+
+  @override
+  String get hotkeyPlayPause => 'Пуск / пауза';
+
+  @override
+  String get hotkeyNext => 'Следующая песня';
+
+  @override
+  String get hotkeyPrevious => 'Предыдущая песня';
+
+  @override
+  String get hotkeyVolumeUp => 'Громче';
+
+  @override
+  String get hotkeyVolumeDown => 'Тише';
+
+  @override
+  String get hotkeyMute => 'Без звука / со звуком';
+
+  @override
+  String get hotkeySeekForward => 'Вперёд на 10 с';
+
+  @override
+  String get hotkeySeekBack => 'Назад на 10 с';
+
+  @override
+  String get hotkeyLyricsWindow => 'Показать / скрыть плавающий текст';
+
+  @override
+  String get hotkeyShowPrism => 'Показать / скрыть Prism';
+
+  @override
+  String get keySpace => 'Пробел';
+
+  @override
+  String get hotkeysTitle => 'Горячие клавиши';
+
+  @override
+  String get hotkeysFooter =>
+      'Работают везде, даже когда Prism скрыт или открыта игра. Внутри Prism ещё: пробел включает и ставит на паузу, Ctrl + стрелки переключают песни и меняют громкость.';
+
+  @override
+  String get hotkeysEnabled => 'Горячие клавиши';
+
+  @override
+  String get hotkeysEnabledSubtitle => 'Управлять музыкой из любого приложения';
+
+  @override
+  String get hotkeyTaken =>
+      'Эти клавиши уже заняты другим приложением: выберите другие';
+
+  @override
+  String get hotkeyNone => 'Нет';
+
+  @override
+  String get hotkeysReset => 'Вернуть стандартные клавиши';
+
+  @override
+  String get hotkeyPressKeys =>
+      'Нажмите нужные клавиши, например Ctrl + Alt + клавиша.';
+
+  @override
+  String get hotkeyNeedsModifier =>
+      'Добавьте Ctrl, Alt, Shift или Win: одна клавиша перестала бы работать во всех других приложениях.';
+
+  @override
+  String get hotkeyClear => 'Без клавиши';
+
+  @override
+  String get lyricsWindowTitle => 'Плавающий текст';
+
+  @override
+  String get lyricsWindowFooter =>
+      'Маленькое окно со строкой, которую сейчас поют, поверх всего, даже поверх игр и когда Prism скрыт. Перетащите, чтобы передвинуть, потяните за края, чтобы сделать шире, правый клик открывает меню.';
+
+  @override
+  String get lyricsWindowShow => 'Показывать плавающий текст';
+
+  @override
+  String get lyricsWindowShowSubtitle => 'Всегда сверху, полупрозрачный';
+
+  @override
+  String get lyricsWindowSeeThrough => 'Прозрачность';
+
+  @override
+  String get lyricsWindowTextSize => 'Размер текста';
+
+  @override
+  String get lyricsWindowLocked => 'Клики проходят сквозь него';
+
+  @override
+  String get lyricsWindowLockedSubtitle =>
+      'Тогда его нельзя передвинуть: выключите здесь, чтобы передвинуть';
+
+  @override
+  String get lyricsWindowLock => 'Закрепить (клики проходят сквозь)';
+
+  @override
+  String get lyricsWindowBigger => 'Текст крупнее';
+
+  @override
+  String get lyricsWindowSmaller => 'Текст мельче';
+
+  @override
+  String get lyricsWindowMoreSeeThrough => 'Прозрачнее';
+
+  @override
+  String get lyricsWindowLessSeeThrough => 'Менее прозрачно';
+
+  @override
+  String get lyricsWindowButton => 'Плавающий текст';
 }

@@ -142,7 +142,7 @@ just text without time
       calls = 0;
       expect(await repo.lyricsFor(track, online: true), isNull);
       expect(await repo.lyricsFor(track, online: true), isNull);
-      expect(calls, 2, reason: 'get + search once, then cached as none');
+      expect(calls, 4, reason: 'get + 3 searches once, then cached as none');
     });
   });
 }

@@ -9,6 +9,9 @@ import 'package:path/path.dart' as p;
 
 import '../../../core/db/app_database.dart';
 import '../../library/domain/track.dart';
+import '../../online/domain/external_track.dart';
+import '../../online/domain/matching.dart';
+import '../../online/domain/song_identity.dart';
 import '../domain/lrc.dart';
 
 /// Result of an LRCLIB lookup.
@@ -33,6 +36,9 @@ class LrclibUnavailable extends LrclibResult {
   final String reason;
 }
 
+/// What to ask LRCLIB for (see [songAsNamed]).
+ExternalTrack lyricsWanted(Track t) => songAsNamed(t);
+
 /// Minimal client for https://lrclib.net (free, no key). Sends only title,
 /// artist, album and duration.
 class LrclibClient {
@@ -42,42 +48,64 @@ class LrclibClient {
   static const _base = 'https://lrclib.net/api';
   static const _headers = {'User-Agent': 'Prism music player (personal project; github.com/kolommix)'};
 
+  /// Below this a search result is someone else's song.
+  static const _accept = 0.7;
+
   Future<LrclibResult> lookup(Track t) async {
+    final want = lyricsWanted(t);
+    final title = cleanTitleText(want.title);
+    if (title.isEmpty) return const LrclibNotFound();
+    final artist = want.artists.isEmpty ? '' : want.artists.first;
     try {
       // 1) Exact match (title + artist + album + duration ±2 s on their side).
-      final get = Uri.parse('$_base/get').replace(queryParameters: {
-        'track_name': t.title,
-        'artist_name': t.displayArtist,
-        if (t.album.isNotEmpty) 'album_name': t.album,
-        if (t.durationMs > 0) 'duration': '${(t.durationMs / 1000).round()}',
-      });
-      final r = await _client.get(get, headers: _headers).timeout(const Duration(seconds: 8));
-      if (r.statusCode == 200) return _parse(jsonDecode(r.body) as Map<String, dynamic>);
-      if (r.statusCode >= 500) return LrclibUnavailable('HTTP ${r.statusCode}');
-
-      // 2) Fuzzy search, pick the closest duration that has synced lyrics.
-      final search = Uri.parse('$_base/search').replace(queryParameters: {
-        'track_name': t.title,
-        if (t.artist.isNotEmpty) 'artist_name': t.artist,
-      });
-      final s = await _client.get(search, headers: _headers).timeout(const Duration(seconds: 8));
-      if (s.statusCode >= 500) return LrclibUnavailable('HTTP ${s.statusCode}');
-      if (s.statusCode != 200) return const LrclibNotFound();
-      final list = (jsonDecode(s.body) as List).cast<Map<String, dynamic>>();
-      if (list.isEmpty) return const LrclibNotFound();
-      final secs = t.durationMs / 1000;
-      list.sort((a, b) {
-        double score(Map<String, dynamic> m) {
-          final d = ((m['duration'] as num?)?.toDouble() ?? 0) - secs;
-          return d.abs() + (m['syncedLyrics'] == null ? 30 : 0);
+      if (artist.isNotEmpty && t.durationMs > 0) {
+        final get = Uri.parse('$_base/get').replace(queryParameters: {
+          'track_name': want.title,
+          'artist_name': artist,
+          if (want.album.isNotEmpty) 'album_name': want.album,
+          'duration': '${(t.durationMs / 1000).round()}',
+        });
+        final r = await _client.get(get, headers: _headers).timeout(const Duration(seconds: 8));
+        if (r.statusCode == 200) {
+          final found = _parse(jsonDecode(r.body) as Map<String, dynamic>);
+          if (found is LrclibFound) return found;
         }
+        // The service is down: try again another time, don't hammer it.
+        if (r.statusCode >= 500) return LrclibUnavailable('HTTP ${r.statusCode}');
+      }
 
-        return score(a).compareTo(score(b));
-      });
-      final best = list.first;
-      final dur = (best['duration'] as num?)?.toDouble();
-      if (t.durationMs > 0 && dur != null && (dur - secs).abs() > 6) return const LrclibNotFound();
-      return _parse(best);
+      // 2) Searches, from the most to the least precise; every answer is
+      // scored like an import match (title, artist, length), the best wins.
+      final queries = <Map<String, String>>[
+        if (artist.isNotEmpty) {'track_name': title, 'artist_name': artist},
+        {'q': '$artist $title'.trim()},
+        if (artist.isNotEmpty) {'track_name': title},
+      ];
+      final seen = <Object?>{};
+      Map<String, dynamic>? best;
+      var bestScore = 0.0;
+      for (final q in queries) {
+        final s = await _client
+            .get(Uri.parse('$_base/search').replace(queryParameters: q), headers: _headers)
+            .timeout(const Duration(seconds: 8));
+        if (s.statusCode >= 500) return LrclibUnavailable('HTTP ${s.statusCode}');
+        if (s.statusCode != 200) continue;
+        for (final m in (jsonDecode(s.body) as List).whereType<Map<String, dynamic>>()) {
+          if (!seen.add(m['id'] ?? '${m['trackName']}|${m['artistName']}|${m['duration']}')) continue;
+          final score = lyricsCandidateScore(want, m);
+          if (score > bestScore) {
+            bestScore = score;
+            best = m;
+          }
+        }
+        // A sure match with timed lyrics: no need to ask more.
+        if (best != null && bestScore >= 0.9 && best['syncedLyrics'] != null) break;
+      }
+      if (best != null && bestScore >= _accept) {
+        if (best['instrumental'] == true) return const LrclibNotFound();
+        return _parse(best);
+      }
+      return const LrclibNotFound();
     } on Exception catch (e) {
       return LrclibUnavailable('$e');
     }
@@ -91,6 +119,35 @@ class LrclibClient {
     }
     return LrclibFound(synced: synced, plain: plain);
   }
+}
+
+/// How well one LRCLIB search answer fits [want] (0..1.04): the import matcher's
+/// score, a small plus for timed lyrics, nothing for an empty entry, and a
+/// different length (another version, timing would be off) pushed down.
+double lyricsCandidateScore(ExternalTrack want, Map<String, dynamic> m) {
+  final synced = (m['syncedLyrics'] as String?)?.trim() ?? '';
+  final plain = (m['plainLyrics'] as String?)?.trim() ?? '';
+  if (synced.isEmpty && plain.isEmpty && m['instrumental'] != true) return 0;
+  final durMs = (((m['duration'] as num?)?.toDouble() ?? 0) * 1000).round();
+  final candidate = Track(
+    id: 0,
+    uri: '',
+    title: '${m['trackName'] ?? m['name'] ?? ''}',
+    artist: '${m['artistName'] ?? ''}',
+    album: '${m['albumName'] ?? ''}',
+    durationMs: durMs,
+  );
+  var score = MatchScorer.score(want, candidate).value;
+  if (want.durationMs > 0 && durMs > 0) {
+    final diff = (want.durationMs - durMs).abs();
+    if (diff > 15000) {
+      score *= 0.5;
+    } else if (diff > 8000) {
+      score *= 0.85;
+    }
+  }
+  // Timed lyrics win a tie (so the score can pass 1).
+  return score.clamp(0, 1).toDouble() + (synced.isNotEmpty ? 0.04 : 0);
 }
 
 /// Finds lyrics for a track, in this order:
@@ -107,11 +164,17 @@ class LyricsRepository {
 
   static const _retryNone = Duration(days: 7);
 
+  /// "Nothing found" by the current way of looking. Older "none" rows
+  /// ('none', from the simpler lookup) are asked again once.
+  static const _none = 'none2';
+  static bool _isNone(String source) => source == 'none' || source == _none;
+
   Future<Lyrics?> lyricsFor(Track t, {required bool online}) async {
     final cached = await (_db.select(_db.lyricsCache)..where((c) => c.trackId.equals(t.id))).getSingleOrNull();
     if (cached != null) {
-      if (cached.source != 'none') return _build(cached.synced, cached.plain, cached.source);
-      if (!online || DateTime.now().difference(cached.fetchedAt) < _retryNone) return null;
+      if (!_isNone(cached.source)) return _build(cached.synced, cached.plain, cached.source);
+      if (!online) return null;
+      if (cached.source == _none && DateTime.now().difference(cached.fetchedAt) < _retryNone) return null;
     }
 
     final local = await _fromLocal(t);
@@ -122,7 +185,7 @@ class LyricsRepository {
       case LrclibFound(:final synced, :final plain):
         return _store(t.id, synced, plain, 'lrclib');
       case LrclibNotFound():
-        await _save(t.id, null, null, 'none');
+        await _save(t.id, null, null, _none);
         return null;
       case LrclibUnavailable():
         return null; // try again next time

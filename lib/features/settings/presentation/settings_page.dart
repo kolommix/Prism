@@ -13,6 +13,8 @@ import '../../audio_fx/application/eq_controller.dart';
 import '../../audio_fx/application/loudness_controller.dart';
 import '../../audio_fx/domain/loudness.dart';
 import '../../desktop/presentation/discord_settings.dart';
+import '../../hotkeys/presentation/hotkey_settings.dart';
+import '../../lyrics/presentation/lyrics_window_settings.dart';
 import '../../library/application/auto_tagger.dart';
 import '../../library/application/library_providers.dart';
 import '../../library/domain/library_models.dart';
@@ -607,6 +609,8 @@ class _SectionBody extends ConsumerWidget {
           const DiscordSettings(),
         ],
       ),
+      const HotkeySettings(),
+      const LyricsWindowSettings(),
     ];
   }
 

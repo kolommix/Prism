@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +8,7 @@ import '../../../core/theme/prism_theme_extensions.dart';
 import '../../../l10n/l10n.dart';
 import '../../library/data/library_scanner.dart' show isSupportedAudioFile;
 import '../../online/domain/import_intake.dart';
+import '../../online/domain/photo_songs.dart';
 
 /// Things to import that arrived from outside the import screen, waiting for it
 /// to take them.
@@ -64,8 +64,11 @@ class DeepLinks {
             final files = (data['files'] as List? ?? const []).cast<String>();
             final (songs, folders, others) = await sortDropped(files);
             if (songs.isNotEmpty || folders.isNotEmpty) onMusic?.call(songs, folders);
+            // Several screenshots of one list: one import.
+            final photos = [for (final f in others) if (isPhotoFile(f)) f];
+            if (photos.isNotEmpty) onRequest(ImportRequest.photos(photos));
             for (final f in others) {
-              await handle(f);
+              if (!isPhotoFile(f)) await handle(f);
             }
             final text = data['text'] as String?;
             if (files.isEmpty && text != null && text.trim().isNotEmpty) await handle(text);
@@ -73,7 +76,7 @@ class DeepLinks {
       });
     }
     for (final a in args) {
-      if (isImportFile(a) || classifyImportText(a) is! UnknownInput) await handle(a);
+      if (isImportFile(a) || isPhotoFile(a) || classifyImportText(a) is! UnknownInput) await handle(a);
     }
     if (Platform.isAndroid) {
       try {
@@ -107,11 +110,15 @@ class DeepLinks {
   Future<void> handle(Object? value) async {
     // The same share can arrive as a start value and as a message.
     final now = DateTime.now();
-    if (value == _last || (value is Map && _last is Map && mapEquals(value, _last as Map)))  {
-      if (now.difference(_lastAt) < const Duration(seconds: 5)) return;
-    }
-    _last = value;
+    final key = value is Map ? value.toString() : value;
+    if (key == _last && now.difference(_lastAt) < const Duration(seconds: 5)) return;
+    _last = key;
     _lastAt = now;
+    if (value is Map && value['images'] is List) {
+      final paths = [for (final p in value['images'] as List) if (p is String) p];
+      if (paths.isNotEmpty) onRequest(ImportRequest.photos(paths));
+      return;
+    }
     if (value is Map) {
       final name = value['name'] as String?;
       final text = value['text'] as String?;
@@ -120,6 +127,10 @@ class DeepLinks {
       return;
     }
     if (value is! String) return;
+    if (classifyImportText(value) case PhotosInput(:final paths)) {
+      onRequest(ImportRequest.photos(paths));
+      return;
+    }
     if (classifyImportText(value) case FileInput(:final path)) {
       try {
         onRequest(ImportRequest.file(path, decodeImportBytes(await File(path).readAsBytes())));

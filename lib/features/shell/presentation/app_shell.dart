@@ -14,6 +14,7 @@ import '../../together/application/together_controller.dart';
 import '../../together/presentation/together_sheet.dart';
 import 'prism_logo.dart';
 import '../../../l10n/l10n.dart';
+import '../../hotkeys/presentation/hotkey_settings.dart';
 
 /// Breakpoints for the responsive layout.
 abstract final class Breakpoints {
@@ -62,18 +63,20 @@ class AppShell extends ConsumerWidget {
     final hasTrack = ref.watch(currentTrackProvider.select((t) => t != null));
     final content = _FadingBranches(index: shell.currentIndex, children: children);
 
-    return PrismBackground(
-      artworkPath: art,
-      intensity: 0.35,
-      child: width < Breakpoints.sidebar
-          ? _PhoneLayout(content: content, index: shell.currentIndex, onSelect: _go, hasTrack: hasTrack)
-          : _WideLayout(
-              content: content,
-              index: shell.currentIndex,
-              onSelect: _go,
-              hasTrack: hasTrack,
-              showPanel: width >= Breakpoints.nowPlayingPanel,
-            ),
+    return InAppPlayerKeys(
+      child: PrismBackground(
+        artworkPath: art,
+        intensity: 0.35,
+        child: width < Breakpoints.sidebar
+            ? _PhoneLayout(content: content, index: shell.currentIndex, onSelect: _go, hasTrack: hasTrack)
+            : _WideLayout(
+                content: content,
+                index: shell.currentIndex,
+                onSelect: _go,
+                hasTrack: hasTrack,
+                showPanel: width >= Breakpoints.nowPlayingPanel,
+              ),
+      ),
     );
   }
 }

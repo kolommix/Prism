@@ -48,6 +48,11 @@ bool FlutterWindow::OnCreate() {
   });
   drop_bridge_ = std::make_unique<DropBridge>(
       GetHandle(), flutter_controller_->engine()->messenger());
+  lyrics_window_ = std::make_unique<LyricsWindow>(flutter_controller_->engine()->messenger());
+  hotkey_bridge_ = std::make_unique<HotkeyBridge>(
+      GetHandle(), flutter_controller_->engine()->messenger());
+  ocr_bridge_ = std::make_unique<OcrBridge>(
+      GetHandle(), flutter_controller_->engine()->messenger());
   tray_bridge_ = std::make_unique<TrayBridge>(
       GetHandle(), flutter_controller_->engine()->messenger());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
@@ -101,6 +106,9 @@ void FlutterWindow::SetFullScreen(bool on) {
 void FlutterWindow::OnDestroy() {
   window_channel_ = nullptr;
   drop_bridge_ = nullptr;
+  ocr_bridge_ = nullptr;
+  hotkey_bridge_ = nullptr;
+  lyrics_window_ = nullptr;
   frame_pump_.Stop();
   smtc_bridge_ = nullptr;
   tray_bridge_ = nullptr;
@@ -148,6 +156,14 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
   switch (message) {
     case kSmtcButtonMessage:
       if (smtc_bridge_) smtc_bridge_->DispatchButton(wparam);
+      return 0;
+    case WM_HOTKEY:
+      if (hotkey_bridge_) hotkey_bridge_->Pressed(wparam);
+      return 0;
+    case kOcrDoneMessage:
+      if (ocr_bridge_) {
+        ocr_bridge_->Finish(lparam);
+      }
       return 0;
     case kTrayCallbackMessage:
       if (tray_bridge_) tray_bridge_->HandleTrayMessage(lparam);
