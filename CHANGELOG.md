@@ -3,6 +3,34 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (`.github/workflows/release.yml` reads it), so add one before tagging.
 
+## 1.5.0 (2026-11-13)
+
+### Import from a photo
+- **Send Prism a screenshot or a photo of a playlist** and it finds and saves the songs in it. Import → **Photo**, drag
+  the picture onto the window, or on Android share it to Prism (several screenshots of one long list work too).
+- The picture is read on your device (Windows' own text recognition; on Android a reader built into Prism), in English
+  and Russian. It is never sent anywhere; only the song names found are looked up, like any import.
+
+### Better at finding things
+- **Lyrics are found for more songs and fit better**: video titles like "Artist - Song (Official Video)", channel names
+  and files without tags are understood, Prism tries several searches and takes the one that really is your song.
+  Songs that had no lyrics before are looked up again once.
+- **Covers are found for more songs**, Russian ones especially.
+- **Imports no longer save something that isn't a song**: films, interviews, reviews, reactions or hour-long videos
+  that share a song's name are skipped (one friend got a documentary instead of Дора's "Трудный возраст").
+
+### Windows
+- **Hotkeys** that work everywhere, also in games and while Prism is hidden: Ctrl+Alt+P play/pause, Ctrl+Alt+→/← next and
+  previous, Ctrl+Alt+↑/↓ volume, Ctrl+Alt+End mute, Ctrl+Alt+Shift+→/← 10 seconds, Ctrl+Alt+L floating lyrics,
+  Ctrl+Alt+O show Prism. Change them in Settings → Windows → Hotkeys. Inside Prism also Space and Ctrl+arrows.
+- **Floating lyrics**: a small see-through window with the line being sung, always on top. Drag it anywhere, make it
+  wider, choose how see-through it is, or lock it so clicks go through. Button on the lyrics, Ctrl+Alt+L, or Settings →
+  Windows → Floating lyrics.
+
+### Also
+- Lyrics background: Russian letters are no longer cut (Й, Ё, р, у, щ, ц).
+- Imports where YouTube is blocked say so within seconds and carry on by themselves as soon as a VPN is switched on.
+
 ## 1.4.0 (2026-11-11)
 - The Prism icon is the dot sphere again.
 - Samsung phones: Backgrounds no longer draws every style at once; if a background ever closes Prism, the next start goes back to Cover and says which one.

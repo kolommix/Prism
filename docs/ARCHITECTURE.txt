@@ -195,6 +195,18 @@ registered in TrackSourceRegistry; its tracks carry sourceId. The engine
 resolves every track through the registry, so queue, gapless, crossfade,
 notification and media keys work unchanged. Tokens live in secure storage.
 
+IMPORT FROM A PHOTO
+-------------------
+
+PhotoReader ("prism/ocr") reads the text on the device: Windows ocr_bridge.cpp (Windows.Media.Ocr, every installed
+language once, on its own thread), Android OcrPlugin.kt (Tesseract4Android from JitPack, rus+eng tessdata_fast
+4.1.0 fetched by Gradle with SHA-256 pins into assets; upright, small pictures doubled, dark ones inverted).
+ocrPageFromNative merges Windows' readers (Russian base, the English reading on mostly-English rows), then
+songsFromPhoto pairs a name with the smaller line under it (left-aligned or centered), drops buttons, headings,
+counts and the status bar, keeps the column most songs start in, falls back to "Artist - Song" lines, adds lengths on the
+same row. Several pictures = one list (dedupeSongs), then the usual ImportFlow (no preview). Entry points: Photo
+button, dropped pictures, Android share sheet (MainActivity copies them to the cache), a picture path on the command line.
+
 ONLINE SERVICES (IMPLEMENTED)
 -----------------------------
 
@@ -342,9 +354,12 @@ LYRICS
 ------
 
 LyricsRepository.forTrack() tries, in order: lyrics_cache table →
-.lrc next to the file → embedded lyrics tag → LRCLIB (/api/get, then
-/api/search; only when Online lyrics is on). "Not found" is cached 7 days;
-server errors (5xx) are not cached. parseLrc() handles offsets, several time
+.lrc next to the file → embedded lyrics tag → LRCLIB (only when Online lyrics is on). LRCLIB asks for the song
+as songAsNamed (online/domain/song_identity.dart) names it: "Artist - Song (Official Video)" by "ArtistVEVO" and
+untagged "03. Artist - Song" files are split, no "Unknown artist" is sent. /api/get first, then up to three searches
+(title + artist, free text, title only); every answer is scored by lyricsCandidateScore (the import's MatchScorer,
+length penalty, timed lyrics win a tie), the best at 0.7 or more wins. "Not found" is cached 7 days as none2 (old
+none rows from the simpler lookup are asked again once); server errors (5xx) stop at once and are not cached. parseLrc() handles offsets, several time
 stamps per line and word tags. LyricsView: only the current line repaints
 (ShaderMask wipe driven by LivePosition), auto-follow pauses 4 s after the
 user scrolls, tap a line to seek.
@@ -428,6 +443,9 @@ AutoTagger (features/library/application) walks tracksMissingInfo() one song at 
 minute) through CoverLookup, saves the cover in the artwork folder and calls applyAutoTag. autoTagChangeFor (pure)
 only fills what is missing. Schema v5: info_checked_ms (don't search twice), info_original (JSON for undo); a rescan
 of a changed file clears both. Services not answering says nothing about a song: it stays on the list.
+CoverLookup.find searches with songAsNamed + cleanTitleText (real spelling: Apple's Russian store matches
+"Трудный", not "трудныи"): artist + title, Deezer's artist:"" track:"", title alone; Cyrillic names that Apple's
+default store doesn't know are asked in the Russian store. An artist read out of a title needs a score of 0.7.
 
 ANIMATED BACKGROUNDS
 --------------------
@@ -465,6 +483,16 @@ DESKTOP AND WIDGET EXTRAS
   (prismDiscordClientId), Settings can override it. Status = clean title, cover + link from CoverLookup (iTunes, then Deezer,
   scored with MatchScorer, untagged songs with fileNameMatches), real timestamps, buttons, party while listening together. If Discord refuses the extras,
   it resends without them (plainActivity).
+* Hotkeys (Windows): windows/runner/hotkey_bridge.cpp registers each combination with RegisterHotKey
+  ("prism/hotkeys"; ids refused by Windows come back and show as taken). HotkeyController
+  (features/hotkeys) saves one key per HotkeyAction in prefs, runs the action (volume through
+  playerVolumeProvider), and is off while a new key is chosen. InAppPlayerKeys (around the shell): Space, Ctrl +
+  arrows inside the window.
+* Floating lyrics (Windows): windows/runner/lyrics_window.cpp, a layered top-most tool window not owned by the
+  main one (stays while Prism is hidden), drawn with GDI+ into a premultiplied DIB (UpdateLayeredWindow): see-through
+  background, white text with a dark edge, next line dimmer. Drag = move, sides = width, right-click = menu, locked =
+  WS_EX_TRANSPARENT, never activates. LyricsWindowController sends only changed lines (lyricsWindowLines, pure)
+  and sets one timer for the next line start: nothing ticks.
 * Android widget: PrismWidgetProvider.kt (home_widget) shows title,
   artist, cover; its buttons send media-button intents to audio_service.
   androidWidgetSyncProvider pushes the current song.
