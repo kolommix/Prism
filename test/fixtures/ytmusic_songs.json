@@ -1,0 +1,261 @@
+{
+ "contents": {
+  "tabbedSearchResultsRenderer": {
+   "tabs": [
+    {
+     "tabRenderer": {
+      "content": {
+       "sectionListRenderer": {
+        "contents": [
+         {
+          "musicShelfRenderer": {
+           "contents": [
+            {
+             "musicResponsiveListItemRenderer": {
+              "playlistItemData": {
+               "videoId": "BU-eVgBpxyc"
+              },
+              "thumbnail": {
+               "musicThumbnailRenderer": {
+                "thumbnail": {
+                 "thumbnails": [
+                  {
+                   "url": "https://yt3.googleusercontent.com/M-qQddlU99CaJfGxRngSqHWedIA_i_XwzHVyqi2NFla-WDTfCzkcJCAXkGWJuG0MW7EeIxR4U4VqmmUu=w120-h120-l90-rj",
+                   "width": 120,
+                   "height": 120
+                  }
+                 ]
+                }
+               }
+              },
+              "flexColumns": [
+               {
+                "musicResponsiveListItemFlexColumnRenderer": {
+                 "text": {
+                  "runs": [
+                   {
+                    "text": "переломай мои кости",
+                    "navigationEndpoint": {
+                     "watchEndpoint": {
+                      "videoId": "BU-eVgBpxyc"
+                     }
+                    }
+                   }
+                  ]
+                 }
+                }
+               },
+               {
+                "musicResponsiveListItemFlexColumnRenderer": {
+                 "text": {
+                  "runs": [
+                   {
+                    "text": "CUPSIZE",
+                    "navigationEndpoint": {
+                     "browseEndpoint": {
+                      "browseEndpointContextSupportedConfigs": {
+                       "browseEndpointContextMusicConfig": {
+                        "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                       }
+                      }
+                     }
+                    }
+                   },
+                   {
+                    "text": " • "
+                   },
+                   {
+                    "text": "в моих легких выросли цветы",
+                    "navigationEndpoint": {
+                     "browseEndpoint": {
+                      "browseEndpointContextSupportedConfigs": {
+                       "browseEndpointContextMusicConfig": {
+                        "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                       }
+                      }
+                     }
+                    }
+                   },
+                   {
+                    "text": " • "
+                   },
+                   {
+                    "text": "2:48"
+                   }
+                  ]
+                 }
+                }
+               }
+              ]
+             }
+            },
+            {
+             "musicResponsiveListItemRenderer": {
+              "playlistItemData": {
+               "videoId": "JtGJ-quOIgs"
+              },
+              "thumbnail": {
+               "musicThumbnailRenderer": {
+                "thumbnail": {
+                 "thumbnails": [
+                  {
+                   "url": "https://yt3.googleusercontent.com/Xdh6CLg6tMcXJFI4lFhTZkRddslKhPRRxlkxd1BElHmDeqnASF_vqjq9m91WVAAsPEA8HP134V-dd07Nqw=w120-h120-l90-rj",
+                   "width": 120,
+                   "height": 120
+                  }
+                 ]
+                }
+               }
+              },
+              "flexColumns": [
+               {
+                "musicResponsiveListItemFlexColumnRenderer": {
+                 "text": {
+                  "runs": [
+                   {
+                    "text": "прыгай, дура!",
+                    "navigationEndpoint": {
+                     "watchEndpoint": {
+                      "videoId": "JtGJ-quOIgs"
+                     }
+                    }
+                   }
+                  ]
+                 }
+                }
+               },
+               {
+                "musicResponsiveListItemFlexColumnRenderer": {
+                 "text": {
+                  "runs": [
+                   {
+                    "text": "CUPSIZE",
+                    "navigationEndpoint": {
+                     "browseEndpoint": {
+                      "browseEndpointContextSupportedConfigs": {
+                       "browseEndpointContextMusicConfig": {
+                        "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                       }
+                      }
+                     }
+                    }
+                   },
+                   {
+                    "text": " • "
+                   },
+                   {
+                    "text": "прыгайдуравишлист!",
+                    "navigationEndpoint": {
+                     "browseEndpoint": {
+                      "browseEndpointContextSupportedConfigs": {
+                       "browseEndpointContextMusicConfig": {
+                        "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                       }
+                      }
+                     }
+                    }
+                   },
+                   {
+                    "text": " • "
+                   },
+                   {
+                    "text": "1:59"
+                   }
+                  ]
+                 }
+                }
+               }
+              ]
+             }
+            },
+            {
+             "musicResponsiveListItemRenderer": {
+              "playlistItemData": {
+               "videoId": "bruZDcRPOD0"
+              },
+              "thumbnail": {
+               "musicThumbnailRenderer": {
+                "thumbnail": {
+                 "thumbnails": [
+                  {
+                   "url": "https://yt3.googleusercontent.com/9AFIU1EpQPu6jTayf-l5gGnAIQ-8Y8UiYWU-VTzxN2m4XwWS8sR1MoZTWPV6Kz6z1C3pnL6cgMkaiFGKmw=w120-h120-l90-rj",
+                   "width": 120,
+                   "height": 120
+                  }
+                 ]
+                }
+               }
+              },
+              "flexColumns": [
+               {
+                "musicResponsiveListItemFlexColumnRenderer": {
+                 "text": {
+                  "runs": [
+                   {
+                    "text": "Клей",
+                    "navigationEndpoint": {
+                     "watchEndpoint": {
+                      "videoId": "bruZDcRPOD0"
+                     }
+                    }
+                   }
+                  ]
+                 }
+                }
+               },
+               {
+                "musicResponsiveListItemFlexColumnRenderer": {
+                 "text": {
+                  "runs": [
+                   {
+                    "text": "CUPSIZE",
+                    "navigationEndpoint": {
+                     "browseEndpoint": {
+                      "browseEndpointContextSupportedConfigs": {
+                       "browseEndpointContextMusicConfig": {
+                        "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                       }
+                      }
+                     }
+                    }
+                   },
+                   {
+                    "text": " • "
+                   },
+                   {
+                    "text": "Как испортить вечеринку?",
+                    "navigationEndpoint": {
+                     "browseEndpoint": {
+                      "browseEndpointContextSupportedConfigs": {
+                       "browseEndpointContextMusicConfig": {
+                        "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                       }
+                      }
+                     }
+                    }
+                   },
+                   {
+                    "text": " • "
+                   },
+                   {
+                    "text": "2:27"
+                   }
+                  ]
+                 }
+                }
+               }
+              ]
+             }
+            }
+           ]
+          }
+         }
+        ]
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

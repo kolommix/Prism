@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
+import '../../../core/app_version.dart';
 import '../../library/domain/track.dart';
 import '../../player/application/player_providers.dart';
 import '../../settings/application/settings_controller.dart';
@@ -28,7 +29,12 @@ class _DiscordStatusNotifier extends Notifier<DiscordStatus> {
 final discordStatusProvider = NotifierProvider<_DiscordStatusNotifier, DiscordStatus>(_DiscordStatusNotifier.new);
 
 /// Links for the status: the song's own page when it has one, else a search.
-List<(String, String)> discordButtons(Track t, CoverInfo? info, String title, String artist) {
+/// Prism's download page (the newest release), for the status button.
+const prismDownloadUrl = 'https://github.com/$githubRepo/releases/latest';
+
+/// Discord shows two buttons at most: the song's link, then "Get Prism" (when
+/// on) or the song's page on Apple Music / Deezer.
+List<(String, String)> discordButtons(Track t, CoverInfo? info, String title, String artist, {bool prismButton = false}) {
   final out = <(String, String)>[];
   if (t.uri.startsWith('https://www.youtube.com')) {
     out.add((l10n.watchOnYoutube, t.uri));
@@ -39,7 +45,11 @@ List<(String, String)> discordButtons(Track t, CoverInfo? info, String title, St
     out.add((l10n.findOnYoutube, 'https://www.youtube.com/results?search_query=$q'));
   }
   final link = info?.linkUrl;
-  if (link != null && link.isNotEmpty) out.add((info!.linkLabel, link));
+  if (prismButton) {
+    out.add((l10n.discordGetPrism, prismDownloadUrl));
+  } else if (link != null && link.isNotEmpty) {
+    out.add((info!.linkLabel, link));
+  }
   return out;
 }
 
@@ -65,7 +75,7 @@ final discordPresenceProvider = Provider<void>((ref) {
     final artist = t.artist.isNotEmpty || t.albumArtist.isNotEmpty ? t.displayArtist : (info?.artist ?? t.displayArtist);
     final album = t.album.isNotEmpty ? t.album : (info?.album ?? '');
     final cover = t.artworkPath != null && t.artworkPath!.startsWith('https://') ? t.artworkPath : info?.coverUrl;
-    final buttons = discordButtons(t, info, title, artist);
+    final buttons = discordButtons(t, info, title, artist, prismButton: ref.read(settingsProvider).discordPrismButton);
     presence.update(
       id,
       activityFrame(
@@ -149,7 +159,7 @@ final discordPresenceProvider = Provider<void>((ref) {
   ref.listen(currentTrackProvider, (_, _) => schedule());
   ref.listen(isPlayingProvider, (_, _) => schedule());
   ref.listen(togetherProvider.select((s) => (s.connected, s.people.length)), (_, _) => schedule());
-  ref.listen(settingsProvider.select((s) => (s.discordPresence, discordIdOf(s), s.discordCovers)), (old, v) {
+  ref.listen(settingsProvider.select((s) => (s.discordPresence, discordIdOf(s), s.discordCovers, s.discordPrismButton)), (old, v) {
     if (!v.$1) {
       if (old != null && old.$2.isNotEmpty) ready.then((_) => presence.update(old.$2, null));
       ref.read(discordStatusProvider.notifier).set(const DiscordStatus(DiscordLink.off));

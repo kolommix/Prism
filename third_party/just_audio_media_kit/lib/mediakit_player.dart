@@ -3,6 +3,7 @@ library just_audio_media_kit;
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:just_audio_platform_interface/just_audio_platform_interface.dart';
 import 'package:logging/logging.dart';
@@ -164,11 +165,19 @@ class MediaKitPlayer extends AudioPlayerPlatform {
         _updatePlaybackEvent();
       }),
       _player.stream.error.listen((error) {
-        final errorUri = RegExp(r'Failed to open (.*)\.').firstMatch(error)?[1];
-        if (errorUri == null || errorUri == _currentMedia?.uri) {
+        // Prism patch: "Cannot open file 'X'" names its file too, so a
+        // missing *next* song (opened early by prefetch) doesn't count as
+        // the playing one failing.
+        final errorUri = RegExp(r'Failed to open (.*)\.').firstMatch(error)?[1] ??
+            RegExp(r"Cannot open file '(.*)'").firstMatch(error)?[1];
+        if (errorUri == null || _isCurrent(errorUri)) {
           _processingState = ProcessingStateMessage.idle;
           _errorCode = kErrorCode;
           _errorMessage = error;
+          // Prism patch: a file that can't be opened (gone, locked for a
+          // moment by an antivirus scan) used to leave load() waiting
+          // forever, and just_audio + the whole player behind it.
+          _failLoad(error);
           _updatePlaybackEvent();
         }
         _logger.severe('ERROR OCCURRED: $error');
@@ -196,6 +205,22 @@ class MediaKitPlayer extends AudioPlayerPlatform {
         print("MPV: [${event.level}] ${event.prefix}: ${event.text}");
       }),
     ];
+  }
+
+  /// Prism patch: whether mpv's error text names the playing media (paths
+  /// compared the Windows way: either slash, any case).
+  bool _isCurrent(String where) {
+    final uri = _currentMedia?.uri;
+    if (uri == null || where == uri) return true;
+    String norm(String s) => s.replaceAll('\\', '/').toLowerCase();
+    return norm(where) == norm(uri);
+  }
+
+  /// Prism patch: ends a pending [load] with an error.
+  void _failLoad(String message) {
+    final c = _loadCompleter;
+    if (c == null || c.isCompleted) return;
+    c.completeError(PlatformException(code: '$kErrorCode', message: message));
   }
 
   void _updateDuration(Duration duration) {
@@ -417,6 +442,7 @@ class MediaKitPlayer extends AudioPlayerPlatform {
   Future<void> release() async {
     _logger.info('releasing player resources');
     _mediaOpened = false;
+    _failLoad('released');
     await _player.dispose();
     // cancel all stream subscriptions
     for (final StreamSubscription subscription in _streamSubscriptions) {

@@ -90,6 +90,81 @@ void main() {
     expect(merged[1].text, 'Кино');
   });
 
+  test('English word the Russian reader bent into Russian: the English reading wins, the other is kept', () {
+    // Real readings of both readers (fixtures + a friend's photo import).
+    expect(latinReadingWins('CUPSIZE', 'СИРЫЕ'), isTrue);
+    expect(latinReadingWins('CUPSIZE', 'СЫРЫЕ'), isTrue);
+    expect(latinReadingWins('Album', 'АЬит'), isTrue);
+    // Russian words the English reader bent into Latin stay Russian.
+    for (final (latin, russian) in [
+      ('KVIHO', 'Кино'),
+      ('KMHO', 'Кино'),
+      ('Anna', 'Алла'),
+      ('Mano', 'Мало'),
+      ('Moi', 'Мой'),
+      ('nopa', 'Дора'),
+      ('YOJIVIR', 'Юлия'),
+      ('I-OJI"IR', 'Юлия'),
+      ('Koponb', 'Король'),
+      ('TpyAHblü', 'Трудный'),
+      ('803pacT', 'возраст'),
+      ('rpynna', 'Группа'),
+      ('MeHR', 'меня'),
+      ('HOUb', 'ночь'),
+      ('KPOBh', 'крови'),
+      ('CnoK0üHa9', 'Спокойная'),
+      ('c060i', 'собой'),
+      ('poK-H-ponn', 'рок-н-ролл'),
+    ]) {
+      expect(latinReadingWins(latin, russian), isFalse, reason: '$latin / $russian');
+    }
+
+    final base = [
+      OcrLine([const OcrWord('переломай', 0, 0, 110, 22), const OcrWord('мои', 118, 0, 40, 22), const OcrWord('кости', 166, 0, 60, 22)]),
+      OcrLine([const OcrWord('СИРЫЕ', 0, 30, 80, 16)]),
+    ];
+    final helper = [
+      OcrLine([const OcrWord('nepenomaü', 0, 0, 110, 22), const OcrWord('Mou', 118, 0, 40, 22), const OcrWord('KOCTU', 166, 0, 60, 22)]),
+      OcrLine([const OcrWord('CUPSIZE', 0, 30, 82, 16)]),
+    ];
+    final merged = mergeReadings(base, helper);
+    expect(merged[0].text, 'переломай мои кости');
+    expect(merged[1].text, 'CUPSIZE');
+    expect(merged[1].altText, 'СИРЫЕ');
+    final song = songsFromPhoto(OcrPage(400, 200, merged)).single;
+    expect('${song.artist} - ${song.title}', 'CUPSIZE - переломай мои кости');
+    expect(song.guessed, isTrue);
+    expect(song.altArtists, ['СИРЫЕ']);
+    expect([for (final s in song.spellings) s.artist], containsAll(['CUPSIZE', 'СИРЫЕ']));
+  });
+
+  test('small l read as a capital I, O read as zero', () {
+    expect(fixLatinShapes('MeIler'), 'Meller');
+    expect(fixLatinShapes('kaIman'), 'kalman');
+    expect(fixLatinShapes('0racular'), 'Oracular');
+    expect(fixLatinShapes('L0VE'), 'LOVE');
+    expect(fixLatinShapes('McIntyre'), 'McIntyre');
+    expect(fixLatinShapes('2000'), '2000');
+    expect(fixLatinShapes('I'), 'I');
+    expect(fixLatinShapes('Кино'), 'Кино');
+    final page = ocrPageFromNative({
+      'width': 400,
+      'height': 200,
+      'engines': [
+        {
+          'lang': 'en-US',
+          'lines': [
+            [
+              {'text': 'Petite', 'x': 0, 'y': 0, 'w': 50, 'h': 16},
+              {'text': 'MeIler', 'x': 58, 'y': 0, 'w': 50, 'h': 16},
+            ],
+          ],
+        },
+      ],
+    });
+    expect(page.lines.single.text, 'Petite Meller');
+  });
+
   test('a lone "|" between English words is the letter I', () {
     final page = OcrPage(800, 400, [
       OcrLine([const OcrWord('Do', 20, 20, 30, 24), const OcrWord('|', 58, 20, 6, 24), const OcrWord('Wanna', 72, 20, 70, 24), const OcrWord('Know?', 150, 20, 70, 24)]),

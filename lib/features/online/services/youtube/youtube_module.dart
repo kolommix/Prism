@@ -223,6 +223,19 @@ class YoutubeModule extends MusicServiceModule {
     for (final v in await _catalog.search(query, limit: limit)) trackFromVideo(v),
   ];
 
+  /// YouTube Music's songs, through the extractor (same switch).
+  @override
+  Future<List<Track>> searchSongs(String query, {int limit = 10}) async {
+    final b = streamer ?? catalog;
+    if (b == null) return const [];
+    try {
+      return [for (final v in await b.searchSongs(query, limit: limit)) trackFromVideo(v)];
+    } on Object {
+      // Plain search still works.
+      return const [];
+    }
+  }
+
   @override
   Future<Uri> streamUri(Track track) async {
     final s = _streamer();
@@ -267,12 +280,15 @@ class YoutubeModule extends MusicServiceModule {
   static final _vevo = RegExp(r'VEVO$');
 
   /// A playable Prism track (not saved yet: id 0).
+  /// YouTube Music songs keep their album (that's how the matcher and the
+  /// import tell official audio from videos).
   static Track trackFromVideo(YtVideo v) => Track(
     id: 0,
     sourceId: youtubeSourceId,
     uri: v.url,
     title: v.title,
     artist: v.channel,
+    album: v.song && v.album.isEmpty ? v.title : v.album,
     durationMs: v.durationMs,
     artworkPath: v.thumbnailUrl,
   );

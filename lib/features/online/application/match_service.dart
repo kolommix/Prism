@@ -11,7 +11,11 @@ import '../services/youtube/youtube_module.dart';
 import '../../../l10n/l10n.dart';
 
 class MatchResult {
-  const MatchResult({this.track, required this.score, this.source, this.note});
+  const MatchResult({this.track, required this.score, this.source, this.note, this.wanted});
+
+  /// The song with its names corrected (see [MatchService._respelled]); null
+  /// when they stay as they were.
+  final ExternalTrack? wanted;
 
   static const none = MatchResult(score: MatchScore.zero);
 
@@ -90,15 +94,27 @@ class MatchService {
     ({Track track, MatchScore score})? online;
     String? onlineSource;
     OnlineException? lastError;
+    bool sure() => online != null && online!.score.confidence == MatchConfidence.high;
+    void consider(List<Track> found, MusicServiceModule m) {
+      final best = MatchScorer.best(wanted, found);
+      if (best != null && (online == null || best.score.value > online!.score.value)) {
+        online = best;
+        onlineSource = m.playableSourceId;
+      }
+    }
+
+    services:
     for (final m in services) {
       try {
-        final found = await m.search(MatchScorer.queryFor(wanted), limit: 8);
-        final best = MatchScorer.best(wanted, found);
-        if (best != null && (online == null || best.score.value > online.score.value)) {
-          online = best;
-          onlineSource = m.playableSourceId;
+        // The song as it was named, then its other readings (a picture).
+        for (final q in MatchScorer.queriesFor(wanted).take(3)) {
+          // The music catalogue first (official audio, exact names and
+          // lengths), plain video search when that isn't sure.
+          consider(await m.searchSongs(q, limit: 6), m);
+          if (sure()) break services;
+          consider(await m.search(q, limit: 8), m);
+          if (sure()) break services;
         }
-        if (online != null && online.score.confidence == MatchConfidence.high) break;
       } on OnlineException catch (e) {
         // Transient problems pause the import (retry later); a broken
         // service is skipped so the others still get a chance.
@@ -110,10 +126,23 @@ class MatchService {
     final localScore = local?.score.value ?? 0;
     final onlineScore = online?.score.value ?? 0;
     if (local != null && localScore >= MatchScorer.acceptThreshold && localScore >= onlineScore - localPreference) {
-      return MatchResult(track: local.track, score: local.score, source: 'local', note: local.score.note);
+      return MatchResult(
+        track: local.track,
+        score: local.score,
+        source: 'local',
+        note: local.score.note,
+        wanted: _respelled(wanted, local.track, local.score),
+      );
     }
-    if (online != null && onlineScore >= MatchScorer.acceptThreshold) {
-      return MatchResult(track: online.track, score: online.score, source: onlineSource, note: online.score.note);
+    final found = online;
+    if (found != null && onlineScore >= MatchScorer.acceptThreshold) {
+      return MatchResult(
+        track: found.track,
+        score: found.score,
+        source: onlineSource,
+        note: found.score.note,
+        wanted: _respelled(wanted, found.track, found.score),
+      );
     }
     final note = services.isEmpty
         ? l10n.notInYourLibraryTurnOn
@@ -122,6 +151,20 @@ class MatchService {
       score: math.max(localScore, onlineScore) > 0 ? (online ?? local)!.score : MatchScore.zero,
       note: note,
     );
+  }
+
+  /// Names read off a picture may be misspelled ("СИРЫЕ" for CUPSIZE, "statbn"
+  /// for station): once a match is sure, the spelling that matched wins, and
+  /// a catalogue song's own names win over that. Null when nothing changes.
+  static ExternalTrack? _respelled(ExternalTrack wanted, Track match, MatchScore score) {
+    if (!wanted.guessed || score.value < 0.7) return null;
+    final catalogue = match.sourceId == youtubeSourceId && match.album.isNotEmpty && match.artist.isNotEmpty;
+    final next = catalogue
+        ? wanted.copyWith(title: match.title, artists: splitArtists(match.artist), noAlts: true)
+        : MatchScorer.scoreSpelling(wanted, match).$1.copyWith(noAlts: true);
+    final same = next.title == wanted.title && next.artist == wanted.artist && next.altTitle == wanted.altTitle &&
+        next.altArtists.length == wanted.altArtists.length;
+    return same ? null : next;
   }
 
   /// Candidates for the "fix match" sheet: local + every playable service,
@@ -133,20 +176,25 @@ class MatchService {
     for (final t in await localSearch(q)) {
       out.add(ScoredCandidate(t, MatchScorer.score(wanted, t)));
     }
+    void add(List<Track> found) {
+      for (final t in found) {
+        out.add(ScoredCandidate(t, MatchScorer.score(wanted, t)));
+      }
+    }
+
     await Future.wait([
-      for (final m in playable())
-        m
-            .search(q, limit: 10)
-            .then((found) {
-              for (final t in found) {
-                out.add(ScoredCandidate(t, MatchScorer.score(wanted, t)));
-              }
-            })
-            .catchError((Object e) {
-              errors[m.service.label] = describeOnlineError(e);
-            }),
+      for (final m in playable()) ...[
+        m.searchSongs(q, limit: 6).then(add),
+        m.search(q, limit: 10).then(add).catchError((Object e) {
+          errors[m.service.label] = describeOnlineError(e);
+        }),
+      ],
     ]);
-    out.sort((a, b) => b.score.value.compareTo(a.score.value));
+    // A catalogue song and a video can be the same upload: keep the first.
+    final seen = <String>{};
+    out
+      ..retainWhere((c) => c.track.sourceId == 'local' || seen.add(c.track.uri))
+      ..sort((a, b) => b.score.value.compareTo(a.score.value));
     return (out, errors);
   }
 

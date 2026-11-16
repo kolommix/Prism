@@ -106,6 +106,13 @@ class _DiscordSettingsState extends ConsumerState<DiscordSettings> {
             value: settings.discordCovers,
             onChanged: (v) => ctrl.update((s) => s.copyWith(discordCovers: v)),
           ),
+          SettingsSwitch(
+            icon: Icons.download_rounded,
+            title: l10n.discordPrismButton,
+            subtitle: l10n.discordPrismButtonHint,
+            value: settings.discordPrismButton,
+            onChanged: (v) => ctrl.update((s) => s.copyWith(discordPrismButton: v)),
+          ),
           if (needsSetup)
             Padding(
               padding: const EdgeInsets.fromLTRB(52, 4, 16, 16),

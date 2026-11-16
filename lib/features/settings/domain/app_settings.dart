@@ -108,6 +108,9 @@ abstract class AppSettings with _$AppSettings {
     /// Look up album art and links for the status (sends title + artist to
     /// Apple's and Deezer's public search).
     @Default(true) bool discordCovers,
+
+    /// A "Get Prism" button on the status (Prism's download page).
+    @Default(true) bool discordPrismButton,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => _$AppSettingsFromJson(json);

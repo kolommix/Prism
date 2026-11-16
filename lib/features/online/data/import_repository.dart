@@ -213,8 +213,11 @@ class ImportRepository {
     required double confidence,
     String? source,
     String? note,
+    ExternalTrack? wanted,
   }) => (_db.update(_db.importItems)..where((i) => i.id.equals(itemId))).write(
     ImportItemsCompanion(
+      // Names read off a picture, corrected by a sure match.
+      json: wanted == null ? const Value.absent() : Value(jsonEncode(wanted.toJson())),
       status: Value((trackId == null ? ImportItemStatus.unmatched : ImportItemStatus.matched).name),
       trackId: Value(trackId),
       confidence: Value(confidence),

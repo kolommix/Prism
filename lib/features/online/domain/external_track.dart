@@ -37,9 +37,15 @@ class ExternalTrack {
     this.isrc,
     this.url,
     this.artworkUrl,
+    this.guessed = false,
+    this.altTitle,
+    this.altArtists = const [],
   });
 
   factory ExternalTrack.fromJson(Map<String, dynamic> j) => ExternalTrack(
+    guessed: j['guessed'] == true,
+    altTitle: j['altTitle'] as String?,
+    altArtists: [for (final a in (j['altArtists'] as List? ?? const [])) '$a'],
     service: OnlineService.byName(j['service'] as String?) ?? OnlineService.file,
     title: j['title'] as String? ?? '',
     artists: [for (final a in (j['artists'] as List? ?? const [])) '$a'],
@@ -65,7 +71,43 @@ class ExternalTrack {
   final String? url;
   final String? artworkUrl;
 
+  /// Names read off a picture: may be misspelled, so a sure match's own
+  /// spelling replaces them.
+  final bool guessed;
+
+  /// Another reading of the title / artists (the picture's other text
+  /// reader), tried too when looking the song up.
+  final String? altTitle;
+  final List<String> altArtists;
+
   String get artist => artists.join(', ');
+
+  /// This song and its other readings (each without further readings).
+  List<ExternalTrack> get spellings {
+    if (altTitle == null && altArtists.isEmpty) return [this];
+    final titles = {title, ?altTitle}, names = [artists, if (altArtists.isNotEmpty) altArtists];
+    return [
+      for (final t in titles)
+        for (final a in names) copyWith(title: t, artists: a, noAlts: true),
+    ];
+  }
+
+  /// [noAlts] drops the other readings.
+  ExternalTrack copyWith({String? title, List<String>? artists, int? durationMs, bool noAlts = false}) =>
+      ExternalTrack(
+        service: service,
+        title: title ?? this.title,
+        artists: artists ?? this.artists,
+        album: album,
+        durationMs: durationMs ?? this.durationMs,
+        externalId: externalId,
+        isrc: isrc,
+        url: url,
+        artworkUrl: artworkUrl,
+        guessed: guessed,
+        altTitle: noAlts ? null : altTitle,
+        altArtists: noAlts ? const [] : altArtists,
+      );
 
   Map<String, Object?> toJson() => {
     'service': service.name,
@@ -77,6 +119,9 @@ class ExternalTrack {
     'isrc': ?isrc,
     'url': ?url,
     'artworkUrl': ?artworkUrl,
+    if (guessed) 'guessed': true,
+    'altTitle': ?altTitle,
+    if (altArtists.isNotEmpty) 'altArtists': altArtists,
   };
 
   @override

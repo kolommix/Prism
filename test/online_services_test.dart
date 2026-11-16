@@ -109,7 +109,7 @@ void main() {
       final r = await matcher(const [], [ytS, sc]).match(want('Song', 'Band'));
       expect(r.source, 'soundcloud');
       expect(r.score.confidence, MatchConfidence.high);
-      expect(ytS.queries.single, 'Band song');
+      expect(ytS.queries.single, 'Band Song');
     });
 
     test('stops after a high-confidence match', () async {

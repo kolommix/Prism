@@ -2,13 +2,30 @@ import '../../../../l10n/l10n.dart';
 
 /// One YouTube video as Prism needs it.
 class YtVideo {
-  const YtVideo({required this.id, required this.title, required this.channel, this.durationMs = 0, this.thumbnailUrl});
+  const YtVideo({
+    required this.id,
+    required this.title,
+    required this.channel,
+    this.durationMs = 0,
+    this.thumbnailUrl,
+    this.album = '',
+    this.song = false,
+  });
 
   final String id;
   final String title;
+
+  /// The uploader, or for a YouTube Music song its artists ("A & B").
   final String channel;
   final int durationMs;
   final String? thumbnailUrl;
+
+  /// YouTube Music songs only.
+  final String album;
+
+  /// From YouTube Music's song catalogue: [title] is the song's own name,
+  /// [channel] its artists (no "Official Video", no channel names).
+  final bool song;
 
   String get url => 'https://www.youtube.com/watch?v=$id';
 }
@@ -57,6 +74,10 @@ abstract class YoutubeBackend {
   bool get canStream;
 
   Future<List<YtVideo>> search(String query, {int limit = 20});
+
+  /// YouTube Music's song catalogue (see [YtVideo.song]); empty where the
+  /// backend can't ask it. May throw like [search].
+  Future<List<YtVideo>> searchSongs(String query, {int limit = 10}) async => const [];
   Future<YtPlaylist> playlist(String id, {int max = 5000});
   Future<YtVideo> video(String id);
 

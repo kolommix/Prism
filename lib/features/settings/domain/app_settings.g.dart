@@ -48,6 +48,7 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
   discordPresence: json['discordPresence'] as bool? ?? false,
   discordClientId: json['discordClientId'] as String? ?? '',
   discordCovers: json['discordCovers'] as bool? ?? true,
+  discordPrismButton: json['discordPrismButton'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
@@ -86,6 +87,7 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'discordPresence': instance.discordPresence,
       'discordClientId': instance.discordClientId,
       'discordCovers': instance.discordCovers,
+      'discordPrismButton': instance.discordPrismButton,
     };
 
 const _$NormalizationModeEnumMap = {

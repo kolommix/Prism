@@ -62,11 +62,30 @@ class OcrPlugin(private val context: Context, messenger: BinaryMessenger) {
         return root
     }
 
+    // Two readings of the same picture, like Windows (one reader per language):
+    // the mixed Russian+English one, and English alone. The app compares them
+    // word by word (lib/features/online/domain/photo_songs.dart): the mixed one
+    // bends English words like "CUPSIZE" into Russian ones.
     private fun read(path: String): Map<String, Any> {
         val bitmap = load(path)
+        try {
+            val engines = ArrayList<Map<String, Any>>()
+            engines.add(mapOf("lang" to "ru", "lines" to readWith(bitmap, "rus+eng")))
+            try {
+                engines.add(mapOf("lang" to "en", "lines" to readWith(bitmap, "eng")))
+            } catch (e: Exception) {
+                // The mixed reading alone still works.
+            }
+            return mapOf("width" to bitmap.width, "height" to bitmap.height, "engines" to engines)
+        } finally {
+            bitmap.recycle()
+        }
+    }
+
+    private fun readWith(bitmap: Bitmap, languages: String): List<List<Map<String, Any>>> {
         val api = TessBaseAPI()
         try {
-            if (!api.init(dataDir().absolutePath, "rus+eng", TessBaseAPI.OEM_LSTM_ONLY)) {
+            if (!api.init(dataDir().absolutePath, languages, TessBaseAPI.OEM_LSTM_ONLY)) {
                 throw IllegalStateException("tesseract init failed")
             }
             api.pageSegMode = TessBaseAPI.PageSegMode.PSM_SPARSE_TEXT
@@ -74,7 +93,7 @@ class OcrPlugin(private val context: Context, messenger: BinaryMessenger) {
             api.getUTF8Text() // runs the reading
             val lines = ArrayList<List<Map<String, Any>>>()
             var line = ArrayList<Map<String, Any>>()
-            val it = api.resultIterator ?: return answer(bitmap, lines)
+            val it = api.resultIterator ?: return lines
             try {
                 it.begin()
                 do {
@@ -101,18 +120,11 @@ class OcrPlugin(private val context: Context, messenger: BinaryMessenger) {
             } finally {
                 it.delete()
             }
-            return answer(bitmap, lines)
+            return lines
         } finally {
             api.recycle()
-            bitmap.recycle()
         }
     }
-
-    private fun answer(bitmap: Bitmap, lines: List<List<Map<String, Any>>>): Map<String, Any> = mapOf(
-        "width" to bitmap.width,
-        "height" to bitmap.height,
-        "engines" to listOf(mapOf("lang" to "rus+eng", "lines" to lines)),
-    )
 
     // Upright (phone photos store their turn in EXIF), not huge, small
     // screenshots made bigger, and light text on dark turned into dark on

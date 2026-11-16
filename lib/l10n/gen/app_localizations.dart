@@ -812,6 +812,24 @@ abstract class AppLocalizations {
   /// **'Find album art'**
   String get findAlbumArt;
 
+  /// No description provided for @discordGetPrism.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Prism'**
+  String get discordGetPrism;
+
+  /// No description provided for @discordPrismButton.
+  ///
+  /// In en, this message translates to:
+  /// **'\"Get Prism\" button'**
+  String get discordPrismButton;
+
+  /// No description provided for @discordPrismButtonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends can open Prism\'s download page from your status. Takes the place of the Apple Music / Deezer link.'**
+  String get discordPrismButtonHint;
+
   /// No description provided for @sendsTitleAndArtistToApple.
   ///
   /// In en, this message translates to:
@@ -7871,6 +7889,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'far too long for this song'**
   String get matchTooLong;
+
+  /// No description provided for @matchTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'much shorter than the song (a snippet or another song)'**
+  String get matchTooShort;
+
+  /// No description provided for @matchOtherName.
+  ///
+  /// In en, this message translates to:
+  /// **'another song by this artist'**
+  String get matchOtherName;
 
   /// No description provided for @hotkeyPlayPause.
   ///

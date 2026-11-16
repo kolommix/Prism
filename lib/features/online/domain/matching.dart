@@ -57,6 +57,8 @@ final _noise = RegExp(
   r'(?:\d{4} )?(?:digital )?remaster(?:ed)?(?: \d{4})?(?: version)?|remaster(?:ed)? version|'
   r'radio edit|single version|album version|original mix|mono|stereo|color coded(?: lyrics)?|'
   r'prod\.? .*|from .*|taken from .*|bonus track|deluxe(?: edition| version)?|'
+  r'(?:original )?(?:motion picture )?(?:soundtrack|ost)(?: .*)?|'
+  r'из (?:фильма|сериала|мультфильма|мультсериала|игры|аниме|к/ф|т/с|м/ф) .*|саундтрек.*|'
   r'(?:feat|ft|featuring|with)\.? .*)$',
 );
 
@@ -122,6 +124,12 @@ final _dashTail = RegExp(r'\s+[-–—]\s+([^-–—]+)$');
 final _featOutside = RegExp(r'\s+(?:feat|ft|featuring)\.?\s+.*$', caseSensitive: false);
 final _titleDash = RegExp(r'\s+[-–—|]\s+');
 final _channelNoise = RegExp(r'\s*(?:-\s*topic|vevo|official)\s*$', caseSensitive: false);
+
+/// The name without anything in brackets or after a dash.
+String _head(String raw) {
+  final s = raw.replaceAll(_brackets, ' ').replaceFirst(_dashTail, '').replaceFirst(_featOutside, '');
+  return s.replaceAll(RegExp(r'\s+'), ' ').trim();
+}
 
 /// Removes "(Official Video)", "- Remastered 2011", "feat. X" and similar.
 String cleanTitle(String raw) => normalizeForSearch(cleanTitleText(raw));
@@ -234,7 +242,21 @@ abstract final class MatchScorer {
   /// Below this the candidate is not used (the song stays unmatched).
   static const acceptThreshold = 0.5;
 
-  static MatchScore score(ExternalTrack wanted, Track candidate) {
+  /// Best score over the song's spellings (names read off a picture have
+  /// two readings), with the spelling that got it.
+  static (ExternalTrack, MatchScore) scoreSpelling(ExternalTrack wanted, Track candidate) {
+    final spellings = wanted.spellings;
+    var best = (spellings.first, _score(spellings.first, candidate));
+    for (final s in spellings.skip(1)) {
+      final v = _score(s, candidate);
+      if (v.value > best.$2.value + 1e-9) best = (s, v);
+    }
+    return best;
+  }
+
+  static MatchScore score(ExternalTrack wanted, Track candidate) => scoreSpelling(wanted, candidate).$2;
+
+  static MatchScore _score(ExternalTrack wanted, Track candidate) {
     final wantTitle = cleanTitle(wanted.title);
     if (wantTitle.isEmpty) return MatchScore.zero;
     final wantArtists = wanted.artists.isNotEmpty ? wanted.artists : const <String>[];
@@ -260,10 +282,14 @@ abstract final class MatchScorer {
       final kept = _tokens(candTitle).where((t) => wantTokens.contains(t) || !artistTokens.contains(t)).join(' ');
       if (kept.isNotEmpty) candTitle = kept;
     }
-    final title = math.max(
+    // The name outside brackets counts too: "(из фильма …)" on one side only
+    // doesn't make it another song.
+    final heads = (cleanTitle(_head(wanted.title)), cleanTitle(_head(candTitleRaw)));
+    final title = [
       titleSimilarity(wantTitle, candTitle),
       titleSimilarity(wantTitle, cleanTitle(candidate.title)),
-    );
+      if (heads.$1.isNotEmpty && heads.$2.isNotEmpty) 0.95 * titleSimilarity(heads.$1, heads.$2),
+    ].reduce(math.max);
 
     // Artist: primary artist fully inside the candidate's artist/channel text
     // (compact compare also handles "TaylorSwiftVEVO"); else token coverage.
@@ -324,13 +350,32 @@ abstract final class MatchScorer {
       }
     }
 
+    // Much shorter than the song: a snippet, a teaser or another song.
+    final w = wanted.durationMs, c = candidate.durationMs;
+    if (w > 0 && c > 0 && c < w - 30000 && c < w * 0.75) {
+      value *= 0.55;
+      note ??= l10n.matchTooShort;
+    } else if (online && w > 0 && c > w + 90000 && c > w * 1.5) {
+      // A video with a long intro, or an extended version.
+      value *= 0.8;
+    }
+
     value = math.min(value, title + 0.2);
     if (artist < 0.3) {
       // Someone else's upload with the same name. Only a matching length
       // makes it worth a "check it"; otherwise it is not taken.
       value = math.min(value, online && duration < 0.7 ? acceptThreshold - 0.01 : 0.62);
     }
-    if (online && candidate.artist.toLowerCase().endsWith(' - topic')) value += 0.03;
+    if (title < 0.7) {
+      // A few shared words ("… from Cyberpunk: Edgerunners 2") with the
+      // right artist is another song of theirs, unless the length agrees too.
+      value = math.min(value, duration >= 0.9 && artist >= 0.9 ? 0.6 : acceptThreshold - 0.01);
+      note ??= l10n.matchOtherName;
+    }
+    // Official audio (YouTube Music songs, "Artist - Topic" channels).
+    if (online && artist >= 0.6 && (candidate.artist.toLowerCase().endsWith(' - topic') || candidate.album.isNotEmpty)) {
+      value += 0.03;
+    }
     return MatchScore(
       value: value.clamp(0, 1).toDouble(),
       title: title,
@@ -350,11 +395,15 @@ abstract final class MatchScorer {
     return top;
   }
 
-  /// Search text for services: "main artist title" without noise words.
+  /// Search text for services: "main artist title" without noise words, in
+  /// the song's own letters (searches match "Трудный", not "трудныи").
   static String queryFor(ExternalTrack t) {
     final a = t.artists.isEmpty ? '' : t.artists.first;
-    return '$a ${cleanTitle(t.title)}'.trim();
+    return '$a ${cleanTitleText(t.title)}'.replaceAll(RegExp(r'\s+'), ' ').trim();
   }
+
+  /// [queryFor] of each spelling, the song's own first.
+  static List<String> queriesFor(ExternalTrack t) => {for (final s in t.spellings) queryFor(s)}.toList();
 }
 
 /// Key used to spot the same song twice in one import.

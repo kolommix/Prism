@@ -3859,7 +3859,7 @@ class LyricsRow extends DataClass implements Insertable<LyricsRow> {
   final String? synced;
   final String? plain;
 
-  /// `lrc-file`, `embedded`, `lrclib`, or `none` (nothing found – don't ask again soon).
+  /// `lrc-file`, `embedded`, `lrclib`, or `none`/`none2` (nothing found – don't ask again soon).
   final String source;
   final DateTime fetchedAt;
 

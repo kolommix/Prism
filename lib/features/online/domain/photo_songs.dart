@@ -14,11 +14,17 @@ bool isPhotoFile(String path) {
 
 /// One word the text reader found, in picture pixels.
 class OcrWord {
-  const OcrWord(this.text, this.x, this.y, this.w, this.h);
+  const OcrWord(this.text, this.x, this.y, this.w, this.h, {this.alt});
   final String text;
   final double x, y, w, h;
+
+  /// The other reader's reading of the same spot, when it could be the right
+  /// one ("CUPSIZE" / "СИРЫЕ"): the song is looked up both ways.
+  final String? alt;
   double get right => x + w;
   double get bottom => y + h;
+
+  OcrWord withText(String text, {String? alt}) => OcrWord(text, x, y, w, h, alt: alt);
 }
 
 /// A run of words on one row (one line of the reader, or a column of it).
@@ -34,6 +40,9 @@ class OcrLine {
   double get centerX => (x + right) / 2;
   double get centerY => (y + bottom) / 2;
   String get text => words.map((w) => w.text).join(' ');
+
+  /// [text] with every word's other reading, null when there is none.
+  String? get altText => words.any((w) => w.alt != null) ? words.map((w) => w.alt ?? w.text).join(' ') : null;
 }
 
 /// What the reader saw in one picture.
@@ -75,8 +84,84 @@ OcrPage ocrPageFromNative(Map<Object?, Object?> raw) {
   bool nonLatin(String lang) => _nonLatinLanguages.contains(lang.split(RegExp('[-_+]')).first.toLowerCase());
   final base = engines.where((e) => nonLatin(e.$1)).firstOrNull;
   final helper = engines.where((e) => !nonLatin(e.$1)).firstOrNull;
-  if (base == null || helper == null) return OcrPage(width, height, (base ?? engines.first).$2);
-  return OcrPage(width, height, mergeReadings(base.$2, helper.$2));
+  final lines = base == null || helper == null ? (base ?? engines.first).$2 : mergeReadings(base.$2, helper.$2);
+  return OcrPage(width, height, [for (final l in lines) _fixShapes(l)]);
+}
+
+/// Letters readers swap inside English words: a capital I for a small l
+/// ("Petite MeIler"), a zero for an O ("0racular"), a one for an l.
+String fixLatinShapes(String word) {
+  if (!_isLatinWord(word)) return word;
+  var s = word.replaceAllMapped(RegExp(r'(?<!Mc)(?<!Mac)(?<=[a-z])I(?=[a-z])'), (_) => 'l');
+  s = s.replaceAllMapped(RegExp(r'(?<=[a-z])1(?=[a-z])'), (_) => 'l');
+  s = s.replaceAllMapped(RegExp(r'(?<![0-9])0(?![0-9])'), (m) {
+    final before = m.start > 0 ? s[m.start - 1] : '';
+    final after = m.end < s.length ? s[m.end] : '';
+    final letters = RegExp('[A-Za-z]');
+    if (!letters.hasMatch(before) && !letters.hasMatch(after)) return '0';
+    // Start of a word or among capitals: O; among small letters: o.
+    return before.isNotEmpty && RegExp('[a-z]').hasMatch(before) ? 'o' : 'O';
+  });
+  return s;
+}
+
+OcrLine _fixShapes(OcrLine line) {
+  if (!line.words.any((w) => _isLatinWord(w.text) || (w.alt != null && _isLatinWord(w.alt!)))) return line;
+  return OcrLine([
+    for (final w in line.words) w.withText(fixLatinShapes(w.text), alt: w.alt == null ? null : fixLatinShapes(w.alt!)),
+  ]);
+}
+
+// ------------------------------------------------- which reading is right
+
+final _letterRe = RegExp(r'\p{L}', unicode: true);
+final _cyrillic = RegExp(r'[Ѐ-ԯ]');
+final _asciiLetter = RegExp('[A-Za-z]');
+// The English reader writes one Cyrillic letter it has no shape for as two or
+// three Latin ones: Ы → bl/bI, Ю → IO, И → VI, Л → JI, Ш → LLI, Н/Ч → I-I, К → I<.
+final _splitLetters = RegExp(r'bl|bI|IO|VI|Vl|JI|LLI|III|I-I|I<|l<|>K<');
+
+int _letters(String s) => _letterRe.allMatches(s).length;
+
+/// A word the English reader could really have seen: plain letters (no
+/// digits, accents or stray signs inside), one way of writing capitals.
+bool _cleanLatin(String word) {
+  final core = word.replaceAll(RegExp(r'''^[\s"'“”‘’(\[«.,!?:;]+|[\s"'“”‘’)\]».,!?:;]+$'''), '');
+  if (core.isEmpty || !RegExp(r"^[A-Za-z]+(?:[-'’&.][A-Za-z]+)*$").hasMatch(core)) return false;
+  for (final part in core.split(RegExp(r"[-'’&.]"))) {
+    if (!RegExp(r'^(?:[A-Z]+|[a-z]+|[A-Z][a-z]+|[A-Z]?[a-z]+[A-Z][a-z]+)$').hasMatch(part)) return false;
+  }
+  return core.length < 3 || RegExp('[aeiouyAEIOUY]').hasMatch(core);
+}
+
+/// Russian spelling can't do this: a soft/hard sign or Ы first or after a
+/// vowel ("АЬит" is the Russian reader's "Album"), or Latin letters inside.
+bool _notRussian(String word) {
+  final w = word.toLowerCase();
+  if (_asciiLetter.hasMatch(w) && _cyrillic.hasMatch(w)) return true;
+  final letters = w.replaceAll(RegExp(r'[^а-яё]'), '');
+  if (letters.isEmpty) return false;
+  return RegExp(r'^[ьъы]|[аеёиоуыэюяьъ][ьъ]').hasMatch(letters);
+}
+
+bool _allCaps(String s) => _letters(s) >= 2 && s == s.toUpperCase() && s != s.toLowerCase();
+
+/// [latin] (English reader) is the right reading of the spot where the
+/// Russian reader saw [cyrillic]. Both readers bend letters towards their
+/// own alphabet, but differently: the Russian one loses English letters it
+/// has no shape for ("CUPSIZE" → "СИРЫЕ"), the English one turns Russian
+/// words into a jumble (digits, accents, cApItAlS, split letters).
+bool latinReadingWins(String latin, String cyrillic) {
+  if (!_cleanLatin(latin)) return false;
+  if (_notRussian(cyrillic)) return true;
+  final l = _letters(latin), c = _letters(cyrillic);
+  if (l < 3 || l <= c) return false;
+  // Russian small letters (к н и т в) look like small capitals to the
+  // English reader: "Кино" comes back as "KVIHO". Capitals on one side only
+  // mean the Russian reader saw small letters, so they are Russian.
+  if (_allCaps(latin) != _allCaps(cyrillic)) return false;
+  // Extra letters that are just split Russian letters don't count.
+  return _letters(latin.replaceAll(_splitLetters, '#')) + _splitLetters.allMatches(latin).length > c;
 }
 
 List<OcrWord> _words(List<Object?> raw) => [
@@ -147,14 +232,20 @@ List<OcrLine> mergeReadings(List<OcrLine> base, List<OcrLine> helper) {
         }
         final allLookalike = line.words.every((w) => !_otherLetter.hasMatch(w.text) || _lookalikes.hasMatch(w.text));
         final englishRow = (latin > 0 && latin >= other) || (latin == 0 && allLookalike);
-        if (!englishRow) return line;
-        OcrWord swap(OcrWord w) {
+        // Word by word: the English reading where it clearly wins (or the
+        // row is English), else the Russian one; a clean English reading
+        // that lost is kept as the other spelling to look the song up by.
+        OcrWord pick(OcrWord w) {
           if (!_otherLetter.hasMatch(w.text)) return w;
           final h = sameSpot(w);
-          return h != null && _isLatinWord(h.text) ? OcrWord(h.text, w.x, w.y, w.w, w.h) : w;
+          if (h == null || !_isLatinWord(h.text)) return w;
+          if (englishRow || latinReadingWins(h.text, w.text)) {
+            return w.withText(h.text, alt: _lookalikes.hasMatch(w.text) ? null : w.text);
+          }
+          return _cleanLatin(h.text) && _letters(h.text) >= 3 ? w.withText(w.text, alt: h.text) : w;
         }
 
-        return OcrLine([for (final w in line.words) swap(w)]);
+        return OcrLine([for (final w in line.words) pick(w)]);
       }(),
   ];
 }
@@ -257,11 +348,16 @@ List<OcrLine> _pieces(OcrLine line) {
 }
 
 class _Song {
-  _Song(this.title, this.artist, this.top, this.bottom, this.left, {this.durationMs = 0});
+  _Song(this.title, this.artist, this.top, this.bottom, this.left, {this.durationMs = 0, this.altTitle, this.altArtist});
   final String title, artist;
   final double top, bottom, left;
   int durationMs;
+
+  /// Other readings (see [OcrWord.alt]), when different.
+  final String? altTitle, altArtist;
 }
+
+String? _alt(String? alt, String main) => alt == null || alt.isEmpty || alt == main ? null : alt;
 
 /// Song names in a screenshot or photo of a playlist, top to bottom.
 ///
@@ -303,7 +399,10 @@ List<ExternalTrack> songsFromPhoto(OcrPage page) {
       used
         ..add(a)
         ..add(b);
-      pairs.add(_Song(title, artist, a.y, b.bottom, a.x, durationMs: d));
+      final altTitle = a.altText == null ? null : _cleanTitle(a.altText!);
+      final altArtist = b.altText == null ? null : _artistPart(b.altText!).$1;
+      pairs.add(_Song(title, artist, a.y, b.bottom, a.x,
+          durationMs: d, altTitle: _alt(altTitle, title), altArtist: _alt(altArtist, artist)));
       break;
     }
   }
@@ -322,17 +421,23 @@ List<ExternalTrack> songsFromPhoto(OcrPage page) {
     final dashed = <_Song>[];
     for (final p in pieces) {
       if (used.contains(p)) continue;
-      final m = RegExp(r'^(.+?)\s+[-–—]\s+(.+)$').firstMatch(_cleanTitle(p.text));
+      final dash = RegExp(r'^(.+?)\s+[-–—]\s+(.+)$');
+      final m = dash.firstMatch(_cleanTitle(p.text));
       if (m == null) continue;
       final artist = _cleanTitle(m[1]!), title = _cleanTitle(m[2]!);
       if (artist.isEmpty || title.isEmpty) continue;
-      dashed.add(_Song(title, artist, p.y, p.bottom, p.x));
+      final alt = p.altText == null ? null : dash.firstMatch(_cleanTitle(p.altText!));
+      dashed.add(_Song(title, artist, p.y, p.bottom, p.x,
+          altTitle: _alt(alt == null ? null : _cleanTitle(alt[2]!), title),
+          altArtist: _alt(alt == null ? null : _cleanTitle(alt[1]!), artist)));
     }
     songs = [...pairs, ...dashed];
     if (songs.isEmpty) {
       songs = [
         for (final p in pieces)
-          if (_cleanTitle(p.text).length >= 3) _Song(_cleanTitle(p.text), '', p.y, p.bottom, p.x),
+          if (_cleanTitle(p.text).length >= 3)
+            _Song(_cleanTitle(p.text), '', p.y, p.bottom, p.x,
+                altTitle: _alt(p.altText == null ? null : _cleanTitle(p.altText!), _cleanTitle(p.text))),
       ];
     }
   }
@@ -357,6 +462,9 @@ List<ExternalTrack> songsFromPhoto(OcrPage page) {
         title: s.title,
         artists: s.artist.isEmpty ? const [] : splitArtists(s.artist),
         durationMs: s.durationMs,
+        guessed: true,
+        altTitle: s.altTitle,
+        altArtists: s.altArtist == null ? const [] : splitArtists(s.altArtist!),
       ),
   ]);
 }

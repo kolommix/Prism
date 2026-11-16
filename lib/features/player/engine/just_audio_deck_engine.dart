@@ -85,6 +85,7 @@ class JustAudioDeckEngine implements PlaybackEngine {
       _subs.add(deck.player.playerStateStream.listen((s) => _onPlayerState(deck, s)));
       _subs.add(deck.player.currentIndexStream.listen((i) => _onIndex(deck, i)));
       _subs.add(deck.player.durationStream.listen((_) => _emit()));
+      _subs.add(deck.player.errorStream.listen((e) => _onPlayerError(deck, e)));
     }
     unawaited(_effects.attach([for (final d in _decks) d.player]));
   }
@@ -144,9 +145,58 @@ class JustAudioDeckEngine implements PlaybackEngine {
   /// Runs [op] after every previously queued operation finished.
   Future<void> _run(Future<void> Function() op) {
     final result = _serial.then((_) => op());
-    // Keep the chain alive even if one op fails.
-    _serial = result.catchError((Object _) {});
+    // Keep the chain alive even if one op fails, and never let one that
+    // hangs hold every later command (play, next, load) for good.
+    _serial = result.timeout(opWatchdog, onTimeout: () {}).catchError((Object _) {});
     return result;
+  }
+
+  /// Longest one queued command may hold the queue (opening a stream
+  /// included); normally milliseconds.
+  static const opWatchdog = Duration(seconds: 90);
+
+  /// How long opening a song may take before it counts as failed.
+  static const openLimitLocal = Duration(seconds: 15);
+  static const openLimitRemote = Duration(seconds: 45);
+
+  /// A local file that can't be opened is tried once more after this: a
+  /// just-saved import can be held for a moment (antivirus scan, the import's
+  /// own check).
+  static const reopenDelay = Duration(milliseconds: 1500);
+
+  /// Counts loads; a load that already reported its failure is not reported
+  /// again by the player's error stream.
+  int _loadGen = 0;
+  int _failedGen = -1;
+
+  bool _isLocal(_Entry e) => e.plan.renderedFile != null || e.track.sourceId == 'local';
+
+  /// Puts [build]'s sources into [deck]. Never waits forever: a stuck open is
+  /// stopped and counts as failed. Local songs get a second try.
+  Future<void> _open(
+    _Deck deck,
+    bool local,
+    Future<List<AudioSource>> Function() build, {
+    int index = 0,
+    Duration position = Duration.zero,
+    bool retry = true,
+  }) async {
+    for (var attempt = 0;; attempt++) {
+      try {
+        final sources = await build();
+        await deck.player
+            .setAudioSources(sources, initialIndex: index, initialPosition: position)
+            .timeout(local ? openLimitLocal : openLimitRemote);
+        return;
+      } on Object catch (e) {
+        if (e is TimeoutException) {
+          // Ends the stuck open (the player is made again on the next load).
+          await deck.player.stop().timeout(const Duration(seconds: 5), onTimeout: () {}).catchError((Object _) {});
+        }
+        if (!retry || !local || attempt > 0 || e is PlayerInterruptedException) rethrow;
+        await Future<void>.delayed(reopenDelay);
+      }
+    }
   }
 
   Future<_Entry> _entryFor(Track track) async => _Entry(track, await _planFor(track));
@@ -183,27 +233,28 @@ class JustAudioDeckEngine implements PlaybackEngine {
         _next = next;
         _endedSent = false;
         _nextUnresolved = false;
+        final gen = ++_loadGen;
         final entry = await _entryFor(current);
-        final List<AudioSource> sources;
-        try {
-          sources = await _sourcesFor(entry);
-        } on Object catch (e) {
-          // Remote track that can't be resolved (offline, removed video…).
-          _lastError = e;
-          _active.window.clear();
-          _eventCtrl.add(EngineEvent.failed);
-          return;
-        }
+        final withNext = _gapless && next != null && !_isolate(entry);
         _Entry? nextEntry;
-        if (_gapless && next != null && !_isolate(entry)) {
-          try {
-            nextEntry = await _entryFor(next);
-            sources.addAll(await _sourcesFor(nextEntry));
-          } on Object {
-            nextEntry = null;
-            _nextUnresolved = true;
+        Future<List<AudioSource>> build() async {
+          // Throws for a remote track that can't be resolved (offline,
+          // removed video…): that is a failed load too.
+          final sources = await _sourcesFor(entry);
+          nextEntry = null;
+          if (withNext) {
+            try {
+              final e = await _entryFor(next);
+              sources.addAll(await _sourcesFor(e));
+              nextEntry = e;
+              _nextUnresolved = false;
+            } on Object {
+              _nextUnresolved = true;
+            }
           }
+          return sources;
         }
+
         final (clip, inClip) = entry.plan.locate(position);
         _active.fade = 1;
         _active.window
@@ -211,10 +262,11 @@ class JustAudioDeckEngine implements PlaybackEngine {
           ..add(entry);
         await _applyClipParams();
         try {
-          await _active.player.setAudioSources(sources, initialIndex: clip, initialPosition: inClip);
-          if (nextEntry != null) _active.window.add(nextEntry);
+          await _open(_active, _isLocal(entry), build, index: clip, position: inClip);
+          if (nextEntry case final n?) _active.window.add(n);
         } on Object catch (e) {
           _lastError = e;
+          _failedGen = gen;
           _active.window.clear();
           _eventCtrl.add(EngineEvent.failed);
           return;
@@ -460,6 +512,22 @@ class JustAudioDeckEngine implements PlaybackEngine {
     _emit();
   }
 
+  /// The playing song broke (file gone, stream cut, can't be decoded): the
+  /// player stops by itself, so say "failed" and the controller moves on
+  /// instead of sitting there silent. Checked after any running load, which
+  /// reports its own failure.
+  void _onPlayerError(_Deck deck, PlayerException e) {
+    final gen = _loadGen;
+    _run(() async {
+      if (!identical(deck, _active) || deck.current == null || _failedGen == gen || gen != _loadGen) return;
+      if (deck.player.processingState != ProcessingState.idle) return;
+      _lastError = e;
+      _failedGen = gen;
+      deck.window.clear();
+      _eventCtrl.add(EngineEvent.failed);
+    });
+  }
+
   /// Applies speed, pitch and gain of the clip each deck is playing now.
   Future<void> _applyClipParams() async {
     for (final d in _decks) {
@@ -556,7 +624,7 @@ class JustAudioDeckEngine implements PlaybackEngine {
       final outgoing = _active;
       try {
         final entry = await _entryFor(next);
-        await incoming.player.setAudioSources(await _sourcesFor(entry));
+        await _open(incoming, _isLocal(entry), () => _sourcesFor(entry), retry: false);
         incoming.window
           ..clear()
           ..add(entry);

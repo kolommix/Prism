@@ -74,6 +74,11 @@ abstract class MusicServiceModule {
   /// `RemoteTrackStore` when played / added / matched.
   Future<List<Track>> search(String query, {int limit = 20}) => throw unsupported('search');
 
+  /// Songs from the service's music catalogue (official uploads with exact
+  /// names, artists and lengths, like YouTube Music), when it has one. Never
+  /// throws: an empty list means "nothing, use [search]".
+  Future<List<Track>> searchSongs(String query, {int limit = 10}) async => const [];
+
   /// Resolves a playable URL for a track of [playableSourceId].
   Future<Uri> streamUri(Track track) => throw unsupported(l10n.playAudio);
   Future<Map<String, String>> streamHeaders(Track track) async => const {};

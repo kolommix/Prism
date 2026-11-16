@@ -262,7 +262,7 @@ void main() {
     await tester.tap(find.descendant(of: row, matching: find.text('Fix')));
     await tester.pumpAndSettle();
     expect(find.text('Fix match'), findsOneWidget);
-    expect(find.widgetWithText(TextField, 'A unsure'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'A Unsure'), findsOneWidget);
     await tester.tap(find.text('No match').last);
     await settleDb(tester);
     await tester.pumpAndSettle();

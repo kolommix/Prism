@@ -657,6 +657,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get findAlbumArt => 'Искать обложки';
 
   @override
+  String get discordGetPrism => 'Скачать Prism';
+
+  @override
+  String get discordPrismButton => 'Кнопка «Скачать Prism»';
+
+  @override
+  String get discordPrismButtonHint =>
+      'Друзья смогут открыть страницу загрузки Prism из вашего статуса. Заменяет ссылку на Apple Music / Deezer.';
+
+  @override
   String get sendsTitleAndArtistToApple =>
       'Отправляет название и исполнителя в открытый поиск Apple и Deezer. Discord не умеет показывать обложки с вашего ПК.';
 
@@ -5010,6 +5020,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get matchTooLong => 'слишком длинное для этой песни';
+
+  @override
+  String get matchTooShort => 'намного короче песни (отрывок или другая песня)';
+
+  @override
+  String get matchOtherName => 'другая песня этого исполнителя';
 
   @override
   String get hotkeyPlayPause => 'Пуск / пауза';

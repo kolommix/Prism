@@ -603,6 +603,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get findAlbumArt => 'Find album art';
 
   @override
+  String get discordGetPrism => 'Get Prism';
+
+  @override
+  String get discordPrismButton => '\"Get Prism\" button';
+
+  @override
+  String get discordPrismButtonHint =>
+      'Friends can open Prism\'s download page from your status. Takes the place of the Apple Music / Deezer link.';
+
+  @override
   String get sendsTitleAndArtistToApple =>
       'Sends title and artist to Apple\'s and Deezer\'s public search. Discord can\'t show covers from your PC.';
 
@@ -4902,6 +4912,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchTooLong => 'far too long for this song';
+
+  @override
+  String get matchTooShort =>
+      'much shorter than the song (a snippet or another song)';
+
+  @override
+  String get matchOtherName => 'another song by this artist';
 
   @override
   String get hotkeyPlayPause => 'Play / pause';

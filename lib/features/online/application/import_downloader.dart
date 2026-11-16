@@ -208,7 +208,7 @@ class ImportDownloader extends Notifier<ImportDownload?> {
           file,
           title: title,
           artist: artist,
-          album: w.album,
+          album: w.album.isNotEmpty ? w.album : remote.album,
           // The length of what was really saved, when it was measured.
           durationMs: audio.durationMs > 0 ? audio.durationMs : expected,
           artwork: w.artworkUrl ?? remote.artworkPath,
@@ -250,10 +250,13 @@ class ImportDownloader extends Notifier<ImportDownload?> {
     String artist,
     String title,
   ) async {
-    final found = await module.search(MatchScorer.queryFor(wanted), limit: 10);
+    // Official audio (the music catalogue) first, then other videos.
+    final q = MatchScorer.queryFor(wanted);
+    final found = [...await module.searchSongs(q, limit: 6), ...await module.search(q, limit: 10)];
+    final seen = <String>{blockedId};
     final scored = [
       for (final t in found)
-        if (youtubeIdOf(t) case final id? when id != blockedId) (t, MatchScorer.score(wanted, t).value),
+        if (youtubeIdOf(t) case final id? when seen.add(id)) (t, MatchScorer.score(wanted, t).value),
     ]
       ..removeWhere((x) => x.$2 < MatchScorer.acceptThreshold)
       ..sort((a, b) => b.$2.compareTo(a.$2));

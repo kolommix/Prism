@@ -240,12 +240,17 @@ features/online/
   (songs/albums/artists/folders/search) filter `source_id = 'local'`.
 * **Matching** (`MatchService` + `MatchScorer`, pure and tested): exact M3U
   path → local library (wins at ≥ medium or within 0.1 of the best online) →
-  the linked video itself for YouTube imports → search YouTube, then
-  SoundCloud, stop at "high". Score = 50 % title + 30 % artist + 20 % length,
+  the linked video itself for YouTube imports → per service: its music
+  catalogue first (`searchSongs`: YouTube Music songs, official audio with
+  exact names and lengths), then plain search, for each spelling of the song
+  (picture imports carry a second reading), stop at "high". Score = 50 % title + 30 % artist + 20 % length,
   after dropping noise ("Official Video", "Remastered 2011", "feat. X");
   other recordings (live, remix…) are pushed down, fan versions (karaoke,
   nightcore, sped up…) strongly; a cover by another artist stays < medium.
   Levels: high ≥ 0.85, medium ≥ 0.7, low ≥ 0.5 (kept, flagged), else none.
+  Refused: much shorter than the song (snippet), title < 0.7 (another song
+  of the artist) unless length and artist agree. Picture-read names
+  (`ExternalTrack.guessed`) take the catalogue spelling on a sure match.
 * **Imports**: `import_jobs` + `import_items` (schema v4). Items are written
   one by one, so `ImportRunner` (2 workers, paced) can pause on a transient
   error and resume later; duplicates inside a list are marked before
@@ -253,7 +258,8 @@ features/online/
   order (manual fixes included).
 * **YouTube extractor** pieces are unofficial and break when YouTube changes:
   `ExplodeBackend` (youtube_explode_dart, searches spaced 1.5 s, bot check →
-  rate limit) and `WebPlaylistReader` (own reader for the 2026
+  rate limit), `YtMusicSongs` (music.youtube.com song search, spaced 0.7 s)
+  and `WebPlaylistReader` (own reader for the 2026
   `lockupViewModel` playlist layout the library can't parse yet).
 * Spotify Feb-2026 API: `/playlists/{id}/items` with fallback to `/tracks`;
   rows may carry the song under `item` or `track`.

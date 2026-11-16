@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -10,6 +11,7 @@ import '../../domain/online_error.dart';
 import 'web_playlist_reader.dart';
 import 'youtube_backend.dart';
 import 'ytdlp.dart';
+import 'ytmusic_songs.dart';
 import '../../../../l10n/l10n.dart';
 
 /// Unofficial extractor (youtube_explode_dart). No API key and no quota, but
@@ -101,6 +103,25 @@ class ExplodeBackend extends YoutubeBackend {
     final list = await _yt.search.search(query);
     return [for (final v in list.take(limit)) _map(v)];
   });
+
+  @override
+  Future<List<YtVideo>> searchSongs(String query, {int limit = 10}) => _guard(() async {
+    await _paceSongs();
+    final r = await _http.post(YtMusicSongs.endpoint, headers: YtMusicSongs.headers, body: jsonEncode(YtMusicSongs.body(query)));
+    if (r.statusCode == 429) throw OnlineException(OnlineErrorKind.rateLimited, service: OnlineService.youtube);
+    if (r.statusCode != 200) throw OnlineException(OnlineErrorKind.badResponse, service: OnlineService.youtube);
+    final json = jsonDecode(utf8.decode(r.bodyBytes));
+    return json is Map<String, dynamic> ? YtMusicSongs.parse(json, limit: limit) : const <YtVideo>[];
+  }, limit: const Duration(seconds: 15));
+
+  static const songsGap = Duration(milliseconds: 700);
+  Future<void> _songsSlot = Future.value();
+
+  Future<void> _paceSongs() {
+    final mine = _songsSlot;
+    _songsSlot = mine.then((_) => Future<void>.delayed(songsGap));
+    return mine;
+  }
 
   /// Searches scrape the results page; more than ~1 per second from one
   /// connection quickly triggers YouTube's bot check, so they are queued.

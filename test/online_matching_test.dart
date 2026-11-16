@@ -181,7 +181,7 @@ void main() {
     });
 
     test('queryFor drops noise', () {
-      expect(MatchScorer.queryFor(want('Song (Official Video) - Remastered', 'Band, Other')), 'Band song');
+      expect(MatchScorer.queryFor(want('Song (Official Video) - Remastered', 'Band, Other')), 'Band Song');
     });
   });
 

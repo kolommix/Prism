@@ -170,7 +170,7 @@ class ImportRunner extends Notifier<ImportRun?> {
         try {
           final r = await matcher.match(item.wanted);
           final t = r.track == null ? null : await store.ensure(r.track!);
-          await repo.saveMatch(item.id, trackId: t?.id, confidence: r.score.value, source: r.source, note: r.note);
+          await repo.saveMatch(item.id, trackId: t?.id, confidence: r.score.value, source: r.source, note: r.note, wanted: r.wanted);
           if (t != null && ref.read(onlineHubProvider).flags.importDownload) {
             ref.read(importDownloaderProvider.notifier).poke(jobId);
           }
