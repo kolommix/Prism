@@ -1,5 +1,6 @@
-import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/drift.dart' hide isNull, Column;
 import 'package:drift/native.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -66,5 +67,41 @@ void main() {
     await tester.tapAt(Offset(box.right - 4, box.center.dy));
     await tester.pumpAndSettle();
     expect(find.text('artist page: IBDY'), findsOneWidget);
+  });
+
+  testWidgets('a click works while the panel rebuilds (song playing)', (tester) async {
+    final tick = ValueNotifier(0);
+    final router = GoRouter(routes: [
+      GoRoute(
+        path: '/',
+        builder: (_, _) => Scaffold(
+          body: ValueListenableBuilder<int>(
+            valueListenable: tick,
+            builder: (_, v, _) => Column(children: [
+              Text('$v'),
+              const TrackText(track: Track(id: 1, uri: '/a.mp3', title: 'Celeste: Resurrections', artist: 'Geek Music')),
+            ]),
+          ),
+        ),
+      ),
+      GoRoute(path: '/library/artist', builder: (_, s) => Text('artist page: ${s.uri.queryParameters['name']}')),
+    ]);
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    final box = tester.getRect(find.byType(RichText).last);
+    final at = Offset(box.left + 10, box.center.dy);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(at); // hover: the name lights up
+    await tester.pump();
+    tick.value++;
+    await tester.pump();
+    await mouse.down(at);
+    // The song's position ticks between press and release.
+    tick.value++;
+    await tester.pump();
+    await mouse.up();
+    await tester.pumpAndSettle();
+    expect(find.text('artist page: Geek Music'), findsOneWidget);
   });
 }

@@ -98,12 +98,18 @@ class _ArtistLinksState extends State<ArtistLinks> {
     return [for (final p in out) if (p.$1.isNotEmpty) p];
   }
 
+  /// The same recognizer for the same name across builds: the panel around
+  /// this rebuilds several times a second while a song plays, and a new one
+  /// on every build lost the click between press and release.
+  TapGestureRecognizer _tapFor(int index) {
+    while (_taps.length <= index) {
+      _taps.add(TapGestureRecognizer());
+    }
+    return _taps[index];
+  }
+
   @override
   Widget build(BuildContext context) {
-    for (final t in _taps) {
-      t.dispose();
-    }
-    _taps.clear();
     final on = Theme.of(context).colorScheme.onSurface;
     final spans = <InlineSpan>[];
     var i = 0;
@@ -113,8 +119,7 @@ class _ArtistLinksState extends State<ArtistLinks> {
         continue;
       }
       final index = i++;
-      final tap = TapGestureRecognizer()..onTap = () => context.go(Routes.artist(name));
-      _taps.add(tap);
+      final tap = _tapFor(index)..onTap = () => context.go(Routes.artist(name));
       final hovered = _hover == index;
       spans.add(TextSpan(
         text: text,

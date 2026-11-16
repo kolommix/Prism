@@ -241,6 +241,10 @@ class PlayerController {
   Future<void> _skipNext() async {
     final before = _queue.index;
     _setQueue(_queue.skipNext());
+    // Shuffle starting over (repeat all): a new order, not the same one again.
+    if (_queue.shuffled && _queue.index == 0 && before == _queue.length - 1 && _queue.length > 2) {
+      _setQueue(_queue.setShuffle(false).setShuffle(true, random: _random));
+    }
     if (_queue.index != before) await _loadCurrent(play: true);
   }
 
@@ -352,6 +356,8 @@ class PlayerController {
       repeatMode: saved.repeatMode,
       shuffled: saved.shuffled,
     ));
+    // A new start gets a new shuffle behind the saved song (it stays where it was).
+    if (saved.shuffled && _queue.length > 2) _setQueue(_queue.setShuffle(false).setShuffle(true, random: _random));
     await _engine.setRepeatOne(saved.repeatMode == QueueRepeatMode.one);
     await _loadCurrent(play: false, position: saved.position);
   }
@@ -413,7 +419,11 @@ class PlayerController {
         _consecutiveFailures = 0;
         _dropLoopPoints();
         final n = _engineNextIndex;
+        final wrapped = n == 0 && _queue.index == _queue.length - 1;
         if (n != null) _setQueue(_queue.jumpTo(n));
+        if (wrapped && _queue.shuffled && _queue.length > 2) {
+          _setQueue(_queue.setShuffle(false).setShuffle(true, random: _random));
+        }
         await _syncNext();
       case EngineEvent.ended:
         await _save(force: true);

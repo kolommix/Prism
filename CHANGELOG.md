@@ -3,6 +3,13 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (`.github/workflows/release.yml` reads it), so add one before tagging.
 
+## 1.6.1 (2026-11-17)
+
+- **Clicking the artist name next to the playing song opens their page again.** It did nothing while a song was
+  playing.
+- **Shuffle feels more random**: a new order every time the list starts over and every time Prism starts (it used to
+  play the same shuffled order again).
+
 ## 1.6.0 (2026-11-17)
 
 ### Imports find the right songs
