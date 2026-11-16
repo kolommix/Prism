@@ -4,6 +4,26 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (.github/workflows/release.yml reads it), so add one before tagging.
 
+1.6.0 (2026-11-17)
+------------------
+
+Imports find the right songs:
+- A new place to look: YouTube Music's song list. Prism checks the official song uploads first (real song name,
+  artists, album and exact length) and only then ordinary YouTube videos. Songs that used to be missed or wrong are now
+  found: in a test with 16 songs earlier imports got wrong, 14 are now found for sure.
+- Fewer wrong picks: a short piece of a song, or another song by the same artist that just shares a few words, is no
+  longer taken. Titles with "(из фильма …)" or soundtrack notes are still found.
+- Photo imports read English names right: "CUPSIZE" no longer turns into "СИРЫЕ", and "Meller" no longer into
+  "MeIler". Once a song is found, it is saved under its real name.
+
+Player:
+- No more freeze when you play a song the moment it is saved. Prism could get stuck until you restarted it when a
+  song couldn't be opened for a moment (for example while an antivirus checked the new file). Now it tries again a
+  moment later, and a song that really can't be played is skipped.
+
+Discord:
+- "Get Prism" button on your Discord status, so friends can download Prism. Turn it off in Settings → Discord.
+
 1.5.0 (2026-11-13)
 ------------------
 
