@@ -4,6 +4,12 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (.github/workflows/release.yml reads it), so add one before tagging.
 
+1.6.5 (2026-11-17)
+------------------
+
+- Lyrics for the whole library (Settings, Lyrics, off by default): Prism saves lyrics for every song in the
+  background, one at a time, so Search can find any of your songs by a line. Shows its progress there.
+
 1.6.4 (2026-11-17)
 ------------------
 

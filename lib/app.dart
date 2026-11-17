@@ -14,6 +14,7 @@ import 'core/theme/theme_builder.dart';
 import 'features/audio_fx/application/loudness_controller.dart';
 import 'features/background/application/background_input.dart';
 import 'features/library/application/auto_tagger.dart';
+import 'features/lyrics/application/lyrics_filler.dart';
 import 'features/stats/application/stats_providers.dart';
 import 'features/desktop/application/android_widget_sync.dart';
 import 'features/desktop/application/desktop_extras.dart';
@@ -261,6 +262,8 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     ref.listen(loudnessControllerProvider, (_, _) {});
     // Finds missing covers and artists in the background (if on).
     ref.listen(autoTaggerProvider, (_, _) {});
+    // Saves lyrics for the whole library in the background (if on).
+    ref.listen(lyricsFillerProvider, (_, _) {});
     // Windows: system-wide hotkeys and the floating lyrics window.
     ref.listen(hotkeysProvider, (_, _) {});
     ref.listen(lyricsWindowProvider, (_, _) {});

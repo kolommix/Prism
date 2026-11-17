@@ -2917,6 +2917,32 @@ class AppLocalizationsRu extends AppLocalizations {
   String get songsWithThisLineOnline => 'В YouTube Music';
 
   @override
+  String get lyricsForWholeLibrary => 'Тексты для всей библиотеки';
+
+  @override
+  String get lyricsForLibraryNeedsOnline =>
+      'Сначала включите «Искать тексты в сети»';
+
+  @override
+  String savingLyricsProgress(int done, int total, int found) {
+    return 'Сохраняю тексты: $done из $total, найдено $found';
+  }
+
+  @override
+  String lyricsSavedForSongs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Тексты сохранены для $count песни',
+      many: 'Тексты сохранены для $count песен',
+      few: 'Тексты сохранены для $count песен',
+      one: 'Тексты сохранены для $count песни',
+      zero: 'Сохраняет тексты в фоне, чтобы Поиск находил песню по строчке',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tagFileBusy =>
       'Файл занят (его держит другая программа или плеер). Закройте его там или включите другую песню и сохраните снова.';
 

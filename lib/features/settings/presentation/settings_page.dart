@@ -14,6 +14,8 @@ import '../../audio_fx/application/loudness_controller.dart';
 import '../../audio_fx/domain/loudness.dart';
 import '../../desktop/presentation/discord_settings.dart';
 import '../../hotkeys/presentation/hotkey_settings.dart';
+import '../../lyrics/application/lyrics_filler.dart';
+import '../../lyrics/application/lyrics_providers.dart';
 import '../../lyrics/presentation/lyrics_window_settings.dart';
 import '../../library/application/auto_tagger.dart';
 import '../../library/application/library_providers.dart';
@@ -377,6 +379,7 @@ class _SectionBody extends ConsumerWidget {
             value: settings.onlineLyrics,
             onChanged: (v) => ctrl.update((s) => s.copyWith(onlineLyrics: v)),
           ),
+          const _LyricsForLibraryTile(),
         ],
       ),
     ];
@@ -739,6 +742,44 @@ class _AutoFindGroup extends ConsumerWidget {
               await ctrl.undoAll();
             },
           ),
+      ],
+    );
+  }
+}
+
+/// "Lyrics for the whole library": the switch, what it is doing, a progress bar.
+class _LyricsForLibraryTile extends ConsumerWidget {
+  const _LyricsForLibraryTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final s = ref.watch(settingsProvider);
+    final fill = ref.watch(lyricsFillerProvider);
+    final saved = ref.watch(lyricsIndexProvider).value?.length ?? 0;
+    final String status;
+    if (!s.onlineLyrics) {
+      status = l10n.lyricsForLibraryNeedsOnline;
+    } else if (fill.running) {
+      status = l10n.savingLyricsProgress(fill.done, fill.total, fill.found);
+    } else if (fill.note != null) {
+      status = fill.note!;
+    } else {
+      status = l10n.lyricsSavedForSongs(saved);
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SettingsSwitch(
+          icon: Icons.library_music_outlined,
+          title: l10n.lyricsForWholeLibrary,
+          subtitle: status,
+          value: s.lyricsForLibrary && s.onlineLyrics,
+          onChanged: s.onlineLyrics
+              ? (v) => ref.read(settingsProvider.notifier).update((x) => x.copyWith(lyricsForLibrary: v))
+              : null,
+        ),
+        if (fill.running && fill.total > 0)
+          SettingsControl(child: LinearProgressIndicator(value: fill.done / fill.total)),
       ],
     );
   }

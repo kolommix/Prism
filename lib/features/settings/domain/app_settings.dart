@@ -43,6 +43,10 @@ abstract class AppSettings with _$AppSettings {
     /// Look up lyrics on lrclib.net (sends title/artist/album/duration only).
     @Default(true) bool onlineLyrics,
 
+    /// Save lyrics for every song in the background (needs [onlineLyrics]),
+    /// so Search can find any song by a line.
+    @Default(false) bool lyricsForLibrary,
+
     /// Find missing covers, artists and albums online (sends title and artist
     /// to Apple's and Deezer's public search). Files are never changed.
     @Default(true) bool autoFindInfo,

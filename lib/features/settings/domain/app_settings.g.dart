@@ -21,6 +21,7 @@ _AppSettings _$AppSettingsFromJson(Map<String, dynamic> json) => _AppSettings(
       NormalizationMode.off,
   autoAnalyzeLoudness: json['autoAnalyzeLoudness'] as bool? ?? true,
   onlineLyrics: json['onlineLyrics'] as bool? ?? true,
+  lyricsForLibrary: json['lyricsForLibrary'] as bool? ?? false,
   autoFindInfo: json['autoFindInfo'] as bool? ?? true,
   visualizerStyle: json['visualizerStyle'] as String? ?? 'bars',
   visualizerSensitivity:
@@ -63,6 +64,7 @@ Map<String, dynamic> _$AppSettingsToJson(_AppSettings instance) =>
       'normalization': _$NormalizationModeEnumMap[instance.normalization]!,
       'autoAnalyzeLoudness': instance.autoAnalyzeLoudness,
       'onlineLyrics': instance.onlineLyrics,
+      'lyricsForLibrary': instance.lyricsForLibrary,
       'autoFindInfo': instance.autoFindInfo,
       'visualizerStyle': instance.visualizerStyle,
       'visualizerSensitivity': instance.visualizerSensitivity,

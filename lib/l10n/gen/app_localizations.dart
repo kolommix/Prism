@@ -4596,6 +4596,30 @@ abstract class AppLocalizations {
   /// **'On YouTube Music'**
   String get songsWithThisLineOnline;
 
+  /// No description provided for @lyricsForWholeLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics for the whole library'**
+  String get lyricsForWholeLibrary;
+
+  /// No description provided for @lyricsForLibraryNeedsOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on \"Find lyrics online\" first'**
+  String get lyricsForLibraryNeedsOnline;
+
+  /// No description provided for @savingLyricsProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving lyrics: {done} of {total}, found {found}'**
+  String savingLyricsProgress(int done, int total, int found);
+
+  /// No description provided for @lyricsSavedForSongs.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Saves lyrics in the background, so Search finds any song by a line} =1{Lyrics saved for {count} song} other{Lyrics saved for {count} songs}}'**
+  String lyricsSavedForSongs(int count);
+
   /// No description provided for @tagFileBusy.
   ///
   /// In en, this message translates to:

@@ -2851,6 +2851,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get songsWithThisLineOnline => 'On YouTube Music';
 
   @override
+  String get lyricsForWholeLibrary => 'Lyrics for the whole library';
+
+  @override
+  String get lyricsForLibraryNeedsOnline =>
+      'Turn on \"Find lyrics online\" first';
+
+  @override
+  String savingLyricsProgress(int done, int total, int found) {
+    return 'Saving lyrics: $done of $total, found $found';
+  }
+
+  @override
+  String lyricsSavedForSongs(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Lyrics saved for $count songs',
+      one: 'Lyrics saved for $count song',
+      zero:
+          'Saves lyrics in the background, so Search finds any song by a line',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get tagFileBusy =>
       'The file is busy (another app or the player is holding it). Close it there or play another song, then save again.';
 
