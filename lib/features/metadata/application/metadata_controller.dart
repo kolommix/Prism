@@ -5,6 +5,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
+import '../../player/application/player_providers.dart';
 import '../../library/application/library_providers.dart';
 import '../../library/domain/library_models.dart';
 import '../../library/domain/track.dart';
@@ -285,6 +286,10 @@ class MetadataFixController extends Notifier<FixState> {
     final fresh = await repo.tracksByIds([for (final it in state.items) it.track.id]);
     if (!ref.mounted) return;
     final byId = {for (final t in fresh) t.id: t};
+    // The queue (player, Discord, tray, media overlay) shows the new info now.
+    for (final t in fresh) {
+      ref.read(playerControllerProvider).refreshTrackInfo(t);
+    }
     state = state.copyWith(
       saving: false,
       savedCount: saved,

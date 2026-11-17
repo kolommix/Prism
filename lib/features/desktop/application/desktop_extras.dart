@@ -71,9 +71,11 @@ final discordPresenceProvider = Provider<void>((ref) {
   void sendFor(Track t, CoverInfo? info, String id) {
     final st = ref.read(engineStateProvider).value;
     final together = ref.read(togetherProvider);
-    final title = cleanSongTitle(info?.title ?? t.title);
-    final artist = t.artist.isNotEmpty || t.albumArtist.isNotEmpty ? t.displayArtist : (info?.artist ?? t.displayArtist);
-    final album = t.album.isNotEmpty ? t.album : (info?.album ?? '');
+    // Always the song's own info (what the user sees and may have fixed);
+    // an online find only adds a cover and a link, never a name.
+    final title = cleanSongTitle(t.title);
+    final artist = t.displayArtist;
+    final album = t.album;
     final cover = t.artworkPath != null && t.artworkPath!.startsWith('https://') ? t.artworkPath : info?.coverUrl;
     final buttons = discordButtons(t, info, title, artist, prismButton: ref.read(settingsProvider).discordPrismButton);
     presence.update(
@@ -115,7 +117,10 @@ final discordPresenceProvider = Provider<void>((ref) {
       presence.update(id, null);
       return;
     }
-    final wantCover = s.discordCovers && !(t.artworkPath?.startsWith('https://') ?? false);
+    // Without an artist a find is a guess ("что" is many songs): no cover then.
+    final wantCover = s.discordCovers &&
+        (t.artist.isNotEmpty || t.albumArtist.isNotEmpty) &&
+        !(t.artworkPath?.startsWith('https://') ?? false);
     final known = wantCover ? covers.cached(t) : null;
     if (wantCover && known == null && !covers.isSettled(t)) {
       // A quick find goes out with the song in one update; a slow one follows.

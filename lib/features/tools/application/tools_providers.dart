@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../player/application/player_providers.dart';
 import '../../editor/data/edit_repository.dart';
 import '../../library/application/library_providers.dart';
 import '../../library/domain/track.dart';
@@ -45,6 +46,9 @@ Future<void> saveTags(WidgetRef ref, Track track, TagEdit edit) async {
   }
   await ref.read(libraryScannerProvider).scanFolders([p.dirname(track.uri)]).drain<void>();
   PaintingBinding.instance.imageCache.clear();
+  // The queue (player, Discord, tray, media overlay) shows the new info now.
+  final fresh = await ref.read(libraryRepositoryProvider).tracksByIds([track.id]);
+  if (fresh.isNotEmpty) ref.read(playerControllerProvider).refreshTrackInfo(fresh.first);
 }
 
 final duplicateCleanerProvider = Provider<DuplicateCleaner>((ref) => DuplicateCleaner(ref.watch(libraryRepositoryProvider)));

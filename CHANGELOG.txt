@@ -4,6 +4,13 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (.github/workflows/release.yml reads it), so add one before tagging.
 
+1.6.6 (2026-11-17)
+------------------
+
+- Discord shows the song you see in Prism. It always uses the song's own title, artist and album (also right after you
+  fix them), never a name found online. Songs without an artist get no guessed cover.
+- After saving song info, the player, tray menu and Windows media overlay show the new info right away.
+
 1.6.5 (2026-11-17)
 ------------------
 

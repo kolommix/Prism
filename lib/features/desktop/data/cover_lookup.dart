@@ -130,7 +130,11 @@ class CoverLookup {
   CoverLookup({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
-  final _cache = <int, CoverInfo?>{};
+  final _cache = <String, CoverInfo?>{};
+
+  /// Per song *and* its current name: after the user fixes the info, the
+  /// old answer (maybe another song) is never used again.
+  static String _key(Track t) => '${t.id}|${t.title}|${t.artist}|${t.albumArtist}';
 
   static const _minScore = 0.6;
 
@@ -138,15 +142,15 @@ class CoverLookup {
   /// nothing about the song.
   bool lastFailed = false;
 
-  void forget(Track t) => _cache.remove(t.id);
+  void forget(Track t) => _cache.remove(_key(t));
 
-  CoverInfo? cached(Track t) => _cache[t.id];
+  CoverInfo? cached(Track t) => _cache[_key(t)];
 
   /// Already looked up (found or not).
-  bool isSettled(Track t) => _cache.containsKey(t.id);
+  bool isSettled(Track t) => _cache.containsKey(_key(t));
 
   Future<CoverInfo?> find(Track t) async {
-    if (_cache.containsKey(t.id)) return _cache[t.id];
+    if (_cache.containsKey(_key(t))) return _cache[_key(t)];
     // The song as people name it: no "(Official Video)", no "ArtistVEVO",
     // "Artist - Song" titles of videos and untagged files split.
     final named = songAsNamed(t.copyWith(title: cleanSongTitle(t.title)));
@@ -187,7 +191,7 @@ class CoverLookup {
       }
     }
     lastFailed = found == null && failed && !answered;
-    _cache[t.id] = found;
+    _cache[_key(t)] = found;
     return found;
   }
 
