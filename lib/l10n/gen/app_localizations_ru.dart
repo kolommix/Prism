@@ -2911,6 +2911,12 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get songsWithThisLine => 'Песни с этой строкой';
+
+  @override
+  String get songsWithThisLineOnline => 'В YouTube Music';
+
+  @override
   String get tagFileBusy =>
       'Файл занят (его держит другая программа или плеер). Закройте его там или включите другую песню и сохраните снова.';
 

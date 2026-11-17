@@ -3,6 +3,11 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (`.github/workflows/release.yml` reads it), so add one before tagging.
 
+## 1.6.4 (2026-11-17)
+
+- **Find a song by a line of its words.** Type a line you remember in Search: songs whose saved lyrics have it show up
+  with that line, and with YouTube switched on, YouTube Music suggests songs that have it too.
+
 ## 1.6.3 (2026-11-17)
 
 - **The tray menu shows more**: a bigger cover, the album, a progress bar with played and total time, and the next song.

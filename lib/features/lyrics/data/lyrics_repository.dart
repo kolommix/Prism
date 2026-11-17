@@ -13,6 +13,7 @@ import '../../online/domain/external_track.dart';
 import '../../online/domain/matching.dart';
 import '../../online/domain/song_identity.dart';
 import '../domain/lrc.dart';
+import '../domain/lyrics_search.dart';
 
 /// Result of an LRCLIB lookup.
 sealed class LrclibResult {
@@ -163,6 +164,17 @@ class LyricsRepository {
   final LrclibClient _lrclib;
 
   static const _retryNone = Duration(days: 7);
+
+  /// Every saved song's words, ready for [searchLyrics]; follows the cache.
+  Stream<List<LyricsIndexEntry>> watchIndex() =>
+      (_db.select(_db.lyricsCache)..where((r) => r.plain.isNotNull() | r.synced.isNotNull())).watch().map(
+            (rows) => [
+              for (final r in rows)
+                if ((r.plain?.trim().isNotEmpty ?? false) ? r.plain! : (r.synced ?? '') case final text
+                    when text.trim().isNotEmpty)
+                  LyricsIndexEntry(r.trackId, text),
+            ],
+          );
 
   /// "Nothing found" by the current way of looking. Older "none" rows
   /// ('none', from the simpler lookup) are asked again once.

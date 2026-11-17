@@ -4584,6 +4584,18 @@ abstract class AppLocalizations {
   /// **'Could not write tags: {e}'**
   String couldNotWriteTags(Object e);
 
+  /// No description provided for @songsWithThisLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Songs with this line'**
+  String get songsWithThisLine;
+
+  /// No description provided for @songsWithThisLineOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'On YouTube Music'**
+  String get songsWithThisLineOnline;
+
   /// No description provided for @tagFileBusy.
   ///
   /// In en, this message translates to:

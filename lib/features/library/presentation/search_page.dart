@@ -5,10 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/motion/smooth_scroll.dart';
 import '../../../core/theme/prism_theme_extensions.dart';
+import '../../lyrics/application/lyrics_providers.dart';
 import '../../online/application/online_providers.dart';
 import '../../online/domain/external_track.dart';
 import '../../online/domain/online_error.dart';
+import '../../player/application/player_providers.dart';
 import '../application/library_providers.dart';
+import '../domain/track.dart';
 import 'widgets/library_widgets.dart';
 import 'widgets/track_tile.dart';
 import '../../../l10n/l10n.dart';
@@ -152,6 +155,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   _ => const SliverToBoxAdapter(child: LinearProgressIndicator()),
                 },
               ],
+              if (showLocal)
+                _LyricsResults(
+                  query: query,
+                  online: services.contains(OnlineService.youtube) && !_hidden.contains(OnlineService.youtube),
+                ),
               for (final s in online) ...[
                 header(s.label, s == OnlineService.youtube ? Icons.smart_display_rounded : Icons.cloud_rounded),
                 _OnlineResults(service: s, query: query),
@@ -199,5 +207,74 @@ class _OnlineResults extends ConsumerWidget {
         child: Padding(padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12), child: LinearProgressIndicator()),
       ),
     };
+  }
+}
+
+/// Songs that have the typed line in their words: saved lyrics of the library
+/// first, then (with YouTube on) YouTube Music, which searches lyrics too.
+/// Shows nothing for short queries or when nothing has the line.
+class _LyricsResults extends ConsumerWidget {
+  const _LyricsResults({required this.query, required this.online});
+  final String query;
+  final bool online;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final local = ref.watch(lyricsMatchesProvider).value ?? const <(Track, String)>[];
+    final remote = online ? ref.watch(onlineLyricsMatchesProvider(query)).value ?? const <Track>[] : const <Track>[];
+    if (local.isEmpty && remote.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    final text = Theme.of(context).textTheme;
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+    final localTracks = [for (final (t, _) in local) t];
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Row(
+              children: [
+                Icon(Icons.lyrics_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 8),
+                Expanded(child: Text(l10n.songsWithThisLine, style: text.titleSmall)),
+              ],
+            ),
+          ),
+        ),
+        SliverList.builder(
+          itemCount: local.length,
+          itemBuilder: (_, i) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TrackTile(
+                track: local[i].$1,
+                onTap: () => ref.read(playerControllerProvider).playTracks(localTracks, startIndex: i),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(84, 0, 16, 8),
+                child: Text(
+                  '« ${local[i].$2} »',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.bodySmall?.copyWith(color: muted, fontStyle: FontStyle.italic),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (remote.isNotEmpty) ...[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 2),
+              child: Text(l10n.songsWithThisLineOnline, style: text.labelMedium?.copyWith(color: muted)),
+            ),
+          ),
+          SliverList.builder(
+            itemCount: remote.length,
+            itemBuilder: (_, i) => TrackTile(track: remote[i], onTap: () => playTracksAnywhere(ref, remote, startIndex: i)),
+          ),
+        ],
+      ],
+    );
   }
 }

@@ -2845,6 +2845,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get songsWithThisLine => 'Songs with this line';
+
+  @override
+  String get songsWithThisLineOnline => 'On YouTube Music';
+
+  @override
   String get tagFileBusy =>
       'The file is busy (another app or the player is holding it). Close it there or play another song, then save again.';
 
