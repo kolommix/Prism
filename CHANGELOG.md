@@ -3,6 +3,11 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (`.github/workflows/release.yml` reads it), so add one before tagging.
 
+## 1.6.3 (2026-11-17)
+
+- **The tray menu shows more**: a bigger cover, the album, a progress bar with played and total time, and the next song.
+- **Space in a search box types a space** instead of pausing the music (the same for Ctrl + arrows in any text field).
+
 ## 1.6.2 (2026-11-17)
 
 - **Fix song info finds more songs**: Deezer is a new source, and Russian songs are also looked up in the Russian

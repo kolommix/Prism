@@ -3,6 +3,7 @@
 
 #include <windows.h>
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
@@ -15,11 +16,14 @@ class Bitmap;
 struct TrayPopupState {
   std::wstring title;
   std::wstring artist;
+  std::wstring album;
+  std::wstring next;  // "Title · Artist" of the next song, or empty
   std::wstring art_path;  // a local picture file, or empty
   bool playing = false;
   bool has_track = false;
   std::wstring show_label = L"Show Prism";
   std::wstring quit_label = L"Quit";
+  std::wstring next_label = L"Up next";
 };
 
 // The tray icon's right-click popup: a small dark panel with the song (cover,
@@ -39,6 +43,8 @@ class TrayPopup {
   void ShowAt(POINT anchor);
   void Update(const TrayPopupState& state);
   void Close();
+  // Played / total time; repaints only while open.
+  void SetProgress(int64_t position_ms, int64_t duration_ms);
   bool visible() const { return hwnd_ && ::IsWindowVisible(hwnd_); }
 
  private:
@@ -63,6 +69,10 @@ class TrayPopup {
   SIZE size_{};
   RECT parts_[kPartCount]{};
   RECT cover_{};
+  RECT progress_{};
+  RECT next_{};
+  int64_t position_ms_ = 0;
+  int64_t duration_ms_ = 0;
   Part hover_ = kNone;
   Part down_ = kNone;
   bool tracking_ = false;

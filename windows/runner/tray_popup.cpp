@@ -1,6 +1,7 @@
 #include "tray_popup.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <dwmapi.h>
 #include <objidl.h>
 #include <windowsx.h>
@@ -19,9 +20,9 @@ namespace {
 constexpr wchar_t kClassName[] = L"PRISM_TRAY_POPUP";
 
 // Base sizes at 96 dpi.
-constexpr int kWidth = 288;
+constexpr int kWidth = 320;
 constexpr int kPad = 12;
-constexpr int kCover = 48;
+constexpr int kCover = 64;
 constexpr int kButton = 40;
 constexpr int kPlayButton = 44;
 constexpr int kRow = 36;
@@ -107,7 +108,10 @@ void TrayPopup::Layout() {
   const int w = s(kWidth), pad = s(kPad);
   int y = pad;
   cover_ = {pad, y, pad + s(kCover), y + s(kCover)};
-  y += s(kCover) + s(10);
+  y += s(kCover) + s(12);
+  // Progress bar, with played / total time under it.
+  progress_ = {pad, y, w - pad, y + s(4)};
+  y += s(4) + s(20);
   // Controls, centered.
   const int b = s(kButton), play = s(kPlayButton), gap = s(14);
   const int total = b * 2 + play + gap * 2;
@@ -118,7 +122,10 @@ void TrayPopup::Layout() {
   parts_[kToggle] = {x, y, x + play, y + play};
   x += play + gap;
   parts_[kNext] = {x, mid - b / 2, x + b, mid + b / 2};
-  y += play + s(10);
+  y += play + s(8);
+  // "Up next" line (kept even when empty, so the size never jumps).
+  next_ = {pad, y, w - pad, y + s(20)};
+  y += s(20) + s(8);
   y += s(1) + s(6);  // line
   const int inset = s(6);
   parts_[kOpen] = {inset, y, w - inset, y + s(kRow)};
@@ -174,6 +181,13 @@ void TrayPopup::LoadArt() {
   g.DrawImage(&source, Gdiplus::Rect(0, 0, px, px), static_cast<INT>((w - side) / 2), static_cast<INT>((h - side) / 2),
               static_cast<INT>(side), static_cast<INT>(side), Gdiplus::UnitPixel);
   art_ = std::move(copy);
+}
+
+void TrayPopup::SetProgress(int64_t position_ms, int64_t duration_ms) {
+  const bool same = position_ms / 1000 == position_ms_ / 1000 && duration_ms == duration_ms_;
+  position_ms_ = position_ms;
+  duration_ms_ = duration_ms;
+  if (!same && visible()) ::InvalidateRect(hwnd_, nullptr, FALSE);
 }
 
 void TrayPopup::Close() {
@@ -264,10 +278,18 @@ void TrayPopup::Paint(HDC hdc) {
     const float width = size_.cx - left - kPad * sc;
     const float top = static_cast<float>(cover_.top);
     const std::wstring title = state_.has_track ? state_.title : L"Prism";
-    if (state_.has_track && !state_.artist.empty()) {
-      g.DrawString(title.c_str(), -1, &title_font, RectF(left, top + 4 * sc, width, 20 * sc), &one_line, &text);
-      g.DrawString(state_.artist.c_str(), -1, &small_font, RectF(left, top + 25 * sc, width, 18 * sc), &one_line,
-                   &muted);
+    if (state_.has_track) {
+      // Title, artist, album: centered as a block next to the cover.
+      const bool album = !state_.album.empty();
+      const float block = album ? 58 * sc : 40 * sc;
+      float ty = top + (kCover * sc - block) / 2;
+      g.DrawString(title.c_str(), -1, &title_font, RectF(left, ty, width - 10 * sc, 20 * sc), &one_line, &text);
+      ty += 21 * sc;
+      g.DrawString(state_.artist.c_str(), -1, &small_font, RectF(left, ty, width, 18 * sc), &one_line, &muted);
+      if (album) {
+        ty += 18 * sc;
+        g.DrawString(state_.album.c_str(), -1, &small_font, RectF(left, ty, width, 18 * sc), &one_line, &muted);
+      }
     } else {
       g.DrawString(title.c_str(), -1, &title_font, RectF(left, top, width, kCover * sc), &one_line, &text);
     }
@@ -276,6 +298,42 @@ void TrayPopup::Paint(HDC hdc) {
       SolidBrush led(kLed);
       const float r = 3 * sc;
       g.FillEllipse(&led, size_.cx - kPad * sc - r * 2, top + 4 * sc, r * 2, r * 2);
+    }
+  }
+
+  // Progress: a thin bar and the times.
+  {
+    const RectF bar = ToF(progress_);
+    GraphicsPath track;
+    AddRoundRect(track, bar, bar.Height / 2);
+    SolidBrush rail(kLine);
+    g.FillPath(&rail, &track);
+    const double frac = duration_ms_ > 0 ? std::clamp(static_cast<double>(position_ms_) / duration_ms_, 0.0, 1.0) : 0.0;
+    if (frac > 0) {
+      GraphicsPath done;
+      AddRoundRect(done, RectF(bar.X, bar.Y, std::max(bar.Height, static_cast<float>(bar.Width * frac)), bar.Height),
+                   bar.Height / 2);
+      SolidBrush fill(Color(220, 245, 245, 245));
+      g.FillPath(&fill, &done);
+    }
+    auto clock = [](int64_t ms) {
+      const int64_t t = std::max<int64_t>(ms, 0) / 1000;
+      wchar_t buf[32];
+      if (t >= 3600) {
+        swprintf_s(buf, L"%lld:%02lld:%02lld", t / 3600, (t / 60) % 60, t % 60);
+      } else {
+        swprintf_s(buf, L"%lld:%02lld", t / 60, t % 60);
+      }
+      return std::wstring(buf);
+    };
+    Font time_font(&family, 11.5f * sc, FontStyleRegular, UnitPixel);
+    StringFormat right;
+    right.SetAlignment(StringAlignmentFar);
+    right.SetLineAlignment(StringAlignmentCenter);
+    const RectF row(bar.X, bar.Y + bar.Height + 3 * sc, bar.Width, 16 * sc);
+    if (state_.has_track) {
+      g.DrawString(clock(position_ms_).c_str(), -1, &time_font, row, &one_line, &muted);
+      if (duration_ms_ > 0) g.DrawString(clock(duration_ms_).c_str(), -1, &time_font, row, &right, &muted);
     }
   }
 
@@ -338,6 +396,18 @@ void TrayPopup::Paint(HDC hdc) {
   button(kPrevious, Shape::kPrevious);
   button(kToggle, state_.playing ? Shape::kPause : Shape::kPlay);
   button(kNext, Shape::kNext);
+
+  // Up next.
+  if (!state_.next.empty()) {
+    const RectF r = ToF(next_);
+    Font label_font(semibold_family.GetLastStatus() == Ok ? &semibold_family : &family, 12 * sc, FontStyleRegular,
+                    UnitPixel);
+    RectF size;
+    g.MeasureString(state_.next_label.c_str(), -1, &label_font, PointF(0, 0), &size);
+    const float lw = size.Width + 6 * sc;
+    g.DrawString(state_.next_label.c_str(), -1, &label_font, RectF(r.X, r.Y, lw, r.Height), &one_line, &muted);
+    g.DrawString(state_.next.c_str(), -1, &small_font, RectF(r.X + lw, r.Y, r.Width - lw, r.Height), &one_line, &text);
+  }
 
   // Divider.
   {

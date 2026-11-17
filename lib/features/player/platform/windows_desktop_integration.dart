@@ -44,6 +44,7 @@ class WindowsDesktopIntegration with WindowListener {
   Future<void> _pushState({bool force = false}) async {
     final track = _player.current;
     final s = _player.state;
+    final next = _player.queue.next;
     final changed = force || s.playing != _lastPlaying || track?.id != _lastTrackId;
     try {
       if (changed) {
@@ -62,18 +63,22 @@ class WindowsDesktopIntegration with WindowListener {
           'playing': s.playing,
           'title': track?.title ?? '',
           'artist': track?.displayArtist ?? '',
+          'album': track?.displayAlbum ?? '',
+          'next': next == null ? '' : '${next.title} · ${next.displayArtist}',
           'artPath': track?.artworkPath,
-          'labels': [l10n.trayShow, l10n.pause, l10n.play, l10n.previous, l10n.next, l10n.trayQuit],
+          'labels': [l10n.trayShow, l10n.pause, l10n.play, l10n.previous, l10n.next, l10n.trayQuit, l10n.upNext],
         });
       }
       // The overlay only needs coarse timeline updates.
       final sec = s.position.inSeconds;
       if (changed || sec != _lastTimelineSec) {
         _lastTimelineSec = sec;
-        await _smtc.invokeMethod('timeline', {
+        final timeline = {
           'positionMs': s.position.inMilliseconds,
           'durationMs': (s.duration ?? track?.duration ?? Duration.zero).inMilliseconds,
-        });
+        };
+        await _smtc.invokeMethod('timeline', timeline);
+        await _tray.invokeMethod('progress', timeline);
       }
     } on MissingPluginException {
       // Running in a test / unsupported host – ignore.

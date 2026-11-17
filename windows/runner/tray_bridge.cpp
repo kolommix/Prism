@@ -37,6 +37,8 @@ TrayBridge::TrayBridge(HWND hwnd, flutter::BinaryMessenger* messenger)
         if (auto t = text("tooltip"); !t.empty()) tooltip = t;
         state.title = text("title");
         state.artist = text("artist");
+        state.album = text("album");
+        state.next = text("next");
         state.art_path = text("artPath");
         state.has_track = !state.title.empty();
         auto l = args->find(flutter::EncodableValue("labels"));
@@ -47,10 +49,11 @@ TrayBridge::TrayBridge(HWND hwnd, flutter::BinaryMessenger* messenger)
               if (const auto* s = std::get_if<std::string>(&item)) labels.push_back(Utf8ToWide(*s));
             }
             // open, pause, play, previous, next, quit
-            if (labels.size() == 6) {
+            if (labels.size() >= 6) {
               state.show_label = labels[0];
               state.quit_label = labels[5];
             }
+            if (labels.size() >= 7) state.next_label = labels[6];
           }
         }
         auto p = args->find(flutter::EncodableValue("playing"));
@@ -60,6 +63,21 @@ TrayBridge::TrayBridge(HWND hwnd, flutter::BinaryMessenger* messenger)
       }
       popup_->Update(state);
       Show(tooltip);
+      result->Success();
+    } else if (call.method_name() == "progress") {
+      int64_t pos = 0, dur = 0;
+      if (const auto* args = std::get_if<flutter::EncodableMap>(call.arguments())) {
+        auto num = [args](const char* key) -> int64_t {
+          auto it = args->find(flutter::EncodableValue(key));
+          if (it == args->end()) return 0;
+          if (const auto* i = std::get_if<int32_t>(&it->second)) return *i;
+          if (const auto* l = std::get_if<int64_t>(&it->second)) return *l;
+          return 0;
+        };
+        pos = num("positionMs");
+        dur = num("durationMs");
+      }
+      popup_->SetProgress(pos, dur);
       result->Success();
     } else if (call.method_name() == "hide") {
       Hide();

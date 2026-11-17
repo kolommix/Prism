@@ -155,6 +155,14 @@ class _CaptureDialogState extends State<_CaptureDialog> {
 /// Keys inside Prism's window (no need for Ctrl + Alt there): Space plays or
 /// pauses, Ctrl + arrows skip and change the volume. Text fields keep their
 /// keys, and pages with their own (the editor) win.
+/// True while the keyboard focus is in a text field.
+bool isTyping() {
+  final ctx = FocusManager.instance.primaryFocus?.context;
+  if (ctx == null) return false;
+  if (ctx.widget is EditableText) return true;
+  return ctx.findAncestorStateOfType<EditableTextState>() != null;
+}
+
 class InAppPlayerKeys extends ConsumerWidget {
   const InAppPlayerKeys({super.key, required this.child});
   final Widget child;
@@ -162,21 +170,33 @@ class InAppPlayerKeys extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     void run(HotkeyAction a) => unawaited(ref.read(hotkeysProvider.notifier).run(a));
-    return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.space): () => run(HotkeyAction.playPause),
-        const SingleActivator(LogicalKeyboardKey.mediaPlayPause): () => run(HotkeyAction.playPause),
-        const SingleActivator(LogicalKeyboardKey.arrowRight, control: true): () => run(HotkeyAction.next),
-        const SingleActivator(LogicalKeyboardKey.arrowLeft, control: true): () => run(HotkeyAction.previous),
-        const SingleActivator(LogicalKeyboardKey.arrowUp, control: true): () => run(HotkeyAction.volumeUp),
-        const SingleActivator(LogicalKeyboardKey.arrowDown, control: true): () => run(HotkeyAction.volumeDown),
-        const SingleActivator(LogicalKeyboardKey.arrowRight, control: true, shift: true): () =>
-            run(HotkeyAction.seekForward),
-        const SingleActivator(LogicalKeyboardKey.arrowLeft, control: true, shift: true): () =>
-            run(HotkeyAction.seekBack),
+    final bindings = <ShortcutActivator, VoidCallback>{
+      const SingleActivator(LogicalKeyboardKey.space): () => run(HotkeyAction.playPause),
+      const SingleActivator(LogicalKeyboardKey.mediaPlayPause): () => run(HotkeyAction.playPause),
+      const SingleActivator(LogicalKeyboardKey.arrowRight, control: true): () => run(HotkeyAction.next),
+      const SingleActivator(LogicalKeyboardKey.arrowLeft, control: true): () => run(HotkeyAction.previous),
+      const SingleActivator(LogicalKeyboardKey.arrowUp, control: true): () => run(HotkeyAction.volumeUp),
+      const SingleActivator(LogicalKeyboardKey.arrowDown, control: true): () => run(HotkeyAction.volumeDown),
+      const SingleActivator(LogicalKeyboardKey.arrowRight, control: true, shift: true): () =>
+          run(HotkeyAction.seekForward),
+      const SingleActivator(LogicalKeyboardKey.arrowLeft, control: true, shift: true): () => run(HotkeyAction.seekBack),
+    };
+    // Something in here must hold the focus, or no key reaches this.
+    return Focus(
+      autofocus: true,
+      onKeyEvent: (node, event) {
+        // Typing (a search box, a name field) keeps every key: Space is a
+        // space there, Ctrl + arrows move by word.
+        if (isTyping()) return KeyEventResult.ignored;
+        for (final e in bindings.entries) {
+          if (e.key.accepts(event, HardwareKeyboard.instance)) {
+            e.value();
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
       },
-      // Something in here must hold the focus, or no key reaches these.
-      child: Focus(autofocus: true, child: child),
+      child: child,
     );
   }
 }
