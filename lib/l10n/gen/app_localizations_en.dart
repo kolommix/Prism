@@ -2845,6 +2845,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get tagFileBusy =>
+      'The file is busy (another app or the player is holding it). Close it there or play another song, then save again.';
+
+  @override
   String get tagsDidNotStickFileRestored =>
       'Tags did not stick (file restored)';
 

@@ -1958,6 +1958,7 @@
       }
     }
   },
+  "tagFileBusy": "The file is busy (another app or the player is holding it). Close it there or play another song, then save again.",
   "tagsDidNotStickFileRestored": "Tags did not stick (file restored)",
   "duplicateFinder": "Duplicate finder",
   "noDuplicatesFound": "No duplicates found",

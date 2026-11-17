@@ -4584,6 +4584,12 @@ abstract class AppLocalizations {
   /// **'Could not write tags: {e}'**
   String couldNotWriteTags(Object e);
 
+  /// No description provided for @tagFileBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'The file is busy (another app or the player is holding it). Close it there or play another song, then save again.'**
+  String get tagFileBusy;
+
   /// No description provided for @tagsDidNotStickFileRestored.
   ///
   /// In en, this message translates to:

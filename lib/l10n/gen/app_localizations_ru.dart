@@ -2911,6 +2911,10 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get tagFileBusy =>
+      'Файл занят (его держит другая программа или плеер). Закройте его там или включите другую песню и сохраните снова.';
+
+  @override
   String get tagsDidNotStickFileRestored =>
       'Теги не сохранились (файл восстановлен)';
 

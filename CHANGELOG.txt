@@ -4,6 +4,16 @@
 Every Prism version, newest first. The section of a version is also its GitHub release notes
 (.github/workflows/release.yml reads it), so add one before tagging.
 
+1.6.2 (2026-11-17)
+------------------
+
+- Fix song info finds more songs: Deezer is a new source, and Russian songs are also looked up in the Russian
+  iTunes store.
+- No more "MusicBrainz: HTTP 503" when the service is busy: Prism waits and asks again, and other sources still
+  show their results.
+- Saving song info no longer fails when another program holds the file for a moment. If it stays busy, Prism says
+  so and the file is left untouched.
+
 1.6.1 (2026-11-17)
 ------------------
 

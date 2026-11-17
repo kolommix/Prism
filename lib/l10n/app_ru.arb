@@ -745,6 +745,7 @@
   "restored": "{name} (восстановлен)",
   "writingTagsIsNotSupportedFor": "Запись тегов в файлы {ext} не поддерживается",
   "couldNotWriteTags": "Не удалось записать теги: {e}",
+  "tagFileBusy": "Файл занят (его держит другая программа или плеер). Закройте его там или включите другую песню и сохраните снова.",
   "tagsDidNotStickFileRestored": "Теги не сохранились (файл восстановлен)",
   "duplicateFinder": "Поиск дубликатов",
   "noDuplicatesFound": "Дубликатов нет",

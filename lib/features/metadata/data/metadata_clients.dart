@@ -71,9 +71,11 @@ class MetadataSearch {
     final wantArtist = (artist ?? t.artist).trim();
     final results = <MetaCandidate>[];
     Object? failure;
+    var ok = 0;
     Future<void> guard(Future<List<MetaCandidate>> Function() f) async {
       try {
         results.addAll(await f());
+        ok++;
       } on Object catch (e) {
         failure = e;
       }
@@ -82,9 +84,12 @@ class MetadataSearch {
     await Future.wait([
       guard(() => _musicBrainz(wantTitle, wantArtist)),
       guard(() => _itunes(wantTitle, wantArtist)),
+      // The US store misses many local songs: also ask the Russian one.
+      if (RegExp('[Ѐ-ӿ]').hasMatch('$wantTitle $wantArtist')) guard(() => _itunes(wantTitle, wantArtist, country: 'RU')),
+      guard(() => _deezer(wantTitle, wantArtist)),
       if (title == null && acoustIdKey.isNotEmpty && t.sourceId == 'local') guard(() => _acoustId(t)),
     ]);
-    if (results.isEmpty && failure != null) throw failure!;
+    if (results.isEmpty && ok == 0 && failure != null) throw failure!;
     return rankCandidates(t.copyWith(title: wantTitle, artist: wantArtist), results);
   }
 
@@ -95,17 +100,39 @@ class MetadataSearch {
           'limit': '12',
         });
         var res = await _client.get(uri, headers: _headers).timeout(const Duration(seconds: 12));
-        if (res.statusCode == 503) {
-          // Over their limit anyway: back off once.
-          await Future<void>.delayed(const Duration(seconds: 2));
+        for (var i = 1; res.statusCode == 503 && i <= 3; i++) {
+          // Over their limit (or busy): back off and try again.
+          await Future<void>.delayed(Duration(seconds: 2 * i));
           res = await _client.get(uri, headers: _headers).timeout(const Duration(seconds: 12));
         }
         if (res.statusCode != 200) throw MetadataLookupException('MusicBrainz', 'HTTP ${res.statusCode}');
         return parseMusicBrainz(utf8.decode(res.bodyBytes));
       });
 
-  Future<List<MetaCandidate>> _itunes(String title, String artist) async {
-    final uri = Uri.https('itunes.apple.com', '/search', {'term': '$artist $title'.trim(), 'entity': 'song', 'limit': '8'});
+  /// Deezer's public search (no key): title, artist, album, length, big cover.
+  Future<List<MetaCandidate>> _deezer(String title, String artist) async {
+    final uri = Uri.https('api.deezer.com', '/search', {'q': '$artist $title'.trim(), 'limit': '8'});
+    final res = await _client.get(uri).timeout(const Duration(seconds: 8));
+    if (res.statusCode != 200) throw MetadataLookupException('Deezer', 'HTTP ${res.statusCode}');
+    final body = jsonDecode(utf8.decode(res.bodyBytes));
+    final data = body is Map ? body['data'] : null;
+    if (data is! List) return const [];
+    return [
+      for (final d in data.whereType<Map>())
+        if (d['title'] is String)
+          MetaCandidate(
+            source: 'Deezer',
+            title: d['title'] as String,
+            artist: ((d['artist'] as Map?)?['name'] as String?) ?? '',
+            album: ((d['album'] as Map?)?['title'] as String?) ?? '',
+            durationMs: ((d['duration'] as num?) ?? 0).toInt() * 1000,
+            coverUrls: [?((d['album'] as Map?)?['cover_xl'] as String?)],
+          ),
+    ];
+  }
+
+  Future<List<MetaCandidate>> _itunes(String title, String artist, {String country = 'US'}) async {
+    final uri = Uri.https('itunes.apple.com', '/search', {'term': '$artist $title'.trim(), 'entity': 'song', 'limit': '8', 'country': country});
     final res = await _client.get(uri).timeout(const Duration(seconds: 8));
     if (res.statusCode != 200) throw MetadataLookupException('iTunes', 'HTTP ${res.statusCode}');
     return [

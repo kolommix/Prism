@@ -59,12 +59,25 @@ class TagWriter {
     final backup = p.join(backupDir.path, '${DateTime.now().millisecondsSinceEpoch}_${p.basename(path)}');
     await File(path).copy(backup);
     await _trim();
-    try {
-      await Isolate.run(() => _write(path, edit));
-    } on Object catch (e) {
-      // Put the original back if the writer broke the file.
-      await File(backup).copy(path);
-      throw TagWriteException(l10n.couldNotWriteTags(e));
+    for (var attempt = 0;; attempt++) {
+      try {
+        await Isolate.run(() => _write(path, edit));
+        break;
+      } on FileSystemException catch (e) {
+        // Windows: another program (scanner, antivirus, the player) holds the
+        // file for a moment. Wait and try again before giving up.
+        final busy = e.osError?.errorCode == 5 || e.osError?.errorCode == 32;
+        if (busy && attempt < 4) {
+          await Future<void>.delayed(Duration(milliseconds: 400 * (attempt + 1)));
+          continue;
+        }
+        await _restore(backup, path);
+        throw TagWriteException(busy ? l10n.tagFileBusy : l10n.couldNotWriteTags(e));
+      } on Object catch (e) {
+        // Put the original back if the writer broke the file.
+        await _restore(backup, path);
+        throw TagWriteException(l10n.couldNotWriteTags(e));
+      }
     }
     final check = await Isolate.run(() => readMetadata(File(path)));
     if (edit.title != null && check.title != edit.title) {
@@ -89,6 +102,16 @@ class TagWriter {
         m.setPictures([Picture(e.cover!, png ? 'image/png' : 'image/jpeg', PictureType.coverFront)]);
       }
     });
+  }
+
+  static Future<void> _restore(String backup, String path) async {
+    try {
+      await File(backup).copy(path);
+    } on Object {
+      // Still locked: the original was never replaced, so it is intact.
+    }
+    final tmp = File('$path.tmp');
+    if (await tmp.exists()) await tmp.delete().catchError((_) => tmp);
   }
 
   Future<void> _trim() async {
