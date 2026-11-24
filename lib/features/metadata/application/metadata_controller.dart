@@ -1,17 +1,14 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
 
 import '../../player/application/player_providers.dart';
 import '../../library/application/library_providers.dart';
-import '../../library/domain/library_models.dart';
 import '../../library/domain/track.dart';
 import '../../online/application/online_providers.dart';
 import '../../online/domain/matching.dart';
-import '../../tools/application/tools_providers.dart';
+import '../../tools/application/song_info_saver.dart';
 import '../../tools/data/tag_writer.dart';
 import '../data/metadata_clients.dart';
 import '../domain/metadata_candidate.dart';
@@ -248,9 +245,7 @@ class MetadataFixController extends Notifier<FixState> {
   Future<void> save({required bool all}) async {
     if (state.saving) return;
     state = state.copyWith(saving: true, saveError: null, savedCount: 0);
-    final writer = await ref.read(tagWriterProvider.future);
     final repo = ref.read(libraryRepositoryProvider);
-    final folders = <String>{};
     var saved = 0;
     String? error;
     final order = all ? List.generate(state.items.length, (i) => i) : [state.selected];
@@ -261,17 +256,11 @@ class MetadataFixController extends Notifier<FixState> {
       try {
         final cover = it.ownCover ?? (it.useCover ? await _search.fetchCover(it.coverUrls) : null);
         final edit = it.edit(cover);
-        final t = it.track;
-        if (t.sourceId == 'local' && TagWriter.canWrite(t.uri)) {
-          await writer.write(t.uri, edit);
-          if ((edit.cover != null || edit.removeCover) && t.artworkPath != null) {
-            final f = File(t.artworkPath!);
-            if (await f.exists()) await f.delete();
-          }
-          folders.add(p.dirname(t.uri));
-        } else {
-          await repo.applyAutoTag(t, AutoTagChange(title: edit.title, artist: edit.artist, album: edit.album, genre: edit.genre, year: edit.year));
-        }
+        // The library's current row: the list was made a while ago.
+        final t = (await repo.tracksByIds([it.track.id])).firstOrNull ?? it.track;
+        // All of the song's info goes into the file (or the library for
+        // formats without tags), and it counts as the user's choice.
+        await ref.read(songInfoSaverProvider).save(t, edit);
         saved++;
         _set(i, it.copyWith(status: FixStatus.saved, apply: const {}, useCover: false, removeCover: false, ownCover: null));
       } on Object catch (e) {
@@ -279,7 +268,6 @@ class MetadataFixController extends Notifier<FixState> {
         _set(i, it.copyWith(error: '$e'));
       }
     }
-    if (folders.isNotEmpty && ref.mounted) await ref.read(libraryScannerProvider).scanFolders(folders.toList()).drain<void>();
     PaintingBinding.instance.imageCache.clear();
     if (!ref.mounted) return;
     // Show the new values as the current ones.

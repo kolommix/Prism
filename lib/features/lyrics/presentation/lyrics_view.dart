@@ -109,8 +109,8 @@ class _SyncedLyricsState extends ConsumerState<_SyncedLyrics> with TickerProvide
       final v = ref.read(engineStateProvider).value;
       if (v != null) _sync(v);
     });
-    ref.listenManual(currentLyricsOffsetProvider, (_, o) {
-      _offset = o.value ?? Duration.zero;
+    ref.listenManual(effectiveLyricsOffsetProvider, (_, o) {
+      _offset = o;
       _onPosition();
     }, fireImmediately: true);
   }
@@ -135,7 +135,7 @@ class _SyncedLyricsState extends ConsumerState<_SyncedLyrics> with TickerProvide
   void _onPosition() {
     final t = _pos.value + _offset;
     _lyricTime.value = t;
-    final i = widget.lyrics.indexAt(t);
+    final i = widget.lyrics.indexAt(t + lyricsLineLead);
     if (i == _index) return;
     setState(() => _index = i);
     _follow(i);

@@ -124,16 +124,25 @@ class AutoTagger extends Notifier<AutoTagState> {
         continue;
       }
       troubles = 0;
-      if (info == null) {
-        await _repo.markInfoChecked(t.id);
+      // The list was made a while ago: the user may have edited this song
+      // since (or it was removed). Only the row as it is now counts, so an
+      // old name is never written back over the user's.
+      final now = await _repo.uncheckedTrack(t.id);
+      if (now == null) {
+        // Edited, checked or gone meanwhile: leave it.
+      } else if (info == null) {
+        await _repo.markInfoChecked(now.id);
       } else {
-        final cover = t.artworkPath == null ? await _saveCover(c, info.coverUrl) : null;
+        final cover = now.artworkPath == null ? await _saveCover(c, info.coverUrl) : null;
         if (run != _run) return;
-        final change = autoTagChangeFor(t, info, cover);
-        if (change == null) {
-          await _repo.markInfoChecked(t.id);
+        final latest = await _repo.uncheckedTrack(now.id);
+        final change = latest == null ? null : autoTagChangeFor(latest, info, cover);
+        if (latest == null) {
+          // Edited while the cover was fetched.
+        } else if (change == null) {
+          await _repo.markInfoChecked(latest.id);
         } else {
-          await _repo.applyAutoTag(t, change);
+          await _repo.applyAutoTag(latest, change);
           found++;
           await _refreshCurrent(t.id);
         }

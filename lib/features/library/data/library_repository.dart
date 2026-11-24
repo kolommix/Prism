@@ -10,6 +10,7 @@ import '../domain/artist_names.dart';
 import '../domain/library_models.dart';
 import '../domain/track.dart';
 import 'search_text.dart';
+import '../../tools/data/tag_writer.dart' show TagEdit;
 
 /// Columns the songs list can be sorted by.
 enum TrackSort { title, artist, album, recentlyAdded, duration }
@@ -276,6 +277,26 @@ class LibraryRepository {
 
   // ------------------------------------------------------- scanner support
 
+  /// Covers the library shows for these files now (only those with one).
+  Future<Map<String, String>> artworkOf(List<String> uris) async {
+    final out = <String, String>{};
+    for (var i = 0; i < uris.length; i += 500) {
+      final chunk = uris.sublist(i, i + 500 > uris.length ? uris.length : i + 500);
+      final rows = await (_db.selectOnly(_db.tracks)
+            ..addColumns([_db.tracks.uri, _db.tracks.artworkPath])
+            ..where(_db.tracks.uri.isIn(chunk) & _db.tracks.artworkPath.isNotNull()))
+          .get();
+      for (final r in rows) {
+        out[r.read(_db.tracks.uri)!] = r.read(_db.tracks.artworkPath)!;
+      }
+    }
+    return out;
+  }
+
+  /// "Remove cover": none, also when the library had one the file never held.
+  Future<void> clearArtwork(int id) =>
+      (_db.update(_db.tracks)..where((t) => t.id.equals(id))).write(const TracksCompanion(artworkPath: Value(null)));
+
   /// `uri -> (size, mtime)` of every local track, so the scanner can skip
   /// unchanged files without reading their tags again.
   Future<Map<String, (int, int)>> fileFingerprints() async {
@@ -305,6 +326,41 @@ class LibraryRepository {
 
   Future<void> markInfoChecked(int id) => (_db.update(_db.tracks)..where((t) => t.id.equals(id)))
       .write(TracksCompanion(infoCheckedMs: Value(DateTime.now().millisecondsSinceEpoch)));
+
+  /// The song still waits for the background search (nobody edited or checked
+  /// it since the search made its list): the current row, else null.
+  Future<Track?> uncheckedTrack(int id) async {
+    final r = await (_db.select(_db.tracks)..where((t) => t.id.equals(id) & t.infoCheckedMs.isNull())).getSingleOrNull();
+    return r == null ? null : rowToTrack(r);
+  }
+
+  /// What the user typed for a song whose file can't hold tags (Opus, WebM,
+  /// OGG): kept in the library. Not "found online", so Undo there leaves it.
+  Future<void> saveUserInfo(Track t, TagEdit e, {String? coverPath}) async {
+    final title = e.title ?? t.title;
+    final artist = e.artist ?? t.artist;
+    final album = e.album ?? t.album;
+    await (_db.update(_db.tracks)..where((r) => r.id.equals(t.id))).write(
+      TracksCompanion(
+        title: Value(title),
+        artist: Value(artist),
+        album: Value(album),
+        genre: Value(e.genre ?? t.genre),
+        year: Value(e.year ?? t.year),
+        trackNumber: Value(e.trackNumber ?? t.trackNumber),
+        artworkPath: e.removeCover ? const Value(null) : (coverPath != null ? Value(coverPath) : const Value.absent()),
+        searchText: Value(buildSearchText(title: title, artist: artist, album: album, albumArtist: t.albumArtist)),
+        infoCheckedMs: Value(DateTime.now().millisecondsSinceEpoch),
+        infoOriginal: const Value(null),
+      ),
+    );
+  }
+
+  /// After the file was read again: a file without a picture keeps the cover
+  /// the library had (imported songs, covers found online).
+  Future<void> keepArtworkIfNone(int id, String artworkPath) =>
+      (_db.update(_db.tracks)..where((t) => t.id.equals(id) & t.artworkPath.isNull()))
+          .write(TracksCompanion(artworkPath: Value(artworkPath)));
 
   /// Fills in what was found. The audio file is not touched, and what the row
   /// held before is kept for [undoAutoTags].
@@ -484,6 +540,17 @@ class LibraryRepository {
     String? artwork,
   }) async {
     final stat = await file.stat();
+    // Already a library song (saved by an earlier import, maybe renamed by
+    // the user since): keep its names, only the file facts change.
+    final known = await (_db.select(_db.tracks)..where((t) => t.uri.equals(file.path))).getSingleOrNull();
+    if (known != null) {
+      await (_db.update(_db.tracks)..where((t) => t.id.equals(known.id))).write(TracksCompanion(
+        fileSize: Value(stat.size),
+        modifiedMs: Value(stat.modified.millisecondsSinceEpoch),
+        durationMs: known.durationMs > 0 ? const Value.absent() : Value(durationMs),
+      ));
+      return known.id;
+    }
     await upsertTracks([
       TracksCompanion.insert(
         uri: file.path,

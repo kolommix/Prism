@@ -8,6 +8,7 @@ import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yte;
 
 import '../../domain/external_track.dart';
 import '../../domain/online_error.dart';
+import 'innertube_audio.dart';
 import 'web_playlist_reader.dart';
 import 'youtube_backend.dart';
 import 'ytdlp.dart';
@@ -19,9 +20,14 @@ import '../../../../l10n/l10n.dart';
 /// which change often – so it's behind its own flag, marked personal use, and
 /// every error becomes an [OnlineException] instead of crashing anything.
 class ExplodeBackend extends YoutubeBackend {
-  ExplodeBackend({yte.YoutubeExplode? yt, this.saver}) : _yt = yt ?? yte.YoutubeExplode();
+  ExplodeBackend({yte.YoutubeExplode? yt, this.saver, InnertubeAudio? innertube})
+      : _yt = yt ?? yte.YoutubeExplode(),
+        _innertube = innertube ?? InnertubeAudio();
 
   final yte.YoutubeExplode _yt;
+
+  /// The visionOS client: whole files where the clients below get a megabyte.
+  final InnertubeAudio _innertube;
 
   /// Saves songs where this reader is refused (Windows); null elsewhere.
   final YtDlp? saver;
@@ -165,9 +171,22 @@ class ExplodeBackend extends YoutubeBackend {
 
   /// The best audio-only stream whose URL really serves the whole file. AAC
   /// (m4a) is preferred: Prism can write tags into it and every player reads it.
-  Future<yte.AudioOnlyStreamInfo> _resolve(String id) async {
+  /// The visionOS client first (see [InnertubeAudio]), then explode's own.
+  Future<_Audio> _resolve(String id) async {
     Object? last;
     var blocked = false;
+    try {
+      for (final f in (await _innertube.audioFormats(id)).take(2)) {
+        if (f.length > 0 && await _servesWhole(f.url, f.length)) {
+          return _Audio(url: f.url, container: f.container, total: f.length, mimeType: f.mimeType.split(';').first);
+        }
+        blocked = true;
+      }
+    } on OnlineException catch (e) {
+      // No connection: the other clients won't do better.
+      if (e.kind == OnlineErrorKind.offline) rethrow;
+      last = e;
+    }
     for (final client in _clients) {
       try {
         final m = await _yt.videos.streamsClient
@@ -177,12 +196,17 @@ class ExplodeBackend extends YoutubeBackend {
         if (audio.isEmpty) continue;
         final mp4 = audio.where((a) => a.container == yte.StreamContainer.mp4).toList();
         final best = (mp4.isNotEmpty ? mp4 : audio)..sort((a, b) => b.bitrate.compareTo(a.bitrate));
-        if (await _servesWhole(best.first.url, best.first.size.totalBytes)) return best.first;
+        final b = best.first;
+        if (await _servesWhole(b.url, b.size.totalBytes)) {
+          return _Audio(url: b.url, container: b.container.name, total: b.size.totalBytes, mimeType: b.codec.mimeType);
+        }
         blocked = true;
       } on Object catch (e) {
-        last = e;
+        // The visionOS answer says more ("Video unavailable") than explode's.
+        if (last is! OnlineException) last = e;
       }
     }
+    if (last is OnlineException && last.kind == OnlineErrorKind.notFound && !blocked) throw last;
     if (blocked || last == null || last is yte.VideoUnplayableException) {
       throw OnlineException(
         OnlineErrorKind.notFound,
@@ -219,9 +243,9 @@ class ExplodeBackend extends YoutubeBackend {
       final expire = int.tryParse(best.url.queryParameters['expire'] ?? '');
       final s = YtAudioStream(
         url: best.url,
-        container: best.container.name,
-        length: best.size.totalBytes,
-        mimeType: best.codec.mimeType,
+        container: best.container,
+        length: best.total,
+        mimeType: best.mimeType,
         expiresAt: expire == null
             ? DateTime.now().add(const Duration(hours: 1))
             : DateTime.fromMillisecondsSinceEpoch(expire * 1000),
@@ -236,22 +260,19 @@ class ExplodeBackend extends YoutubeBackend {
   static const downloadParallel = 4;
   static const downloadChunk = 512 * 1024;
 
-  /// yt-dlp first where there is one: YouTube now refuses this reader the
-  /// whole file of most music uploads. If yt-dlp can't, this reader tries; if
-  /// both fail, yt-dlp's reason is the one shown.
+  /// This reader first (the visionOS client saves a song in about a second,
+  /// no program to start, nothing for an antivirus to stop), yt-dlp where
+  /// there is one when YouTube refuses it (yt-dlp keeps up with YouTube's
+  /// changes and updates itself). If both fail, yt-dlp's reason is shown.
   @override
   Future<String> download(String id, String pathWithoutExt) async {
     final saver = this.saver;
     if (saver == null) return _downloadOwn(id, pathWithoutExt);
     try {
-      return await saver.download(id, pathWithoutExt);
+      return await _downloadOwn(id, pathWithoutExt);
     } on OnlineException catch (e) {
-      if (e.kind == OnlineErrorKind.offline || e.kind == OnlineErrorKind.rateLimited) rethrow;
-      try {
-        return await _downloadOwn(id, pathWithoutExt);
-      } on OnlineException {
-        throw e;
-      }
+      if (e.kind == OnlineErrorKind.offline) rethrow;
+      return saver.download(id, pathWithoutExt);
     }
   }
 
@@ -267,8 +288,8 @@ class ExplodeBackend extends YoutubeBackend {
 
   Future<String> _downloadOwn(String id, String pathWithoutExt) async {
     final best = await _guard(() => _resolve(id), limit: const Duration(seconds: 90));
-    final ext = best.container == yte.StreamContainer.mp4 ? 'm4a' : best.container.name;
-    final total = best.size.totalBytes;
+    final ext = best.container == 'mp4' ? 'm4a' : best.container;
+    final total = best.total;
     final part = File('$pathWithoutExt.$ext.part');
     await part.parent.create(recursive: true);
     final file = await part.open(mode: FileMode.write);
@@ -356,6 +377,18 @@ class ExplodeBackend extends YoutubeBackend {
   void close() {
     _yt.close();
     _http.close();
+    _innertube.close();
     saver?.close();
   }
+}
+
+/// An audio stream that serves the whole file.
+class _Audio {
+  const _Audio({required this.url, required this.container, required this.total, required this.mimeType});
+  final Uri url;
+
+  /// 'mp4' or 'webm'.
+  final String container;
+  final int total;
+  final String mimeType;
 }

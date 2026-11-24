@@ -24,15 +24,13 @@ import '../domain/import_intake.dart';
 import '../domain/link_parser.dart';
 import '../domain/matching.dart';
 import '../domain/online_error.dart';
+import '../../../core/diagnostics/error_log.dart';
+import '../../../core/diagnostics/error_ui.dart';
 import '../services/music_service_module.dart';
 import 'terms_notes.dart';
 import '../../../l10n/l10n.dart';
 
 import '../../playlists/application/share_inbox.dart';
-void _toast(BuildContext context, String msg) =>
-    ScaffoldMessenger.maybeOf(context)
-        ?.showSnackBar(SnackBar(content: Text(msg), duration: const Duration(seconds: 4)));
-
 /// Runs [load] with a small blocking progress dialog; shows errors as a toast.
 Future<T?> _withProgress<T>(BuildContext context, String label, Future<T> Function() load) async {
   final nav = Navigator.of(context, rootNavigator: true);
@@ -52,8 +50,8 @@ Future<T?> _withProgress<T>(BuildContext context, String label, Future<T> Functi
   );
   try {
     return await load();
-  } on Object catch (e) {
-    if (context.mounted) _toast(context, importProblemFor(e).message);
+  } on Object catch (e, st) {
+    if (context.mounted) showErrorSnack(context, importProblemFor(e).message, error: e, stack: st, where: 'import');
     return null;
   } finally {
     nav.pop();
@@ -88,6 +86,7 @@ class _ImportPageState extends ConsumerState<ImportPage> {
 
   /// What went wrong, and how to try the same thing again.
   ImportProblem? _problem;
+  ErrorEntry? _problemEntry;
   VoidCallback? _retry;
 
   bool _advancedOpen = false;
@@ -190,11 +189,13 @@ class _ImportPageState extends ConsumerState<ImportPage> {
       _link.clear();
       setState(() => _busy = null);
       if (ids.length == 1) context.go(Routes.importJob(ids.single));
-    } on Object catch (e) {
+    } on Object catch (e, st) {
       if (!mounted) return;
+      final problem = importProblemFor(e, link: link);
+      _problemEntry = ErrorLog.instance.record(e, st, where: 'import · ${link?.service.label ?? 'file'}', message: problem.message);
       setState(() {
         _busy = null;
-        _problem = importProblemFor(e, link: link);
+        _problem = problem;
         if (_problem!.step == ImportNextStep.advanced) _advancedOpen = true;
       });
     }
@@ -488,8 +489,12 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(problem.message, style: text.bodyMedium),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
                         if (problem.step != ImportNextStep.none) ...[
-                          const SizedBox(height: 10),
                           OutlinedButton(
                             onPressed: switch (problem.step) {
                               ImportNextStep.tryAgain => _retry,
@@ -504,6 +509,13 @@ class _ImportPageState extends ConsumerState<ImportPage> {
                             }),
                           ),
                         ],
+                            TextButton.icon(
+                              icon: const Icon(Icons.copy_rounded, size: 16),
+                              label: Text(l10n.errorCopyButton),
+                              onPressed: () => copyErrorReport(only: _problemEntry, messenger: ScaffoldMessenger.maybeOf(context)),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -743,8 +755,8 @@ class _ImportJobTileState extends ConsumerState<ImportJobTile> {
     setState(() => _syncing = true);
     try {
       await ref.read(importFlowProvider).resync(widget.job);
-    } on Object catch (e) {
-      if (mounted) _toast(context, importProblemFor(e).message);
+    } on Object catch (e, st) {
+      if (mounted) showErrorSnack(context, importProblemFor(e).message, error: e, stack: st, where: 'import re-sync');
     } finally {
       if (mounted) setState(() => _syncing = false);
     }

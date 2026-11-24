@@ -75,14 +75,41 @@ class Lyrics {
   }
 
   /// When line [i] is probably over. A long instrumental gap before the next
-  /// line must not make the wipe crawl, so it's limited by the line's length.
+  /// line must not make the wipe crawl, so it's limited by the line's length
+  /// at this song's own singing pace ([msPerChar]). It used to assume 220 ms a
+  /// letter (about half the speed of most songs), so the wipe lagged far
+  /// behind the voice and only caught up when the next line began.
   Duration _sungEnd(int i) {
     final line = lines[i];
-    final byLength = Duration(milliseconds: math.max(2000, line.text.length * 220));
+    final byLength = Duration(milliseconds: math.max(900, line.text.trim().length * msPerChar));
     final capped = line.time + byLength;
     if (i + 1 >= lines.length) return capped;
-    final next = lines[i + 1].time;
+    // A breath before the next line.
+    final next = lines[i + 1].time - const Duration(milliseconds: 120);
+    if (next <= line.time) return lines[i + 1].time;
     return next < capped ? next : capped;
+  }
+
+  /// How fast this song is sung, in milliseconds per letter, read off its own
+  /// time stamps: a line followed closely by the next one was sung in about
+  /// that time. Lines with a pause after them would make it look slower, so a
+  /// low quantile counts. Unknown (few lines): 90 ms, about 11 letters a
+  /// second, a common pace for pop and rap is faster still.
+  int get msPerChar => _pace[this] ??= paceOf(lines);
+  static final _pace = Expando<int>('lyricsPace');
+
+  static int paceOf(List<LyricLine> lines) {
+    final rates = <double>[];
+    for (var i = 0; i + 1 < lines.length; i++) {
+      final chars = lines[i].text.trim().length;
+      if (chars < 8) continue;
+      final gap = (lines[i + 1].time - lines[i].time).inMilliseconds;
+      if (gap <= 0 || gap > 9000) continue;
+      rates.add(gap / chars);
+    }
+    if (rates.length < 4) return 90;
+    rates.sort();
+    return rates[(rates.length * 0.3).floor()].clamp(40.0, 200.0).round();
   }
 
   /// The last word has no next tag: until the next line, at most 1.5 s.

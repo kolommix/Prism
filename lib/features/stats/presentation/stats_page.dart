@@ -17,6 +17,7 @@ import '../domain/deep_stats.dart';
 import '../domain/listening_stats.dart';
 import 'stats_overview.dart';
 import '../../../l10n/l10n.dart';
+import '../../../core/diagnostics/error_ui.dart';
 
 /// Listening stats: Overview, Top, History, Library and the Wrapped cards,
 /// for one period (a week to all time).
@@ -50,7 +51,7 @@ class _StatsPageState extends ConsumerState<StatsPage> with SingleTickerProvider
     final deep = ref.watch(deepStatsProvider(_period));
     Widget withData(Widget Function(DeepStats) view) => deep.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('$e')),
+          error: (e, st) => ErrorText(e, stack: st, where: 'stats'),
           data: (d) => d.base.isEmpty
               ? Center(
                   child: Padding(
@@ -201,7 +202,7 @@ class _WrappedCardsState extends ConsumerState<WrappedCards> {
     final stats = ref.watch(statsProvider(_period));
     return stats.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, st) => ErrorText(e, stack: st, where: 'stats'),
         data: (s) {
           if (s.isEmpty) {
             return Center(

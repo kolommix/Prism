@@ -16,6 +16,7 @@ import '../../settings/presentation/settings_widgets.dart';
 import '../domain/background_config.dart';
 import 'live_background.dart';
 import '../../../l10n/l10n.dart';
+import '../../../core/diagnostics/error_ui.dart';
 
 /// Settings → Appearance → Background: pick a style (each card is a working
 /// sample) and change everything about it. Changes apply live, the app's own
@@ -70,7 +71,8 @@ class BackgroundPage extends ConsumerWidget {
       BackgroundStyle.snow,
     };
     final usesDensity =
-        detail || flowing.contains(style) || style == BackgroundStyle.aurora || style == BackgroundStyle.galaxy || style == BackgroundStyle.ridges;
+        detail || flowing.contains(style) || style == BackgroundStyle.aurora || style == BackgroundStyle.galaxy || style == BackgroundStyle.ridges ||
+        style == BackgroundStyle.holiday || style == BackgroundStyle.halloween;
     final usesSize =
         detail ||
         flowing.contains(style) ||
@@ -107,27 +109,46 @@ class BackgroundPage extends ConsumerWidget {
           LayoutBuilder(
             builder: (context, c) {
               final perRow = c.maxWidth >= 720 ? 4 : 2;
-              const visibleStyles = BackgroundStyle.values;
               final w = (c.maxWidth - 12 * (perRow - 1)) / perRow;
-              return Wrap(
-                spacing: 12,
-                runSpacing: 12,
+              Widget grid(List<BackgroundStyle> styles) => Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      for (final s in styles)
+                        SizedBox(
+                          width: w,
+                          child: _StyleCard(
+                            style: s,
+                            params: cfg.paramsFor(s),
+                            selected: s == style,
+                            hasFile: switch (s) {
+                              BackgroundStyle.image => cfg.imagePath.isNotEmpty,
+                              BackgroundStyle.video => cfg.videoDir.isNotEmpty,
+                              _ => true,
+                            },
+                            onTap: () => setCfg((c) => c.copyWith(style: s.name)),
+                          ),
+                        ),
+                    ],
+                  );
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final s in visibleStyles)
-                    SizedBox(
-                      width: w,
-                      child: _StyleCard(
-                        style: s,
-                        params: cfg.paramsFor(s),
-                        selected: s == style,
-                        hasFile: switch (s) {
-                          BackgroundStyle.image => cfg.imagePath.isNotEmpty,
-                          BackgroundStyle.video => cfg.videoDir.isNotEmpty,
-                          _ => true,
-                        },
-                        onTap: () => setCfg((c) => c.copyWith(style: s.name)),
-                      ),
+                  grid(BackgroundStyle.main),
+                  const SizedBox(height: 8),
+                  // Older styles stay for whoever likes them, out of the way.
+                  Theme(
+                    data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                    child: ExpansionTile(
+                      key: PageStorageKey('bg-old-${style.isOld}'),
+                      initiallyExpanded: style.isOld,
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+                      childrenPadding: const EdgeInsets.only(bottom: 8),
+                      title: Text(l10n.bgOldStyles),
+                      subtitle: Text(l10n.bgOldStylesHint, style: Theme.of(context).textTheme.bodySmall),
+                      children: [grid(BackgroundStyle.old)],
                     ),
+                  ),
                 ],
               );
             },
@@ -228,8 +249,8 @@ class BackgroundPage extends ConsumerWidget {
                           .read(backgroundFilesProvider)
                           .addVideo(path);
                       setCfg((c) => c.copyWith(videoDir: dir));
-                    } on Object catch (e) {
-                      messenger?.showSnackBar(SnackBar(content: Text('$e')));
+                    } on Object catch (e, st) {
+                      messenger?.showSnackBar(errorSnackBar('$e', error: e, stack: st, where: 'background video', messenger: messenger));
                     }
                   },
                 ),
@@ -640,6 +661,8 @@ IconData _styleIcon(BackgroundStyle s) => switch (s) {
       BackgroundStyle.asciiDonut => Icons.donut_large_rounded,
       BackgroundStyle.ridges => Icons.landscape_outlined,
       BackgroundStyle.galaxy => Icons.cyclone_rounded,
+      BackgroundStyle.holiday => Icons.park_outlined,
+      BackgroundStyle.halloween => Icons.nightlight_outlined,
       BackgroundStyle.lyrics => Icons.lyrics_outlined,
       BackgroundStyle.matrix => Icons.code_rounded,
       BackgroundStyle.constellation => Icons.hub_outlined,

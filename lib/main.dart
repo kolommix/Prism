@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
+import 'core/diagnostics/error_log.dart';
 import 'core/motion/frame_probe.dart';
 import 'core/db/app_database.dart';
 import 'core/providers.dart';
@@ -94,6 +95,8 @@ Future<void> main([List<String> args = const []]) async {
 
   final db = AppDatabase();
   final supportDir = await getApplicationSupportDirectory();
+  // Every error from here on lands in Settings → About → Error log.
+  await ErrorLog.instance.start(supportDir);
   final artworkDir = Directory(p.join(supportDir.path, 'artwork'));
   final prefs = SharedPreferencesAsync();
   var settings = await SettingsStore(prefs).load();
@@ -125,8 +128,8 @@ Future<void> main([List<String> args = const []]) async {
   );
   try {
     await online.init();
-  } on Object catch (e) {
-    debugPrint(l10n.onlineServicesUnavailable(e));
+  } on Object catch (e, st) {
+    ErrorLog.instance.record(e, st, where: 'online', message: l10n.onlineServicesUnavailable(e));
   }
   final sources = TrackSourceRegistry([LocalTrackSource(libraryRepo), ...online.trackSources()]);
   final AudioEffectsBackend effects = Platform.isWindows
@@ -146,8 +149,8 @@ Future<void> main([List<String> args = const []]) async {
   await player.setPreampDb(eq.settings.enabled ? eq.settings.preampDb : 0);
   try {
     await player.restore(libraryRepo.tracksByIds);
-  } on Object catch (e) {
-    debugPrint('Could not restore last session: $e');
+  } on Object catch (e, st) {
+    ErrorLog.instance.record(e, st, where: 'player', message: 'Could not restore last session');
   }
 
   WindowsDesktopIntegration? windows;

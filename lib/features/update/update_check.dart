@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_version.dart';
 import '../../l10n/l10n.dart';
 import 'update_installer.dart';
+import '../../core/diagnostics/error_ui.dart';
 
 /// The newest published version.
 class ReleaseInfo {
@@ -131,8 +132,8 @@ Future<void> checkForUpdatesInteractive(BuildContext context) async {
       return;
     }
     await showUpdateDialog(context, latest);
-  } on UpdateCheckException catch (e) {
-    messenger?.showSnackBar(SnackBar(content: Text(e.message)));
+  } on UpdateCheckException catch (e, st) {
+    messenger?.showSnackBar(errorSnackBar(e.message, error: e, stack: st, where: 'update', messenger: messenger));
   }
 }
 

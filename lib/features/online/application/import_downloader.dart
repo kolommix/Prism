@@ -5,7 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
+import '../../../core/diagnostics/error_log.dart';
+import '../../../core/ffmpeg/dash_fix.dart';
 import '../../library/application/library_providers.dart';
+import '../../tools/data/tag_writer.dart';
 import '../data/import_repository.dart';
 import '../data/network_check.dart';
 import '../../../l10n/l10n.dart';
@@ -59,8 +62,10 @@ class ImportDownloader extends Notifier<ImportDownload?> {
 
   /// After the service refused or the connection dropped, saving goes on by
   /// itself later (longer each time), nobody has to press Retry.
-  Timer? _retryTimer;
+  /// One per import, so one import's trouble doesn't cancel another's retry.
+  final _retryTimers = <int, Timer>{};
   final _attempts = <int, int>{};
+  final _waitingForNetwork = <int>{};
 
   /// While stopped because YouTube can't be reached: a VPN switched on (or
   /// any other change of the connection) starts saving again at once.
@@ -70,7 +75,9 @@ class ImportDownloader extends Notifier<ImportDownload?> {
   @override
   ImportDownload? build() {
     ref.onDispose(() {
-      _retryTimer?.cancel();
+      for (final t in _retryTimers.values) {
+        t.cancel();
+      }
       _watching?.stop();
     });
     return null;
@@ -79,7 +86,11 @@ class ImportDownloader extends Notifier<ImportDownload?> {
   void stop() {
     _stop = true;
     _stoppedByUser = true;
-    _retryTimer?.cancel();
+    for (final t in _retryTimers.values) {
+      t.cancel();
+    }
+    _retryTimers.clear();
+    _waitingForNetwork.clear();
     _watching?.stop();
   }
 
@@ -94,8 +105,8 @@ class ImportDownloader extends Notifier<ImportDownload?> {
 
   /// Tries the songs that failed before as well.
   void retry(int jobId) {
-    _retryTimer?.cancel();
-    _watching?.stop();
+    _retryTimers.remove(jobId)?.cancel();
+    if (_waitingForNetwork.remove(jobId) && _waitingForNetwork.isEmpty) _watching?.stop();
     _failed.clear();
     poke(jobId);
   }
@@ -124,11 +135,18 @@ class ImportDownloader extends Notifier<ImportDownload?> {
           done++;
           inARow = 0;
           await repo.writePlaylist(jobId, finish: false);
-        } on Object catch (e) {
+        } on Object catch (e, st) {
           _failed.add(item.id);
           failed++;
           lastError = e;
           message = describeOnlineError(e);
+          final w = item.wanted;
+          ErrorLog.instance.record(
+            e,
+            e is OnlineException ? null : st,
+            where: 'import save',
+            message: '${w.artist.isEmpty ? '' : '${w.artist} - '}${w.title} (${youtubeIdOf(item.track!) ?? '?'}): $message',
+          );
           // A blocked song is about that song; only service trouble counts
           // towards stopping.
           final blocked = e is OnlineException && e.kind == OnlineErrorKind.notFound;
@@ -161,12 +179,18 @@ class ImportDownloader extends Notifier<ImportDownload?> {
         final wait = importRetryDelay(attempt);
         final unreachable = lastError is OnlineException && (lastError as OnlineException).kind == OnlineErrorKind.offline;
         message = '${message ?? ''} ${l10n.importRetryIn(wait.inMinutes)}${unreachable ? ' ${l10n.importResumesOnNetworkChange}' : ''}'.trim();
-        _retryTimer?.cancel();
-        _retryTimer = Timer(wait, () => retry(jobId));
+        _retryTimers.remove(jobId)?.cancel();
+        _retryTimers[jobId] = Timer(wait, () => retry(jobId));
         if (unreachable) {
+          _waitingForNetwork.add(jobId);
           _watch.start(() {
-            _attempts.remove(jobId);
-            retry(jobId);
+            final ids = List.of(_waitingForNetwork);
+            _waitingForNetwork.clear();
+            _watching?.stop();
+            for (final id in ids) {
+              _attempts.remove(id);
+              retry(id);
+            }
           });
         }
       } else if (failed == 0) {
@@ -192,6 +216,7 @@ class ImportDownloader extends Notifier<ImportDownload?> {
     final dir = ref.read(importDownloadDirProvider);
     await dir.create(recursive: true);
     final expected = remote.durationMs > 0 ? remote.durationMs : w.durationMs;
+    final album = w.album.isNotEmpty ? w.album : remote.album;
     var saved = await _existing(dir, id, expected);
     if (saved == null) {
       try {
@@ -202,13 +227,17 @@ class ImportDownloader extends Notifier<ImportDownload?> {
         // song often works.
         saved = await _fromAnotherUpload(module, w, id, dir, artist, title) ?? (throw e);
       }
+      // A new file carries the import's names, so reading it again later
+      // (after an edit, a rescan) never loses them. A file saved before keeps
+      // what it says (the user may have renamed the song).
+      await TagWriter.tagNewFile(saved.$1.path, TagEdit(title: title, artist: artist, album: album.isEmpty ? null : album));
     }
     final (file, audio) = saved;
     final trackId = await ref.read(libraryRepositoryProvider).addDownloadedFile(
           file,
           title: title,
           artist: artist,
-          album: w.album.isNotEmpty ? w.album : remote.album,
+          album: album,
           // The length of what was really saved, when it was measured.
           durationMs: audio.durationMs > 0 ? audio.durationMs : expected,
           artwork: w.artworkUrl ?? remote.artworkPath,
@@ -222,7 +251,10 @@ class ImportDownloader extends Notifier<ImportDownload?> {
     final base = p.join(dir.path, importFileName(artist, title, youtubeIdOf(remote)!));
     final ext = await module.download(remote, base);
     final file = File('$base.$ext');
-    final audio = await ref.read(importFileCheckProvider).check(file, expectedMs: remote.durationMs);
+    final checker = ref.read(importFileCheckProvider);
+    // YouTube's AAC comes as a DASH MP4 that tags can't be written into.
+    await fixDashM4a(file, checker.ffmpeg);
+    final audio = await checker.check(file, expectedMs: remote.durationMs);
     if (!audio.ok) {
       debugPrint('Prism import: ${file.path} refused (${audio.reason})');
       await _delete(file);
@@ -300,6 +332,9 @@ class ImportDownloader extends Notifier<ImportDownload?> {
     await for (final e in dir.list()) {
       final name = p.basename(e.path);
       if (e is File && name.contains('[$id].') && savedExtensions.contains(p.extension(name).toLowerCase())) {
+        // Saved straight from YouTube by an older version: tags can't be
+        // written into that kind of file.
+        await fixDashM4a(e, ref.read(importFileCheckProvider).ffmpeg);
         final audio = await ref.read(importFileCheckProvider).check(e, expectedMs: expectedMs);
         if (audio.ok) return (e, audio);
         await _delete(e);

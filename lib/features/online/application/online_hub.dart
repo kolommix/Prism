@@ -29,6 +29,7 @@ import '../services/youtube/ytdlp.dart';
 import '../../../l10n/l10n.dart';
 
 import '../services/yandex/yandex_module.dart';
+import '../../../core/diagnostics/error_log.dart';
 /// Feature flags (Settings → Online services). Every service can be switched
 /// off on its own; the "personal use only" parts are off by default.
 class OnlineFlags {
@@ -267,8 +268,8 @@ class OnlineHub {
         if (m == null) continue; // _create set notConfigured
         _modules[s] = m;
         _status[s] = ModuleStatus(ModuleState.ready, m.setupHint);
-      } on Object catch (e) {
-        debugPrint('Online module ${s.name} failed to start: $e');
+      } on Object catch (e, st) {
+        ErrorLog.instance.record(e, st, where: 'online · ${s.name}', message: 'Online module ${s.name} failed to start');
         _status[s] = ModuleStatus(ModuleState.failed, describeOnlineError(e));
       }
     }
@@ -388,7 +389,7 @@ class RemoteTrackSource extends TrackSource {
 
   @override
   Future<Uri> resolvePlaybackUri(Track track) async {
-    final cached = await _hub.cache.fileFor(track);
+    final cached = await _hub.cache.fileFor(track) ?? await _savedByImport(track);
     if (cached != null) return Uri.file(cached.path);
     final m = _module();
     final uri = await m.streamUri(track);
@@ -402,9 +403,31 @@ class RemoteTrackSource extends TrackSource {
     return uri;
   }
 
+  /// The song was saved by an import since it went into the queue (or into
+  /// a playlist that still holds the streamed copy): play the file, no
+  /// internet needed.
+  Future<File?> _savedByImport(Track track) async {
+    if (sourceId != youtubeSourceId) return null;
+    final id = youtubeIdOf(track);
+    if (id == null) return null;
+    final dir = Directory(p.join(_hub.cache.dir.parent.path, 'imported_music'));
+    try {
+      if (!await dir.exists()) return null;
+      await for (final e in dir.list()) {
+        final name = p.basename(e.path);
+        if (e is File && name.contains('[$id].') && const {'.m4a', '.webm', '.opus', '.mp3', '.ogg'}.contains(p.extension(name).toLowerCase())) {
+          return e;
+        }
+      }
+    } on FileSystemException {
+      // Stream it instead.
+    }
+    return null;
+  }
+
   @override
   Future<Map<String, String>> playbackHeaders(Track track) async {
-    if (await _hub.cache.fileFor(track) != null) return const {};
+    if (await _hub.cache.fileFor(track) != null || await _savedByImport(track) != null) return const {};
     return _module().streamHeaders(track);
   }
 

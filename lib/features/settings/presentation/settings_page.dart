@@ -38,6 +38,8 @@ import 'color_picker.dart';
 import '../../library/presentation/removed_songs.dart';
 import 'privacy_section.dart';
 import '../../update/update_check.dart';
+import '../../../core/diagnostics/error_log.dart';
+import 'error_log_page.dart';
 /// The settings categories, in the order they are listed.
 enum SettingsSection {
   library(Icons.library_music_outlined),
@@ -380,9 +382,33 @@ class _SectionBody extends ConsumerWidget {
             onChanged: (v) => ctrl.update((s) => s.copyWith(onlineLyrics: v)),
           ),
           const _LyricsForLibraryTile(),
+          SettingsTile(
+            icon: Icons.av_timer_rounded,
+            title: l10n.lyricsTiming,
+            subtitle: l10n.lyricsTimingHint,
+            trailing: SettingsValue(_lyricsShift(settings.lyricsOffsetMs)),
+            onTap: settings.lyricsOffsetMs == 0 ? null : () => ctrl.update((s) => s.copyWith(lyricsOffsetMs: 0)),
+          ),
+          SettingsControl(
+            child: Slider(
+              // + = lyrics earlier; the slider reads "later ← → earlier" left to right.
+              value: settings.lyricsOffsetMs.clamp(-1000, 1000).toDouble(),
+              min: -1000,
+              max: 1000,
+              divisions: 40,
+              label: _lyricsShift(settings.lyricsOffsetMs),
+              onChanged: (v) => ctrl.update((s) => s.copyWith(lyricsOffsetMs: v.round())),
+            ),
+          ),
         ],
       ),
     ];
+  }
+
+  static String _lyricsShift(int ms) {
+    if (ms == 0) return l10n.lyricsTimingExact;
+    final s = fmtNum(ms.abs() / 1000, 2);
+    return ms > 0 ? l10n.lyricsTimingEarlier(s) : l10n.lyricsTimingLater(s);
   }
 
   List<Widget> _appearance(BuildContext context, WidgetRef ref) {
@@ -683,6 +709,24 @@ class _SectionBody extends ConsumerWidget {
             subtitle: l10n.updateAutoHint,
             value: ref.watch(settingsProvider.select((s) => s.autoCheckUpdates)),
             onChanged: (v) => ref.read(settingsProvider.notifier).update((s) => s.copyWith(autoCheckUpdates: v)),
+          ),
+        ],
+      ),
+      SettingsGroup(
+        title: l10n.errorProblems,
+        children: [
+          ValueListenableBuilder<List<ErrorEntry>>(
+            valueListenable: ErrorLog.instance.entries,
+            builder: (context, entries, _) {
+              final errors = entries.where((e) => e.level != ErrorLevel.note).length;
+              return SettingsTile(
+                icon: Icons.bug_report_outlined,
+                title: l10n.errorLog,
+                subtitle: errors == 0 ? l10n.errorLogSubtitleNone : l10n.errorLogSubtitle(errors),
+                chevron: true,
+                onTap: () => showErrorLog(context),
+              );
+            },
           ),
         ],
       ),

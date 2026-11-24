@@ -19,6 +19,7 @@ import '../domain/matching.dart';
 import '../domain/online_error.dart';
 import 'import_page.dart';
 import '../../../l10n/l10n.dart';
+import '../../../core/diagnostics/error_ui.dart';
 
 enum _Filter { all, unmatched, matched, duplicates }
 
@@ -452,7 +453,7 @@ class _FixMatchSheetState extends ConsumerState<_FixMatchSheet> {
                     if (snap.connectionState != ConnectionState.done) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    if (snap.hasError) return Center(child: Text(describeOnlineError(snap.error!)));
+                    if (snap.hasError) return ErrorText(snap.error!, text: describeOnlineError(snap.error!), stack: snap.stackTrace, where: 'import search');
                     final (list, errors) = snap.data!;
                     return ListView(
                       children: [

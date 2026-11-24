@@ -76,10 +76,10 @@ class _TagEditorState extends ConsumerState<_TagEditor> {
       _error = null;
     });
     try {
-      await saveTags(ref, t, edit);
+      final wroteFile = await saveTags(ref, t, edit);
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(l10n.tagsSavedABackupOfThe)));
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(wroteFile ? l10n.tagsSavedABackupOfThe : l10n.tagsKeptInPrism)));
       }
     } on Object catch (e) {
       setState(() {
@@ -92,12 +92,13 @@ class _TagEditorState extends ConsumerState<_TagEditor> {
   @override
   Widget build(BuildContext context) {
     final t = widget.track;
+    // Files that can't hold tags (Opus, WebM, OGG) are edited in the library.
     final writable = TagWriter.canWrite(t.uri);
     Widget field(String label, TextEditingController c, {bool number = false}) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: TextField(
             controller: c,
-            enabled: writable && !_saving,
+            enabled: !_saving,
             keyboardType: number ? TextInputType.number : TextInputType.text,
             decoration: InputDecoration(labelText: label),
           ),
@@ -119,9 +120,9 @@ class _TagEditorState extends ConsumerState<_TagEditor> {
                         : (_removeCover ? const Artwork(path: null, size: 120) : Artwork(path: t.artworkPath, size: 120, seed: t.album)),
                   ),
                 ),
-                TextButton(onPressed: writable && !_saving ? _pickCover : null, child: Text(l10n.changeCover)),
+                TextButton(onPressed: !_saving ? _pickCover : null, child: Text(l10n.changeCover)),
                 TextButton(
-                  onPressed: writable && !_saving
+                  onPressed: !_saving
                       ? () => setState(() {
                             _removeCover = true;
                             _cover = null;
@@ -151,7 +152,7 @@ class _TagEditorState extends ConsumerState<_TagEditor> {
             if (!writable)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(l10n.thisFormatOggCanOnlyBe, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                child: Text(l10n.tagsFormatKeptInPrism, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ),
             if (_error != null)
               Padding(
@@ -164,8 +165,10 @@ class _TagEditorState extends ConsumerState<_TagEditor> {
       actions: [
         TextButton(onPressed: _saving ? null : () => Navigator.pop(context), child: Text(l10n.cancel)),
         FilledButton(
-          onPressed: writable && !_saving ? _save : null,
-          child: _saving ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)) : Text(l10n.saveToFile),
+          onPressed: !_saving ? _save : null,
+          child: _saving
+              ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              : Text(writable ? l10n.saveToFile : l10n.save),
         ),
       ],
     );

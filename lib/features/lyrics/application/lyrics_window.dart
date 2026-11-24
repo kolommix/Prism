@@ -96,7 +96,7 @@ class LyricsWindowController extends Notifier<LyricsWindowState> {
     });
     ref.listen(currentTrackProvider, (_, _) => _update());
     ref.listen(currentLyricsProvider, (_, _) => _update());
-    ref.listen(currentLyricsOffsetProvider, (_, _) => _update());
+    ref.listen(effectiveLyricsOffsetProvider, (_, _) => _update());
     ref.listen(engineStateProvider, (_, s) {
       if (s.value case final v?) {
         _engine = v;
@@ -200,8 +200,9 @@ class LyricsWindowController extends Notifier<LyricsWindowState> {
     _nextLine?.cancel();
     final track = ref.read(currentTrackProvider);
     final lyrics = ref.read(currentLyricsProvider).value;
-    final offset = ref.read(currentLyricsOffsetProvider).value ?? Duration.zero;
-    final at = _position + offset;
+    final offset = ref.read(effectiveLyricsOffsetProvider);
+    // The line moves on a moment early, like in the app (see lyricsLineLead).
+    final at = _position + offset + lyricsLineLead;
     final lines = lyricsWindowLines(track, lyrics, at);
     if (lines != _shown) {
       _shown = lines;

@@ -87,6 +87,19 @@ class TagWriter {
     return backup;
   }
 
+  /// Writes names into a file Prism itself just saved (an imported song), so
+  /// the file says what the library says. No backup: there is no original
+  /// to protect. False when the format can't be written or it failed.
+  static Future<bool> tagNewFile(String path, TagEdit edit) async {
+    if (!canWrite(path)) return false;
+    try {
+      await Isolate.run(() => _write(path, edit));
+      return true;
+    } on Object {
+      return false;
+    }
+  }
+
   static void _write(String path, TagEdit e) {
     updateMetadata(File(path), (m) {
       if (e.title != null) m.setTitle(e.title);

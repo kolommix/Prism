@@ -1963,9 +1963,27 @@
   "lyricsForWholeLibrary": "Lyrics for the whole library",
   "lyricsForLibraryNeedsOnline": "Turn on \"Find lyrics online\" first",
   "savingLyricsProgress": "Saving lyrics: {done} of {total}, found {found}",
-  "@savingLyricsProgress": {"placeholders":{"done":{"type":"int"},"total":{"type":"int"},"found":{"type":"int"}}},
+  "@savingLyricsProgress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "found": {
+        "type": "int"
+      }
+    }
+  },
   "lyricsSavedForSongs": "{count, plural, =0{Saves lyrics in the background, so Search finds any song by a line} =1{Lyrics saved for {count} song} other{Lyrics saved for {count} songs}}",
-  "@lyricsSavedForSongs": {"placeholders":{"count":{"type":"int"}}},
+  "@lyricsSavedForSongs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tagFileBusy": "The file is busy (another app or the player is holding it). Close it there or play another song, then save again.",
   "tagsDidNotStickFileRestored": "Tags did not stick (file restored)",
   "duplicateFinder": "Duplicate finder",
@@ -3097,7 +3115,7 @@
   "bgRidges": "Sound landscape",
   "bgRidgesDesc": "The song as mountains: the front line is the sound right now, and every moment rolls back into the distance. The mouse raises a peak.",
   "bgGalaxy": "Galaxy",
-  "bgGalaxyDesc": "A slowly turning spiral galaxy. The core flares with the bass, the stars twinkle with the treble, the mouse pulls them in.",
+  "bgGalaxyDesc": "A spiral galaxy in 3D, the view slowly circling over it: blue young stars in the arms, warm old ones in the middle, dark dust and pink star clouds. The music runs through it from the middle (bass) to the rim (treble), the core flares with the beat.",
   "bgNumberOfRidges": "Number of lines",
   "bgLineWidth": "Line width",
   "bgSpectrumNote": "Reacts to the whole song (songs on this device; streamed ones only move by themselves).",
@@ -3169,5 +3187,57 @@
   "lyricsWindowSmaller": "Smaller text",
   "lyricsWindowMoreSeeThrough": "More see-through",
   "lyricsWindowLessSeeThrough": "Less see-through",
-  "lyricsWindowButton": "Floating lyrics"
+  "lyricsWindowButton": "Floating lyrics",
+  "errorCopied": "Copied. Paste it in a message to the developer.",
+  "errorCopyTooltip": "Copy the error",
+  "errorCopyButton": "Copy error",
+  "errorLog": "Error log",
+  "errorLogHint": "Errors stay on this device. Copy them or save them as a text file and send them to the developer. Song names and file names may be in it.",
+  "errorCopyAll": "Copy all errors",
+  "errorCopyAllHint": "Then paste them in a message to the developer",
+  "errorSaveFile": "Save as a text file",
+  "errorSaved": "Saved",
+  "errorPopups": "Show errors with a Copy button",
+  "errorPopupsHint": "When something breaks, a short message says so; Copy puts the details in the clipboard",
+  "errorClear": "Clear the log",
+  "errorNone": "No errors so far",
+  "errorProblems": "Problems",
+  "errorLogSubtitleNone": "Nothing has gone wrong",
+  "errorLogSubtitle": "{count, plural, one{{count} error, copy it for the developer} other{{count} errors, copy them for the developer}}",
+  "@errorLogSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "errorSomethingBroke": "Something went wrong in Prism. Copy the details and send them to the developer.",
+  "playerCantPlay": "This song couldn't be played, so it was skipped",
+  "tagsKeptInPrism": "Saved in Prism (this kind of file can't hold song info)",
+  "tagsFormatKeptInPrism": "This kind of file can't hold song info. Prism keeps your changes in its library.",
+  "lyricsTiming": "Lyrics timing, all songs",
+  "lyricsTimingHint": "Bluetooth headphones play a little late: move the lyrics later to match. Each song can also be moved on its own in the lyrics panel. Tap to reset.",
+  "lyricsTimingExact": "On time",
+  "lyricsTimingEarlier": "{s} s earlier",
+  "@lyricsTimingEarlier": {
+    "placeholders": {
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "lyricsTimingLater": "{s} s later",
+  "@lyricsTimingLater": {
+    "placeholders": {
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "bgHoliday": "Holiday",
+  "bgHolidayDesc": "Winter lights out of focus, each breathing with its own part of the music, strings of fairy lights, snow falling, big flakes drifting past close by. The mouse blows the snow away.",
+  "bgHalloween": "Halloween",
+  "bgHalloweenDesc": "A pale moon behind thin clouds, bare branches, rolling fog, will-o'-wisps pulsing with the music, embers, bats now and then. Bats keep away from the mouse.",
+  "bgOldStyles": "Old backgrounds",
+  "bgOldStylesHint": "Mesh gradient, Gradient and Aurora, for anyone who still likes them"
 }

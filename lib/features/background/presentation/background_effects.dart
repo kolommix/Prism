@@ -9,7 +9,9 @@ import '../../lyrics/domain/lrc.dart';
 import '../domain/background_config.dart';
 
 import 'field_effects.dart';
+import 'galaxy_effect.dart';
 import 'lyrics_effect.dart';
+import 'season_effects.dart';
 import 'sound_effects.dart';
 
 /// The playing song, for the styles that show its words.
@@ -131,6 +133,8 @@ abstract class BackgroundEffect {
       BackgroundStyle.asciiDonut => AsciiDonutEffect(p, color, accent),
       BackgroundStyle.ridges => RidgesEffect(p, color, accent),
       BackgroundStyle.galaxy => GalaxyEffect(p, color, accent),
+      BackgroundStyle.holiday => HolidayEffect(p, color, accent),
+      BackgroundStyle.halloween => HalloweenEffect(p, color, accent),
       BackgroundStyle.lyrics => LyricsEffect(p, color, accent),
       BackgroundStyle.starfield => StarfieldEffect(p, color, accent),
       BackgroundStyle.rain => PrecipitationEffect(false, p, color, accent),
@@ -213,7 +217,8 @@ class SpriteBatch {
     n++;
   }
 
-  void flush(Canvas canvas, ui.Image atlas) {
+  /// [light]: overlapping sprites add up like light does (glows, bokeh).
+  void flush(Canvas canvas, ui.Image atlas, {bool light = false}) {
     if (n == 0) return;
     canvas.drawRawAtlas(
       atlas,
@@ -222,7 +227,9 @@ class SpriteBatch {
       Int32List.sublistView(_colors, 0, n),
       BlendMode.modulate,
       null,
-      Paint()..filterQuality = FilterQuality.low,
+      Paint()
+        ..filterQuality = FilterQuality.low
+        ..blendMode = light ? BlendMode.plus : BlendMode.srcOver,
     );
     n = 0;
   }

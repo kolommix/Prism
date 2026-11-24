@@ -1,3 +1,4 @@
+import '../../../core/diagnostics/error_log.dart';
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -116,18 +117,28 @@ class ImportRunner extends Notifier<ImportRun?> {
   static const transientRetries = 2;
   static Duration transientWait = const Duration(seconds: 3);
 
-  Timer? _retry;
+  /// One timer per paused import: another import starting must not cancel
+  /// the retry of this one (it used to, and the paused one never came back).
+  final _retries = <int, Timer>{};
   final _attempts = <int, int>{};
 
+  /// The import running now (set before anything is awaited) and the ones
+  /// waiting for their turn.
+  int? _current;
+  final _queued = <int>[];
+
   /// While paused because a service can't be reached: a VPN switched on (or
-  /// any other change of the connection) starts the import again at once.
+  /// any other change of the connection) starts these imports again at once.
+  final _waitingForNetwork = <int>{};
   NetworkWatch? _watching;
   NetworkWatch get _watch => _watching ??= ref.read(networkWatchFactoryProvider)();
 
   @override
   ImportRun? build() {
     ref.onDispose(() {
-      _retry?.cancel();
+      for (final t in _retries.values) {
+        t.cancel();
+      }
       _watching?.stop();
     });
     return null;
@@ -135,22 +146,44 @@ class ImportRunner extends Notifier<ImportRun?> {
 
   bool isRunning(int jobId) => state?.jobId == jobId && state!.running;
 
+  /// Stops the import running now (the next waiting one starts).
   void pause() {
     _stop = true;
-    _retry?.cancel();
-    _watching?.stop();
+    final id = _current;
+    if (id != null) _retries.remove(id)?.cancel();
+  }
+
+  void _watchNetwork(int jobId) {
+    _waitingForNetwork.add(jobId);
+    _watch.start(() {
+      final ids = List.of(_waitingForNetwork);
+      _waitingForNetwork.clear();
+      _watching?.stop();
+      for (final id in ids) {
+        _attempts.remove(id);
+        unawaited(run(id));
+      }
+    });
   }
 
   Future<void> run(int jobId) async {
-    _retry?.cancel();
-    _watching?.stop();
-    if (state?.running ?? false) {
-      if (state!.jobId == jobId) return;
-      pause();
-      while (state?.running ?? false) {
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-      }
+    _retries.remove(jobId)?.cancel();
+    if (_waitingForNetwork.remove(jobId) && _waitingForNetwork.isEmpty) _watching?.stop();
+    if (_current != null) {
+      // Another import is matching: this one goes next, nothing is paused.
+      if (_current != jobId && !_queued.contains(jobId)) _queued.add(jobId);
+      return;
     }
+    _current = jobId;
+    try {
+      await _run(jobId);
+    } finally {
+      _current = null;
+      if (_queued.isNotEmpty) unawaited(run(_queued.removeAt(0)));
+    }
+  }
+
+  Future<void> _run(int jobId) async {
     final repo = ref.read(importRepositoryProvider);
     final matcher = ref.read(matchServiceProvider);
     final store = ref.read(remoteTrackStoreProvider);
@@ -200,10 +233,12 @@ class ImportRunner extends Notifier<ImportRun?> {
           queue.insert(0, item);
           unreachable = e.kind == OnlineErrorKind.offline;
           pauseMessage = (await ref.read(networkCheckProvider).explain(e)).message;
+          ErrorLog.instance.failed('import paused', pauseMessage!, details: '${e.kind.name} · ${e.service?.name ?? '-'} · ${e.message}');
           _stop = true;
           break;
-        } on Object catch (e) {
+        } on Object catch (e, st) {
           // Unexpected – don't block the rest of the import on one song.
+          ErrorLog.instance.record(e, st, where: 'import match', message: '${item.wanted.artist} - ${item.wanted.title}: $e');
           await repo.saveMatch(item.id, trackId: null, confidence: 0, note: l10n.error(e));
         }
         done++;
@@ -251,13 +286,8 @@ class ImportRunner extends Notifier<ImportRun?> {
     if (left > 0 && pauseMessage != null) {
       final attempt = _attempts[jobId] ?? 0;
       _attempts[jobId] = attempt + 1;
-      _retry = Timer(importRetryDelay(attempt), () => unawaited(run(jobId)));
-      if (unreachable) {
-        _watch.start(() {
-          _attempts.remove(jobId);
-          unawaited(run(jobId));
-        });
-      }
+      _retries[jobId] = Timer(importRetryDelay(attempt), () => unawaited(run(jobId)));
+      if (unreachable) _watchNetwork(jobId);
     } else if (left == 0) {
       _attempts.remove(jobId);
     }

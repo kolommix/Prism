@@ -15,6 +15,7 @@ import '../../settings/presentation/settings_widgets.dart';
 import '../application/tools_providers.dart';
 import '../domain/track_matching.dart';
 import '../../../l10n/l10n.dart';
+import '../../../core/diagnostics/error_ui.dart';
 
 /// Songs that are in the library more than once. Prism marks the best copy of
 /// each (lossless, then bitrate, then cover and tags); a tap keeps another one.
@@ -82,7 +83,7 @@ class _DuplicatesPageState extends ConsumerState<DuplicatesPage> {
       appBar: AppBar(backgroundColor: Colors.transparent, title: Text(l10n.duplicateFinder)),
       body: groups.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('$e')),
+        error: (e, st) => ErrorText(e, stack: st, where: 'stats'),
         data: (list) {
           if (list.isEmpty) return Center(child: Text(l10n.noDuplicatesFound, style: text.bodyLarge));
           final extras = list.fold<int>(0, (n, g) => n + g.length - 1);

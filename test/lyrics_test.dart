@@ -55,16 +55,41 @@ just text without time
     });
 
     test('sung part: even pace, words, and a long gap does not crawl', () {
+      // Too few lines to read a pace: 90 ms a letter, 10 letters = 0.9 s.
       final even = Lyrics(lines: parseLrc('[00:10.00]aaaaaaaaaa\n[00:14.00]b'), source: 't');
+      expect(even.msPerChar, 90);
       expect(even.sungAt(0, const Duration(seconds: 9)), 0);
-      expect(even.sungAt(0, const Duration(seconds: 11)), closeTo(1 / 2.2, 0.01), reason: "220 ms per character");
-      expect(even.sungAt(0, const Duration(seconds: 13)), 1);
+      expect(even.sungAt(0, const Duration(milliseconds: 10450)), closeTo(0.5, 0.01));
+      expect(even.sungAt(0, const Duration(seconds: 11)), 1);
       final gap = Lyrics(lines: parseLrc('[00:10.00]aaaaaaaaaa\n[01:10.00]b'), source: 't');
       expect(gap.sungAt(0, const Duration(milliseconds: 12200)), 1, reason: 'done long before the next line');
+      // Lines back to back: never past the next line (a breath before it).
+      final tight = Lyrics(lines: parseLrc('[00:10.00]${'a' * 40}\n[00:12.00]b'), source: 't');
+      expect(tight.sungAt(0, const Duration(milliseconds: 11880)), 1);
       final words = Lyrics(lines: parseLrc('[00:10.00]<00:10.00>aa <00:12.00>bb\n[00:14.00]c'), source: 't');
       // After "aa " (3 of 5 chars) at 12 s, half of "bb" 0.75 s later.
       expect(words.sungAt(0, const Duration(seconds: 12)), closeTo(3 / 5, 0.01));
       expect(words.sungAt(0, const Duration(milliseconds: 12750)), closeTo(4 / 5, 0.01));
+    });
+
+    test('the pace is read off the song: a fast song sweeps fast, a slow one slowly', () {
+      // 20-letter lines every 1.4 s = 70 ms a letter; some lines have a pause after them.
+      final fast = Lyrics(
+        lines: parseLrc([
+          for (var i = 0; i < 10; i++) '[00:${(10 + i * 1.4 + (i == 4 ? 3 : 0)).toStringAsFixed(2).padLeft(5, '0')}]${'x' * 20}',
+          '[00:40.00]end',
+        ].join('\n')),
+        source: 't',
+      );
+      expect(fast.msPerChar, inInclusiveRange(65, 75));
+      // A 20-letter line is sung in about 1.4 s, not 4.4 s (the old 220 ms a letter).
+      expect(fast.sungAt(0, const Duration(milliseconds: 10700)), closeTo(0.5, 0.06));
+      // Slow ballad: 20 letters every 4 s.
+      final slow = Lyrics(
+        lines: parseLrc([for (var i = 0; i < 8; i++) '[00:${(10 + i * 4).toString().padLeft(2, '0')}.00]${'y' * 20}'].join('\n')),
+        source: 't',
+      );
+      expect(slow.msPerChar, 200);
     });
 
     test('plain text has no lines', () {

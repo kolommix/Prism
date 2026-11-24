@@ -7803,7 +7803,7 @@ abstract class AppLocalizations {
   /// No description provided for @bgGalaxyDesc.
   ///
   /// In en, this message translates to:
-  /// **'A slowly turning spiral galaxy. The core flares with the bass, the stars twinkle with the treble, the mouse pulls them in.'**
+  /// **'A spiral galaxy in 3D, the view slowly circling over it: blue young stars in the arms, warm old ones in the middle, dark dust and pink star clouds. The music runs through it from the middle (bass) to the rim (treble), the core flares with the beat.'**
   String get bgGalaxyDesc;
 
   /// No description provided for @bgNumberOfRidges.
@@ -8153,6 +8153,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Floating lyrics'**
   String get lyricsWindowButton;
+
+  /// No description provided for @errorCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied. Paste it in a message to the developer.'**
+  String get errorCopied;
+
+  /// No description provided for @errorCopyTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy the error'**
+  String get errorCopyTooltip;
+
+  /// No description provided for @errorCopyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy error'**
+  String get errorCopyButton;
+
+  /// No description provided for @errorLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Error log'**
+  String get errorLog;
+
+  /// No description provided for @errorLogHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Errors stay on this device. Copy them or save them as a text file and send them to the developer. Song names and file names may be in it.'**
+  String get errorLogHint;
+
+  /// No description provided for @errorCopyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy all errors'**
+  String get errorCopyAll;
+
+  /// No description provided for @errorCopyAllHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Then paste them in a message to the developer'**
+  String get errorCopyAllHint;
+
+  /// No description provided for @errorSaveFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as a text file'**
+  String get errorSaveFile;
+
+  /// No description provided for @errorSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get errorSaved;
+
+  /// No description provided for @errorPopups.
+  ///
+  /// In en, this message translates to:
+  /// **'Show errors with a Copy button'**
+  String get errorPopups;
+
+  /// No description provided for @errorPopupsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'When something breaks, a short message says so; Copy puts the details in the clipboard'**
+  String get errorPopupsHint;
+
+  /// No description provided for @errorClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the log'**
+  String get errorClear;
+
+  /// No description provided for @errorNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No errors so far'**
+  String get errorNone;
+
+  /// No description provided for @errorProblems.
+  ///
+  /// In en, this message translates to:
+  /// **'Problems'**
+  String get errorProblems;
+
+  /// No description provided for @errorLogSubtitleNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has gone wrong'**
+  String get errorLogSubtitleNone;
+
+  /// No description provided for @errorLogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} error, copy it for the developer} other{{count} errors, copy them for the developer}}'**
+  String errorLogSubtitle(int count);
+
+  /// No description provided for @errorSomethingBroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong in Prism. Copy the details and send them to the developer.'**
+  String get errorSomethingBroke;
+
+  /// No description provided for @playerCantPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'This song couldn\'t be played, so it was skipped'**
+  String get playerCantPlay;
+
+  /// No description provided for @tagsKeptInPrism.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved in Prism (this kind of file can\'t hold song info)'**
+  String get tagsKeptInPrism;
+
+  /// No description provided for @tagsFormatKeptInPrism.
+  ///
+  /// In en, this message translates to:
+  /// **'This kind of file can\'t hold song info. Prism keeps your changes in its library.'**
+  String get tagsFormatKeptInPrism;
+
+  /// No description provided for @lyricsTiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Lyrics timing, all songs'**
+  String get lyricsTiming;
+
+  /// No description provided for @lyricsTimingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluetooth headphones play a little late: move the lyrics later to match. Each song can also be moved on its own in the lyrics panel. Tap to reset.'**
+  String get lyricsTimingHint;
+
+  /// No description provided for @lyricsTimingExact.
+  ///
+  /// In en, this message translates to:
+  /// **'On time'**
+  String get lyricsTimingExact;
+
+  /// No description provided for @lyricsTimingEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'{s} s earlier'**
+  String lyricsTimingEarlier(String s);
+
+  /// No description provided for @lyricsTimingLater.
+  ///
+  /// In en, this message translates to:
+  /// **'{s} s later'**
+  String lyricsTimingLater(String s);
+
+  /// No description provided for @bgHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holiday'**
+  String get bgHoliday;
+
+  /// No description provided for @bgHolidayDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Winter lights out of focus, each breathing with its own part of the music, strings of fairy lights, snow falling, big flakes drifting past close by. The mouse blows the snow away.'**
+  String get bgHolidayDesc;
+
+  /// No description provided for @bgHalloween.
+  ///
+  /// In en, this message translates to:
+  /// **'Halloween'**
+  String get bgHalloween;
+
+  /// No description provided for @bgHalloweenDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A pale moon behind thin clouds, bare branches, rolling fog, will-o\'-wisps pulsing with the music, embers, bats now and then. Bats keep away from the mouse.'**
+  String get bgHalloweenDesc;
+
+  /// No description provided for @bgOldStyles.
+  ///
+  /// In en, this message translates to:
+  /// **'Old backgrounds'**
+  String get bgOldStyles;
+
+  /// No description provided for @bgOldStylesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mesh gradient, Gradient and Aurora, for anyone who still likes them'**
+  String get bgOldStylesHint;
 }
 
 class _AppLocalizationsDelegate

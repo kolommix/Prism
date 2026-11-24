@@ -329,7 +329,7 @@ class _LiveBackgroundState extends ConsumerState<LiveBackground> with SingleTick
     } else {
       _demo = false;
       final lyrics = ref.watch(currentLyricsProvider).value;
-      _lyricsOffset = ref.watch(currentLyricsOffsetProvider).value ?? Duration.zero;
+      _lyricsOffset = ref.watch(effectiveLyricsOffsetProvider);
       song = SongText(
         title: cleanSongTitle(track.title),
         artist: track.displayArtist,

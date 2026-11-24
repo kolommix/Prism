@@ -115,6 +115,14 @@ abstract class AppSettings with _$AppSettings {
 
     /// A "Get Prism" button on the status (Prism's download page).
     @Default(true) bool discordPrismButton,
+
+    /// Unexpected errors show a short message with a Copy button (they are
+    /// always written to the error log in Settings → About).
+    @Default(true) bool errorPopups,
+
+    /// Lyrics of every song shift by this much (ms, + = lyrics earlier), for
+    /// headphones that play late (Bluetooth). Each song's own offset adds to it.
+    @Default(0) int lyricsOffsetMs,
   }) = _AppSettings;
 
   factory AppSettings.fromJson(Map<String, dynamic> json) => _$AppSettingsFromJson(json);

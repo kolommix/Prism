@@ -44,6 +44,20 @@ final currentLyricsOffsetProvider = FutureProvider<Duration>((ref) async {
   return Duration(milliseconds: await ref.watch(lyricsRepositoryProvider).offsetMs(track.id));
 });
 
+/// What the lyrics follow: this song's own offset plus the one for every
+/// song (Settings → Lyrics timing, for headphones that play late, like most
+/// Bluetooth ones). + = lyrics earlier.
+final effectiveLyricsOffsetProvider = Provider<Duration>((ref) {
+  final own = ref.watch(currentLyricsOffsetProvider).value ?? Duration.zero;
+  return own + Duration(milliseconds: ref.watch(settingsProvider.select((s) => s.lyricsOffsetMs)));
+});
+
+/// The highlighted line moves on this much before its time stamp: the
+/// switch (scroll + highlight) takes a moment to show, so it lands on the
+/// first sung word instead of a little after it. The word sweep keeps the
+/// exact time.
+const lyricsLineLead = Duration(milliseconds: 120);
+
 /// Saved lyrics of the library, searchable.
 final lyricsIndexProvider = StreamProvider<List<LyricsIndexEntry>>(
   (ref) => ref.watch(lyricsRepositoryProvider).watchIndex(),

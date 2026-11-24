@@ -11,6 +11,7 @@ import '../../domain/track.dart';
 import '../add_folder.dart';
 import 'track_tile.dart';
 import '../../../../l10n/l10n.dart';
+import '../../../../core/diagnostics/error_ui.dart';
 
 /// Bottom padding so content can scroll above the mini-player/nav bar.
 double bottomInset(BuildContext context) => MediaQuery.paddingOf(context).bottom + 24;
@@ -318,7 +319,7 @@ class ScanBanner extends ConsumerWidget {
 Widget asyncSliver<T>(AsyncValue<T> value, Widget Function(T data) builder) => value.when(
       data: builder,
       loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-      error: (e, _) => SliverFillRemaining(child: Center(child: Text(l10n.error(e)))),
+      error: (e, st) => SliverFillRemaining(child: ErrorText(e, text: l10n.error(e), stack: st, where: 'library')),
     );
 
 /// Convenience for albums grid.

@@ -18,6 +18,8 @@ enum BackgroundStyle {
   asciiDonut,
   ridges,
   galaxy,
+  holiday,
+  halloween,
   lyrics,
   constellation,
   ripple,
@@ -37,6 +39,8 @@ enum BackgroundStyle {
         BackgroundStyle.asciiDonut => l10n.bgAsciiDonut,
         BackgroundStyle.ridges => l10n.bgRidges,
         BackgroundStyle.galaxy => l10n.bgGalaxy,
+        BackgroundStyle.holiday => l10n.bgHoliday,
+        BackgroundStyle.halloween => l10n.bgHalloween,
         BackgroundStyle.lyrics => l10n.bgLyrics,
         BackgroundStyle.matrix => l10n.matrix,
         BackgroundStyle.constellation => l10n.constellation,
@@ -58,6 +62,8 @@ enum BackgroundStyle {
         BackgroundStyle.asciiDonut => l10n.bgAsciiDonutDesc,
         BackgroundStyle.ridges => l10n.bgRidgesDesc,
         BackgroundStyle.galaxy => l10n.bgGalaxyDesc,
+        BackgroundStyle.holiday => l10n.bgHolidayDesc,
+        BackgroundStyle.halloween => l10n.bgHalloweenDesc,
         BackgroundStyle.lyrics => l10n.bgLyricsDesc,
         BackgroundStyle.matrix => l10n.fallingSymbolsTheyLightUpAnd,
         BackgroundStyle.constellation => l10n.driftingStarsJoinedByLinesThe,
@@ -67,7 +73,15 @@ enum BackgroundStyle {
       };
 
   /// Draws the song's whole spectrum, not just the bass (local songs).
-  bool get showsSpectrum => this == asciiSmoke || this == asciiDonut || this == ridges || this == galaxy || this == lyrics;
+  bool get showsSpectrum =>
+      this == asciiSmoke || this == asciiDonut || this == ridges || this == galaxy || this == holiday || this == halloween || this == lyrics;
+
+  /// Older styles, kept under "Old backgrounds" for whoever likes them.
+  bool get isOld => this == mesh || this == gradient || this == aurora;
+
+  /// The styles in the picker's main list, and the old ones.
+  static List<BackgroundStyle> get main => [for (final s in values) if (!s.isOld) s];
+  static List<BackgroundStyle> get old => [for (final s in values) if (s.isOld) s];
 
   /// Shows the song's words (needs the song, its lyrics and the position).
   bool get showsLyrics => this == lyrics;
@@ -291,7 +305,11 @@ abstract class BackgroundConfig with _$BackgroundConfig {
         BackgroundStyle.ripple => rippleDefaults,
         // Brighter by default: thin symbols and lines vanish at 0.7.
         BackgroundStyle.asciiSmoke || BackgroundStyle.asciiDonut || BackgroundStyle.ridges => const BgParams(brightness: 0.85, music: 1.2),
-        BackgroundStyle.galaxy => const BgParams(brightness: 0.85, music: 1.0),
+        BackgroundStyle.galaxy => const BgParams(brightness: 0.9, music: 1.0),
+        // Their own colors: orange candle light and a purple night; warm
+        // lights and icy snow.
+        BackgroundStyle.halloween => const BgParams(followTheme: false, color: 0xFFFF8A2A, accent: 0xFF7B4BC4, brightness: 0.95, music: 1.0),
+        BackgroundStyle.holiday => const BgParams(followTheme: false, color: 0xFFFFD28A, accent: 0xFFBFD8FF, brightness: 0.95, music: 1.0),
         BackgroundStyle.lyrics => const BgParams(brightness: 0.95, music: 1.0),
         _ => const BgParams(),
       };

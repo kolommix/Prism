@@ -115,9 +115,12 @@ class LibraryScanner {
     for (var i = 0; i < toRead.length; i += batchSize) {
       final chunk = toRead.sublist(i, i + batchSize > toRead.length ? toRead.length : i + batchSize);
       final tagList = await _tags.readMany(chunk);
+      // A changed file without a picture keeps the cover the library showed
+      // (imported songs, covers found online, set in Prism).
+      final shown = await _repo.artworkOf([for (final c in chunk) if (known.containsKey(c)) c]);
       for (var j = 0; j < chunk.length; j++) {
         final path = chunk[j];
-        pending.add(await _buildRow(path, found[path]!, tagList[j]));
+        pending.add(await _buildRow(path, found[path]!, tagList[j], previousArtwork: shown[path]));
         if (known.containsKey(path)) {
           counts.updated++;
         } else {
@@ -131,12 +134,13 @@ class LibraryScanner {
     }
   }
 
-  Future<TracksCompanion> _buildRow(String path, FileStat stat, AudioTags tags) async {
+  Future<TracksCompanion> _buildRow(String path, FileStat stat, AudioTags tags, {String? previousArtwork}) async {
     final title = _clean(tags.title) ?? p.basenameWithoutExtension(path);
     final artist = _clean(tags.artist) ?? '';
     final album = _clean(tags.album) ?? '';
     final albumArtist = _clean(tags.albumArtist) ?? '';
-    final artwork = await _saveCover(tags, album: album, artist: albumArtist.isEmpty ? artist : albumArtist, path: path);
+    final artwork =
+        await _saveCover(tags, album: album, artist: albumArtist.isEmpty ? artist : albumArtist, path: path) ?? previousArtwork;
 
     return TracksCompanion.insert(
       uri: path,

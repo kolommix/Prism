@@ -4866,7 +4866,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bgGalaxyDesc =>
-      'A slowly turning spiral galaxy. The core flares with the bass, the stars twinkle with the treble, the mouse pulls them in.';
+      'A spiral galaxy in 3D, the view slowly circling over it: blue young stars in the arms, warm old ones in the middle, dark dust and pink star clouds. The music runs through it from the middle (bass) to the rim (treble), the core flares with the beat.';
 
   @override
   String get bgNumberOfRidges => 'Number of lines';
@@ -5065,4 +5065,120 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lyricsWindowButton => 'Floating lyrics';
+
+  @override
+  String get errorCopied => 'Copied. Paste it in a message to the developer.';
+
+  @override
+  String get errorCopyTooltip => 'Copy the error';
+
+  @override
+  String get errorCopyButton => 'Copy error';
+
+  @override
+  String get errorLog => 'Error log';
+
+  @override
+  String get errorLogHint =>
+      'Errors stay on this device. Copy them or save them as a text file and send them to the developer. Song names and file names may be in it.';
+
+  @override
+  String get errorCopyAll => 'Copy all errors';
+
+  @override
+  String get errorCopyAllHint =>
+      'Then paste them in a message to the developer';
+
+  @override
+  String get errorSaveFile => 'Save as a text file';
+
+  @override
+  String get errorSaved => 'Saved';
+
+  @override
+  String get errorPopups => 'Show errors with a Copy button';
+
+  @override
+  String get errorPopupsHint =>
+      'When something breaks, a short message says so; Copy puts the details in the clipboard';
+
+  @override
+  String get errorClear => 'Clear the log';
+
+  @override
+  String get errorNone => 'No errors so far';
+
+  @override
+  String get errorProblems => 'Problems';
+
+  @override
+  String get errorLogSubtitleNone => 'Nothing has gone wrong';
+
+  @override
+  String errorLogSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count errors, copy them for the developer',
+      one: '$count error, copy it for the developer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get errorSomethingBroke =>
+      'Something went wrong in Prism. Copy the details and send them to the developer.';
+
+  @override
+  String get playerCantPlay =>
+      'This song couldn\'t be played, so it was skipped';
+
+  @override
+  String get tagsKeptInPrism =>
+      'Saved in Prism (this kind of file can\'t hold song info)';
+
+  @override
+  String get tagsFormatKeptInPrism =>
+      'This kind of file can\'t hold song info. Prism keeps your changes in its library.';
+
+  @override
+  String get lyricsTiming => 'Lyrics timing, all songs';
+
+  @override
+  String get lyricsTimingHint =>
+      'Bluetooth headphones play a little late: move the lyrics later to match. Each song can also be moved on its own in the lyrics panel. Tap to reset.';
+
+  @override
+  String get lyricsTimingExact => 'On time';
+
+  @override
+  String lyricsTimingEarlier(String s) {
+    return '$s s earlier';
+  }
+
+  @override
+  String lyricsTimingLater(String s) {
+    return '$s s later';
+  }
+
+  @override
+  String get bgHoliday => 'Holiday';
+
+  @override
+  String get bgHolidayDesc =>
+      'Winter lights out of focus, each breathing with its own part of the music, strings of fairy lights, snow falling, big flakes drifting past close by. The mouse blows the snow away.';
+
+  @override
+  String get bgHalloween => 'Halloween';
+
+  @override
+  String get bgHalloweenDesc =>
+      'A pale moon behind thin clouds, bare branches, rolling fog, will-o\'-wisps pulsing with the music, embers, bats now and then. Bats keep away from the mouse.';
+
+  @override
+  String get bgOldStyles => 'Old backgrounds';
+
+  @override
+  String get bgOldStylesHint =>
+      'Mesh gradient, Gradient and Aurora, for anyone who still likes them';
 }

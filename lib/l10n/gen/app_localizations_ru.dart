@@ -4973,7 +4973,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get bgGalaxyDesc =>
-      'Медленно вращающаяся спиральная галактика. Ядро вспыхивает на басах, звёзды мерцают на верхах, мышь притягивает их.';
+      'Спиральная галактика в 3D, взгляд медленно облетает её: голубые молодые звёзды в рукавах, тёплые старые в центре, тёмная пыль и розовые облака. Музыка проходит по ней от центра (басы) к краю (верха), ядро вспыхивает в такт.';
 
   @override
   String get bgNumberOfRidges => 'Количество линий';
@@ -5173,4 +5173,121 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get lyricsWindowButton => 'Плавающий текст';
+
+  @override
+  String get errorCopied =>
+      'Скопировано. Вставьте это в сообщение разработчику.';
+
+  @override
+  String get errorCopyTooltip => 'Скопировать ошибку';
+
+  @override
+  String get errorCopyButton => 'Скопировать ошибку';
+
+  @override
+  String get errorLog => 'Журнал ошибок';
+
+  @override
+  String get errorLogHint =>
+      'Ошибки хранятся только на этом устройстве. Скопируйте их или сохраните в текстовый файл и отправьте разработчику. В них могут быть названия песен и файлов.';
+
+  @override
+  String get errorCopyAll => 'Скопировать все ошибки';
+
+  @override
+  String get errorCopyAllHint => 'Потом вставьте их в сообщение разработчику';
+
+  @override
+  String get errorSaveFile => 'Сохранить в текстовый файл';
+
+  @override
+  String get errorSaved => 'Сохранено';
+
+  @override
+  String get errorPopups => 'Показывать ошибки с кнопкой «Скопировать»';
+
+  @override
+  String get errorPopupsHint =>
+      'Если что-то сломалось, появится короткое сообщение; «Скопировать» кладёт подробности в буфер обмена';
+
+  @override
+  String get errorClear => 'Очистить журнал';
+
+  @override
+  String get errorNone => 'Ошибок пока нет';
+
+  @override
+  String get errorProblems => 'Проблемы';
+
+  @override
+  String get errorLogSubtitleNone => 'Ничего не сломалось';
+
+  @override
+  String errorLogSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ошибки, скопируйте их для разработчика',
+      many: '$count ошибок, скопируйте их для разработчика',
+      few: '$count ошибки, скопируйте их для разработчика',
+      one: '$count ошибка, скопируйте её для разработчика',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get errorSomethingBroke =>
+      'В Prism что-то сломалось. Скопируйте подробности и отправьте разработчику.';
+
+  @override
+  String get playerCantPlay => 'Эту песню не удалось включить, она пропущена';
+
+  @override
+  String get tagsKeptInPrism =>
+      'Сохранено в Prism (в такой файл нельзя записать данные песни)';
+
+  @override
+  String get tagsFormatKeptInPrism =>
+      'В такой файл нельзя записать данные песни. Prism сохранит изменения у себя в медиатеке.';
+
+  @override
+  String get lyricsTiming => 'Сдвиг текста, все песни';
+
+  @override
+  String get lyricsTimingHint =>
+      'Bluetooth-наушники играют чуть позже: сдвиньте текст позже, чтобы совпало. Каждую песню можно сдвинуть и отдельно в панели текста. Нажмите, чтобы сбросить.';
+
+  @override
+  String get lyricsTimingExact => 'Без сдвига';
+
+  @override
+  String lyricsTimingEarlier(String s) {
+    return 'раньше на $s с';
+  }
+
+  @override
+  String lyricsTimingLater(String s) {
+    return 'позже на $s с';
+  }
+
+  @override
+  String get bgHoliday => 'Праздник';
+
+  @override
+  String get bgHolidayDesc =>
+      'Зимние огни не в фокусе, каждый дышит своей частью музыки, гирлянды, падающий снег, крупные снежинки проплывают совсем близко. Мышь сдувает снег.';
+
+  @override
+  String get bgHalloween => 'Хэллоуин';
+
+  @override
+  String get bgHalloweenDesc =>
+      'Бледная луна за тонкими облаками, голые ветки, стелющийся туман, блуждающие огоньки пульсируют под музыку, искры, иногда летучие мыши. Мыши облетают курсор.';
+
+  @override
+  String get bgOldStyles => 'Старые фоны';
+
+  @override
+  String get bgOldStylesHint =>
+      'Сетка цветов, Градиент и Северное сияние, для тех, кому они нравятся';
 }

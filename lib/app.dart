@@ -43,6 +43,8 @@ import 'features/update/update_installer.dart';
 import 'features/onboarding/presentation/welcome_tour.dart';
 import 'features/hotkeys/application/hotkey_controller.dart';
 import 'features/lyrics/application/lyrics_window.dart';
+import 'core/diagnostics/error_log.dart';
+import 'core/diagnostics/error_ui.dart';
 /// Windows integration instance (null on Android / in tests).
 final windowsIntegrationProvider = Provider<WindowsDesktopIntegration?>((ref) => null);
 
@@ -65,6 +67,8 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
 
   final _messenger = GlobalKey<ScaffoldMessengerState>();
   StreamSubscription<EngineEvent>? _playerEvents;
+  StreamSubscription<ErrorEntry>? _errors;
+  DateTime _lastCrashAt = DateTime(0);
   String? _lastError;
   DateTime _lastErrorAt = DateTime(0);
 
@@ -97,13 +101,29 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     // is skipped by the player; say why, once, instead of failing silently.
     _playerEvents = ref.read(playerControllerProvider).events.listen((e) {
       if (e != EngineEvent.failed) return;
-      final err = ref.read(playerControllerProvider).lastError;
-      if (err is! OnlineException) return;
+      final player = ref.read(playerControllerProvider);
+      final err = player.lastError;
+      if (err == null) return;
+      final song = player.current;
+      final where = song == null ? 'player' : 'player · ${song.artist.isEmpty ? '' : '${song.artist} - '}${song.title} (${song.sourceId})';
+      final text = err is OnlineException ? err.message : l10n.playerCantPlay;
+      final entry = ErrorLog.instance.record(err, null, where: where, message: text);
       final now = DateTime.now();
-      if (err.message == _lastError && now.difference(_lastErrorAt) < const Duration(seconds: 8)) return;
-      _lastError = err.message;
+      if (text == _lastError && now.difference(_lastErrorAt) < const Duration(seconds: 8)) return;
+      _lastError = text;
       _lastErrorAt = now;
-      _messenger.currentState?.showSnackBar(SnackBar(content: Text(err.message), duration: const Duration(seconds: 5)));
+      _messenger.currentState
+          ?.showSnackBar(errorSnackBar(text, entry: entry, messenger: _messenger.currentState, duration: const Duration(seconds: 5)));
+    });
+    // Anything that crashed: a short message with Copy (Settings can turn it off).
+    _errors = ErrorLog.instance.onError.listen((entry) {
+      if (entry.level != ErrorLevel.crash || !ref.read(settingsProvider).errorPopups) return;
+      final now = DateTime.now();
+      if (now.difference(_lastCrashAt) < const Duration(seconds: 30)) return;
+      _lastCrashAt = now;
+      _messenger.currentState?.showSnackBar(
+        errorSnackBar(l10n.errorSomethingBroke, entry: entry, messenger: _messenger.currentState, duration: const Duration(seconds: 8)),
+      );
     });
   }
 
@@ -151,8 +171,8 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
         await scan.addFolder(folder);
       }
       await scan.addFiles(files);
-    } on Object catch (e) {
-      _messenger.currentState?.showSnackBar(SnackBar(content: Text(l10n.error(e))));
+    } on Object catch (e, st) {
+      _messenger.currentState?.showSnackBar(errorSnackBar(l10n.error(e), error: e, stack: st, where: 'add music', messenger: _messenger.currentState));
       return;
     }
     if (!mounted) return;
@@ -185,6 +205,7 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
   @override
   void dispose() {
     _playerEvents?.cancel();
+    _errors?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _router.dispose();
     super.dispose();

@@ -14,6 +14,7 @@ import '../domain/deep_stats.dart';
 import '../domain/listening_stats.dart';
 import 'stats_charts.dart';
 import '../../../l10n/l10n.dart';
+import '../../../core/diagnostics/error_ui.dart';
 
 String longTime(Duration d) {
   final h = d.inHours;
@@ -404,7 +405,7 @@ class StatsLibrary extends ConsumerWidget {
     final stats = ref.watch(libraryStatsProvider);
     return stats.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('$e')),
+      error: (e, st) => ErrorText(e, stack: st, where: 'stats'),
       data: (s) {
         final maxDecade = s.decades.fold<int>(1, (m, e) => math.max(m, e.value));
         final maxGenre = s.genres.fold<int>(1, (m, e) => math.max(m, e.value));
