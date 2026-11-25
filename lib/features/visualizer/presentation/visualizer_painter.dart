@@ -1,111 +1,127 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
 import '../domain/beat_detector.dart';
 import '../domain/spectrum.dart';
-import '../../../l10n/l10n.dart';
 
-/// Visualizer looks. Each one is drawn in one ink color (the theme's text or
-/// primary color); the amber LED color only marks peaks, like the hold
-/// lights on a real spectrum analyser.
-enum VisualizerStyle {
-  bars(Icons.bar_chart_rounded),
-  wave(Icons.waves_rounded),
-  radial(Icons.blur_circular_rounded);
-
-  const VisualizerStyle(this.icon);
-  final IconData icon;
-
-  String get label => switch (this) {
-        VisualizerStyle.bars => l10n.bars,
-        VisualizerStyle.wave => l10n.wave,
-        VisualizerStyle.radial => l10n.vizRing,
-      };
-
-  /// Styles that were removed fall back to bars.
-  static VisualizerStyle parse(String s) => values.asNameMap()[s] ?? bars;
-}
-
-/// Draws one frame of a [BandSource] at [position] in [style].
+/// Live state of the visualizer: smoothed band levels, falling peak marks,
+/// beats, the rings they send out and how far the disc has turned.
 ///
-/// Smoothing state (fast attack / slow decay levels, falling peak marks,
-/// beats) lives in small per-source buffers so a rebuilt painter continues
-/// where the last one stopped. Everything moves by real time, not by frame.
-class VisualizerPainter extends CustomPainter {
-  VisualizerPainter({
-    required this.spectrum,
-    required this.position,
-    required this.style,
-    required this.ink,
-    required this.led,
-    required this.reduce,
-    this.sensitivity = 1,
-    this.lowPower = false,
-    required Listenable repaint,
-  }) : super(repaint: repaint);
+/// Fed from the playback ticker (before the frame is drawn), so the painter
+/// and the spinning cover read the same numbers. Everything moves by real
+/// time, never per frame: the same at 60 and 120 Hz.
+class VizAnalyser extends ChangeNotifier {
+  static const _rippleLife = 1.5;
+  static const _maxRipples = 5;
 
-  final BandSource spectrum;
-  final double sensitivity;
-  final bool lowPower;
-  final ValueNotifier<Duration> position;
-  final VisualizerStyle style;
-  final Color ink;
-  final Color led;
-  final bool reduce;
+  Float32List level = Float32List(0);
+  Float32List peak = Float32List(0);
+  Float32List _hold = Float32List(0);
+  final _raw = Float32List(256);
+  final beat = BeatDetector();
+  final _clock = Stopwatch()..start();
 
-  static final _state = <BandSource, _VizState>{};
-  static final _raw = Float32List(256);
+  /// Ages (seconds) of the rings sent out by beats; negative = unused.
+  final ripples = Float32List(_maxRipples)..fillRange(0, _maxRipples, -1);
+  int _nextRipple = 0;
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
-    final n = spectrum.bands;
+  /// How far the disc has turned, radians.
+  double spin = 0;
+
+  /// Overall loudness, smoothed (0..1).
+  double energy = 0;
+
+  double get pulse => beat.pulse;
+  static double get rippleLife => _rippleLife;
+
+  /// One step: samples [source] at [position] and moves everything on by
+  /// the real time since the last step. [still] = reduced motion: raw
+  /// levels, no spin, no rings.
+  void update(BandSource source, Duration position, {double sensitivity = 1, bool still = false}) {
+    final n = math.min(source.bands, _raw.length);
     if (n == 0) return;
-    final s = _state.putIfAbsent(spectrum, () => _VizState(n));
-    if (_state.length > 4) _state.remove(_state.keys.first);
-    spectrum.sample(position.value, _raw);
+    if (level.length != n) {
+      level = Float32List(n);
+      peak = Float32List(n);
+      _hold = Float32List(n);
+      beat.reset();
+    }
+    final dt = math.min(0.1, _clock.elapsedMicroseconds / 1e6);
+    _clock
+      ..reset()
+      ..start();
+    source.sample(position, _raw);
     for (var i = 0; i < n; i++) {
       _raw[i] = applySensitivity(_raw[i], sensitivity);
     }
-    final dt = math.min(0.1, s.clock.elapsedMicroseconds / 1e6);
-    s.clock
-      ..reset()
-      ..start();
-    if (reduce) {
-      s.level.setRange(0, n, _raw);
+    if (still) {
+      level.setRange(0, n, _raw);
     } else {
-      smoothLevels(s.level, _raw, math.max(dt, 1 / 240), attack: 0.025, decay: 0.22);
+      smoothLevels(level, _raw, math.max(dt, 1 / 240), attack: 0.02, decay: 0.2);
     }
     final lows = math.max(1, n ~/ 8);
-    var bass = 0.0;
-    for (var i = 0; i < lows; i++) {
-      bass += s.level[i];
+    var bass = 0.0, all = 0.0;
+    for (var i = 0; i < n; i++) {
+      if (i < lows) bass += level[i];
+      all += level[i];
     }
-    s.bass = bass / lows;
-    s.beat.update(s.bass, dt);
+    final hit = beat.update(bass / lows, dt);
+    energy += (all / n - energy) * (1 - math.exp(-dt / 0.25));
     // Peak marks hold for a moment, then fall at a steady speed.
     for (var i = 0; i < n; i++) {
-      final v = s.level[i];
-      if (v >= s.peak[i]) {
-        s.peak[i] = v;
-        s.hold[i] = 0.35;
-      } else if (s.hold[i] > 0) {
-        s.hold[i] -= dt;
+      final v = level[i];
+      if (v >= peak[i]) {
+        peak[i] = v;
+        _hold[i] = 0.4;
+      } else if (_hold[i] > 0) {
+        _hold[i] -= dt;
       } else {
-        s.peak[i] = math.max(v, s.peak[i] - 0.9 * dt);
+        peak[i] = math.max(v, peak[i] - 0.8 * dt);
       }
     }
-    switch (style) {
-      case VisualizerStyle.bars:
-        _bars(canvas, size, s);
-      case VisualizerStyle.wave:
-        _wave(canvas, size, s);
-      case VisualizerStyle.radial:
-        _ring(canvas, size, s);
+    if (still) {
+      ripples.fillRange(0, _maxRipples, -1);
+    } else {
+      for (var i = 0; i < _maxRipples; i++) {
+        if (ripples[i] >= 0) ripples[i] = ripples[i] + dt > _rippleLife ? -1 : ripples[i] + dt;
+      }
+      if (hit) {
+        ripples[_nextRipple] = 0;
+        _nextRipple = (_nextRipple + 1) % _maxRipples;
+      }
+      // About one turn every 30 s, with a little push on each beat.
+      spin = (spin + dt * (0.2 + 1.4 * beat.pulse * beat.pulse)) % (2 * math.pi);
     }
+    notifyListeners();
   }
+}
+
+/// The visualizer, in one ink color (the theme's primary): a radial spectrum
+/// around the cover disc, mirrored left and right so the bass meets at the
+/// top, a soft filled contour through the bar tips, amber peak dots (like
+/// the hold lights on a real analyser) and thin rings that ripple out on
+/// each beat. The cover itself is a widget on top (see `Visualizer`).
+class VisualizerPainter extends CustomPainter {
+  VisualizerPainter({
+    required this.viz,
+    required this.ink,
+    required this.led,
+    this.lowPower = false,
+  }) : super(repaint: viz);
+
+  final VizAnalyser viz;
+  final Color ink;
+  final Color led;
+  final bool lowPower;
+
+  /// The cover disc's radius, as a share of the shorter side.
+  static const coverShare = 0.27;
+
+  final _a = Float32List(128);
+  final _b = Float32List(128);
 
   /// [count] values from [v] (any length), each the max of its share, so a
   /// short hit in one band is never averaged away.
@@ -122,7 +138,7 @@ class VisualizerPainter extends CustomPainter {
     return out;
   }
 
-  /// Neighbours blend a little, so curves stay smooth instead of spiky.
+  /// Neighbours blend a little, so the contour stays smooth.
   static void _soften(Float32List v, int count) {
     var prev = v[0];
     for (var i = 0; i < count; i++) {
@@ -133,174 +149,108 @@ class VisualizerPainter extends CustomPainter {
     }
   }
 
-  /// Analyser bars with rounded tops and falling peak marks.
-  void _bars(Canvas canvas, Size size, _VizState s) {
-    final count = (size.width / (lowPower ? 14 : 10)).floor().clamp(16, s.level.length);
-    final v = _resample(s.level, count, s.a);
-    final p = _resample(s.peak, count, s.b);
-    final slot = size.width / count;
-    final w = math.max(2.0, slot * 0.62);
-    final radius = Radius.circular(math.min(w / 2, 4));
-    final floor = size.height - 2;
-    final scale = size.height * 0.86;
-    final paint = Paint();
-    final cap = Paint()..color = led;
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty || viz.level.isEmpty) return;
+    final half = lowPower ? 36 : 64;
+    final count = half * 2;
+    final v = _resample(viz.level, half, _a);
+    final p = _resample(viz.peak, half, _b);
+    final pulse = viz.pulse;
+    final c = size.center(Offset.zero);
+    final short = size.shortestSide;
+    final cover = short * coverShare * (1 + 0.04 * pulse);
+    final r0 = cover + math.max(6, short * 0.02);
+    final edge = short / 2 - 8;
+    final reach = math.max(8.0, (edge - r0 - 10) * (0.88 + 0.12 * pulse));
+    final slot = 2 * math.pi * r0 / count;
+    final w = (slot * 0.5).clamp(1.5, 5.0);
+
+    // Rings from the beats: born at the disc, they fade as they spread.
+    final ring = Paint()..style = PaintingStyle.stroke;
+    for (final age in viz.ripples) {
+      if (age < 0) continue;
+      final t = age / VizAnalyser.rippleLife;
+      final eased = 1 - math.pow(1 - t, 3).toDouble();
+      ring
+        ..color = ink.withValues(alpha: 0.32 * (1 - t) * (1 - t))
+        ..strokeWidth = 0.6 + 1.6 * (1 - t);
+      canvas.drawCircle(c, r0 + (edge - r0) * eased, ring);
+    }
+
+    double angle(int k) => -math.pi / 2 + (k + 0.5) / count * 2 * math.pi;
+    int band(int k) => k < half ? k : count - 1 - k;
+
+    // Soft body: the area between the disc and a smooth contour through the
+    // bar tips (the bars' values blended with their neighbours).
+    final soft = Float32List.fromList(v.sublist(0, half));
+    _soften(soft, half);
+    _soften(soft, half);
+    final tips = <Offset>[
+      for (var k = 0; k < count; k++)
+        c + Offset(math.cos(angle(k)), math.sin(angle(k))) * (r0 + 3 + soft[band(k)] * reach * 1.04),
+    ];
+    final contour = Path()..moveTo(tips[0].dx, tips[0].dy);
     for (var i = 0; i < count; i++) {
-      final x = i * slot + (slot - w) / 2;
-      final h = math.max(w * 0.5, v[i] * scale);
-      // Taller bars are brighter: one ink, a tone shift by level.
-      paint.color = ink.withValues(alpha: 0.28 + 0.72 * v[i]);
-      canvas.drawRRect(
-        RRect.fromRectAndCorners(Rect.fromLTWH(x, floor - h, w, h), topLeft: radius, topRight: radius),
-        paint,
-      );
-      if (p[i] > 0.04) {
-        final py = floor - math.max(w * 0.5, p[i] * scale) - 5;
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x, py, w, 2.5), const Radius.circular(1.25)), cap);
+      final p0 = tips[(i - 1 + count) % count], p1 = tips[i], p2 = tips[(i + 1) % count], p3 = tips[(i + 2) % count];
+      final c1 = p1 + (p2 - p0) / 6, c2 = p2 - (p3 - p1) / 6;
+      contour.cubicTo(c1.dx, c1.dy, c2.dx, c2.dy, p2.dx, p2.dy);
+    }
+    contour.close();
+    final body = Path.from(contour)
+      ..addOval(Rect.fromCircle(center: c, radius: cover))
+      ..fillType = PathFillType.evenOdd;
+    canvas.drawPath(body, Paint()..color = ink.withValues(alpha: 0.06 + 0.05 * viz.energy + 0.05 * pulse));
+    canvas.drawPath(
+      contour,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = ink.withValues(alpha: 0.22 + 0.2 * pulse),
+    );
+
+    // The bars: brighter as they grow, round ends.
+    final bar = Paint()
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = w;
+    final dots = Float32List(count * 2);
+    var nDots = 0;
+    for (var k = 0; k < count; k++) {
+      final a = angle(k);
+      final dir = Offset(math.cos(a), math.sin(a));
+      final i = band(k);
+      final len = 2 + v[i] * reach;
+      bar.color = ink.withValues(alpha: 0.3 + 0.7 * v[i]);
+      canvas.drawLine(c + dir * r0, c + dir * (r0 + len), bar);
+      if (p[i] > 0.06) {
+        final at = c + dir * (r0 + 2 + p[i] * reach + w + 3);
+        dots[nDots++] = at.dx;
+        dots[nDots++] = at.dy;
       }
     }
-  }
-
-  /// A smooth shape mirrored both ways: bass in the middle, highs at the
-  /// edges, opening up and down from the center line.
-  void _wave(Canvas canvas, Size size, _VizState s) {
-    final half = lowPower ? 24 : 40;
-    final v = _resample(s.level, half, s.a);
-    _soften(v, half);
-    _soften(v, half);
-    final mid = size.height / 2;
-    final amp = size.height * 0.44;
-    final cx = size.width / 2;
-    // Bass in the middle, both sides out to the highs.
-    final xs = Float32List(half * 2), ys = Float32List(half * 2);
-    for (var k = 0; k < half * 2; k++) {
-      final i = k < half ? half - 1 - k : k - half;
-      final u = (i + 0.5) / half;
-      xs[k] = k < half ? cx - u * cx : cx + u * cx;
-      // Pinched at the ends so it doesn't look cut off.
-      ys[k] = v[i] * amp * math.sin(math.pi / 2 * (1 - u * 0.92)) + 1;
-    }
-    Path outline(double sign, double scale) {
-      final path = Path()..moveTo(0, mid);
-      _spline(path, xs, ys, mid, sign, scale);
-      path.lineTo(size.width, mid);
-      return path;
+    if (nDots > 0) {
+      canvas.drawRawPoints(
+        ui.PointMode.points,
+        Float32List.sublistView(dots, 0, nDots),
+        Paint()
+          ..color = led
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = w + 0.5,
+      );
     }
 
-    final top = outline(-1, 1), bottom = outline(1, 1);
-    final body = Path()
-      ..addPath(top, Offset.zero)
-      ..addPath(bottom, Offset.zero);
-    // The halves never overlap (one above the line, one below): two fills.
-    final fill = Paint()..color = ink.withValues(alpha: 0.10 + 0.10 * s.beat.pulse);
-    canvas
-      ..drawPath(Path.from(top)..close(), fill)
-      ..drawPath(Path.from(bottom)..close(), fill);
-    canvas.drawPath(
-      body,
-      Paint()
-        ..color = ink.withValues(alpha: 0.9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeJoin = StrokeJoin.round,
-    );
-    // A quieter inner line for depth.
-    canvas.drawPath(
-      outline(-1, 0.55)..addPath(outline(1, 0.55), Offset.zero),
-      Paint()
-        ..color = ink.withValues(alpha: 0.35)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2,
-    );
-  }
-
-  /// Catmull-Rom through the points (x, mid + sign * y * scale).
-  static void _spline(Path path, Float32List xs, Float32List ys, double mid, double sign, double scale) {
-    final n = xs.length;
-    Offset at(int i) {
-      final k = i.clamp(0, n - 1);
-      return Offset(xs[k], mid + sign * ys[k] * scale);
-    }
-
-    path.lineTo(at(0).dx, at(0).dy);
-    for (var i = 0; i < n - 1; i++) {
-      final p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
-      final c1 = p1 + (p2 - p0) / 6, c2 = p2 - (p3 - p1) / 6;
-      path.cubicTo(c1.dx, c1.dy, c2.dx, c2.dy, p2.dx, p2.dy);
-    }
-  }
-
-  /// A ring that breathes: a smooth closed outline around a circle that
-  /// swells on the beat.
-  void _ring(Canvas canvas, Size size, _VizState s) {
-    final half = lowPower ? 24 : 40;
-    final v = _resample(s.level, half, s.a);
-    _soften(v, half);
-    final c = size.center(Offset.zero);
-    final r0 = size.shortestSide * (0.24 + 0.025 * s.beat.pulse);
-    final reach = size.shortestSide * 0.2;
-    // Mirrored left/right: bass at the top and bottom meet smoothly.
-    final count = half * 2;
-    final pts = <Offset>[
-      for (var k = 0; k < count; k++)
-        () {
-          final i = k < half ? k : count - 1 - k;
-          final a = -math.pi / 2 + (k + 0.5) / count * 2 * math.pi;
-          final r = r0 + 2 + v[i] * reach;
-          return c + Offset(math.cos(a), math.sin(a)) * r;
-        }(),
-    ];
-    final path = Path()..moveTo(pts[0].dx, pts[0].dy);
-    for (var i = 0; i < count; i++) {
-      final p0 = pts[(i - 1 + count) % count], p1 = pts[i], p2 = pts[(i + 1) % count], p3 = pts[(i + 2) % count];
-      final c1 = p1 + (p2 - p0) / 6, c2 = p2 - (p3 - p1) / 6;
-      path.cubicTo(c1.dx, c1.dy, c2.dx, c2.dy, p2.dx, p2.dy);
-    }
-    path.close();
-    canvas.drawPath(path, Paint()..color = ink.withValues(alpha: 0.12));
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = ink.withValues(alpha: 0.9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
-    );
+    // A thin rim around the disc that lights up on the beat.
     canvas.drawCircle(
       c,
-      r0,
+      cover + 1.5,
       Paint()
-        ..color = ink.withValues(alpha: 0.25 + 0.35 * s.beat.pulse)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+        ..strokeWidth = 1.5
+        ..color = ink.withValues(alpha: 0.3 + 0.5 * pulse),
     );
   }
 
   @override
   bool shouldRepaint(VisualizerPainter old) =>
-      old.spectrum != spectrum ||
-      old.style != style ||
-      old.ink != ink ||
-      old.led != led ||
-      old.reduce != reduce ||
-      old.sensitivity != sensitivity ||
-      old.lowPower != lowPower;
-}
-
-class _VizState {
-  _VizState(int bands)
-      : level = Float32List(bands),
-        peak = Float32List(bands),
-        hold = Float32List(bands);
-  final clock = Stopwatch()..start();
-  final Float32List level;
-  final Float32List peak;
-
-  /// Seconds a peak mark still waits before it falls.
-  final Float32List hold;
-  final beat = BeatDetector();
-  double bass = 0;
-
-  /// Scratch buffers for resampled values.
-  final a = Float32List(256);
-  final b = Float32List(256);
+      old.viz != viz || old.ink != ink || old.led != led || old.lowPower != lowPower;
 }

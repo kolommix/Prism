@@ -2,6 +2,7 @@ import '../../../core/app_version.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../player/domain/volume_style.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -27,7 +28,6 @@ import '../../player/presentation/widgets/waveform_seek_bar.dart';
 import '../../onboarding/presentation/welcome_tour.dart';
 import '../../shell/presentation/prism_logo.dart';
 import '../../tools/presentation/tools_section.dart';
-import '../../visualizer/presentation/visualizer.dart';
 import '../application/settings_controller.dart';
 import 'settings_widgets.dart';
 import '../../../l10n/l10n.dart';
@@ -368,6 +368,13 @@ class _SectionBody extends ConsumerWidget {
               onChanged: (v) => ctrl.update((s) => s.copyWith(crossfadeSeconds: v.round())),
             ),
           ),
+          SettingsSwitch(
+            icon: Icons.tune_rounded,
+            title: l10n.volumePerSong,
+            subtitle: l10n.volumePerSongHint,
+            value: settings.volumePerSong,
+            onChanged: (v) => ctrl.update((s) => s.copyWith(volumePerSong: v)),
+          ),
         ],
       ),
       const _LoudnessGroup(),
@@ -414,7 +421,6 @@ class _SectionBody extends ConsumerWidget {
   List<Widget> _appearance(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final ctrl = ref.read(settingsProvider.notifier);
-    final style = VisualizerStyle.parse(settings.visualizerStyle);
     return [
       SettingsGroup(
         children: [
@@ -446,20 +452,6 @@ class _SectionBody extends ConsumerWidget {
             trailing: SettingsValue(settings.background.current.label),
             chevron: true,
             onTap: () => context.go(Routes.background),
-          ),
-          SettingsTile(
-            icon: Icons.graphic_eq_rounded,
-            title: l10n.visualizer,
-            subtitle: l10n.shownInTheFullPlayer,
-            trailing: DropdownButton<VisualizerStyle>(
-              value: style,
-              underline: const SizedBox.shrink(),
-              borderRadius: BorderRadius.circular(10),
-              items: [for (final s in VisualizerStyle.values) DropdownMenuItem(value: s, child: Text(s.label))],
-              onChanged: (s) {
-                if (s != null) ctrl.update((x) => x.copyWith(visualizerStyle: s.name));
-              },
-            ),
           ),
           SettingsTile(
             icon: Icons.tune_rounded,
@@ -520,6 +512,23 @@ class _SectionBody extends ConsumerWidget {
             value: settings.reduceMotion,
             onChanged: (v) => ctrl.update((s) => s.copyWith(reduceMotion: v)),
           ),
+        ],
+      ),
+      SettingsGroup(
+        title: l10n.volumeControl,
+        footer: l10n.volumeControlHint,
+        children: [
+          for (final v in VolumeStyle.values)
+            SettingsTile(
+              icon: switch (v) {
+                VolumeStyle.line => Icons.linear_scale_rounded,
+                VolumeStyle.pill => Icons.horizontal_rule_rounded,
+                VolumeStyle.bars => Icons.signal_cellular_alt_rounded,
+              },
+              title: v.label,
+              trailing: LedDot(on: v == VolumeStyle.parse(settings.volumeStyle)),
+              onTap: () => ctrl.update((x) => x.copyWith(volumeStyle: v.name)),
+            ),
         ],
       ),
       SettingsGroup(

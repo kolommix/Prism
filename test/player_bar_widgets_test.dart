@@ -18,6 +18,12 @@ import 'package:prism/features/player/presentation/player_extras.dart';
 import 'package:prism/features/player/presentation/widgets/waveform_seek_bar.dart';
 import 'package:prism/features/visualizer/presentation/visualizer.dart';
 
+import 'package:prism/features/player/application/song_volumes.dart';
+import 'package:prism/features/player/domain/volume_style.dart';
+import 'package:prism/features/settings/application/settings_controller.dart';
+import 'package:prism/features/settings/domain/app_settings.dart';
+import 'package:prism/features/library/domain/track.dart';
+
 import 'helpers.dart';
 import 'player_controller_test.dart' show FakeEngine, MemoryStore;
 
@@ -74,38 +80,108 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
-  testWidgets('volume: wheel and mute go through one remembered value', (tester) async {
-    await tester.pumpWidget(app(const Scaffold(body: Center(child: VolumeSlider()))));
-    await tester.pump();
-    final container = ProviderScope.containerOf(tester.element(find.byType(VolumeSlider)));
-    await tester.tap(find.byIcon(Icons.volume_up_rounded));
-    await tester.pump();
-    expect(container.read(playerVolumeProvider), 0);
-    expect(find.byIcon(Icons.volume_off_rounded), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.volume_off_rounded));
-    await tester.pump();
-    expect(container.read(playerVolumeProvider), 1, reason: 'unmute restores the level');
-    container.read(playerVolumeProvider.notifier).set(0.4);
-    await tester.pumpAndSettle();
-    VolumeBarsPainter bars() => tester
-        .widgetList<CustomPaint>(find.descendant(of: find.byType(VolumeSlider), matching: find.byType(CustomPaint)))
-        .map((p) => p.painter)
-        .whereType<VolumeBarsPainter>()
-        .single;
-    expect(bars().value, closeTo(0.4, 1e-9));
+  for (final style in VolumeStyle.values) {
+    testWidgets('volume (${style.name}): click, drag, keys, wheel and mute', (tester) async {
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          ...overrides().cast(),
+          initialSettingsProvider.overrideWithValue(AppSettings(volumeStyle: style.name)),
+        ],
+        child: MaterialApp(
+          theme: buildPrismTheme(const ThemeConfig(), platformBrightness: Brightness.dark, reduceMotion: false),
+          home: const Scaffold(body: Center(child: VolumeSlider())),
+        ),
+      ));
+      await tester.pump();
+      final container = ProviderScope.containerOf(tester.element(find.byType(VolumeSlider)));
+      await tester.tap(find.byIcon(Icons.volume_up_rounded));
+      await tester.pump();
+      expect(container.read(playerVolumeProvider), 0);
+      expect(find.byIcon(Icons.volume_off_rounded), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.volume_off_rounded));
+      await tester.pump();
+      expect(container.read(playerVolumeProvider), 1, reason: 'unmute restores the level');
+      container.read(playerVolumeProvider.notifier).set(0.4);
+      await tester.pumpAndSettle();
+      final level = find.byWidgetPredicate(
+          (w) => w is CustomPaint && (w.painter is VolumeBarsPainter || w.painter is VolumeLinePainter));
+      double shown() => switch (tester.widget<CustomPaint>(level).painter) {
+            final VolumeBarsPainter p => p.value,
+            final VolumeLinePainter p => p.value,
+            _ => -1,
+          };
+      expect(shown(), closeTo(0.4, 1e-9));
 
-    // Click and drag on the bars set it; arrow keys nudge it.
-    final box = tester.getRect(find.byWidgetPredicate((w) => w is CustomPaint && w.painter is VolumeBarsPainter));
-    await tester.tapAt(Offset(box.left + box.width * 0.75, box.center.dy));
-    await tester.pumpAndSettle();
-    expect(container.read(playerVolumeProvider), closeTo(0.75, 0.02));
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pumpAndSettle();
-    expect(container.read(playerVolumeProvider), closeTo(0.70, 0.02));
-    await tester.dragFrom(Offset(box.left + box.width * 0.7, box.center.dy), Offset(-box.width, 0));
-    await tester.pumpAndSettle();
-    expect(container.read(playerVolumeProvider), 0, reason: 'dragging past the start mutes');
-    expect(tester.takeException(), isNull);
+      // Click and drag set it (the ends inside the box are 0 and 100 %).
+      final box = tester.getRect(level);
+      final pad = style == VolumeStyle.bars ? 0.0 : 8.0;
+      Offset at(double v) => Offset(box.left + pad + (box.width - pad * 2) * v, box.center.dy);
+      await tester.tapAt(at(0.75));
+      await tester.pumpAndSettle();
+      expect(container.read(playerVolumeProvider), closeTo(0.75, 0.01));
+      await tester.tapAt(at(1) - const Offset(0.5, 0));
+      await tester.pumpAndSettle();
+      expect(container.read(playerVolumeProvider), closeTo(1, 0.01), reason: 'the far end is reachable');
+      await tester.tapAt(at(0.75));
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+      await tester.pumpAndSettle();
+      expect(container.read(playerVolumeProvider), closeTo(0.70, 0.01));
+      // The wheel: 5 % a notch, onto round numbers.
+      container.read(playerVolumeProvider.notifier).set(0.37);
+      await tester.sendEventToBinding(const PointerScrollEvent(position: Offset.zero, scrollDelta: Offset(0, -100)).copyWith(position: box.center));
+      await tester.pumpAndSettle();
+      expect(container.read(playerVolumeProvider), closeTo(0.40, 1e-6));
+      await tester.sendEventToBinding(const PointerScrollEvent(position: Offset.zero, scrollDelta: Offset(0, 100)).copyWith(position: box.center));
+      await tester.pumpAndSettle();
+      expect(container.read(playerVolumeProvider), closeTo(0.35, 1e-6));
+      await tester.dragFrom(at(0.7), Offset(-box.width, 0));
+      await tester.pumpAndSettle();
+      expect(container.read(playerVolumeProvider), 0, reason: 'dragging past the start mutes');
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  test('volume of each song: comes back when the song starts, only when on', () async {
+    final a = t(1, title: 'A'), b = t(2, title: 'B');
+    final memory = SongVolumes();
+    ProviderContainer make(bool on) => ProviderContainer(overrides: [
+          playerControllerProvider.overrideWithValue(PlayerController(engine: FakeEngine(), store: MemoryStore())),
+          initialSettingsProvider.overrideWithValue(AppSettings(volumePerSong: on)),
+          songVolumesProvider.overrideWithValue(memory),
+          currentTrackProvider.overrideWith((ref) => ref.watch(_songProvider)),
+        ]);
+    final c = make(true);
+    addTearDown(c.dispose);
+    c.listen(songVolumeFollowerProvider, (_, _) {});
+    final volume = c.read(playerVolumeProvider.notifier);
+    c.read(_songProvider.notifier).play(a);
+    await pumpEventQueue();
+    volume.set(0.3); // A is quiet for me
+    c.read(_songProvider.notifier).play(b);
+    await pumpEventQueue();
+    expect(c.read(playerVolumeProvider), 0.3, reason: 'a song with no volume of its own keeps it');
+    volume.set(0.9);
+    c.read(_songProvider.notifier).play(a);
+    await pumpEventQueue();
+    expect(c.read(playerVolumeProvider), 0.3);
+    expect(c.read(playerControllerProvider).volume, 0.3, reason: 'the player plays it too');
+    c.read(_songProvider.notifier).play(b);
+    await pumpEventQueue();
+    expect(c.read(playerVolumeProvider), 0.9);
+    volume.toggleMute();
+    expect(memory.of(b.id), 0.9, reason: 'muting is not remembered');
+
+    // Off: nothing is remembered or applied.
+    final off = make(false);
+    addTearDown(off.dispose);
+    off.listen(songVolumeFollowerProvider, (_, _) {});
+    off.read(_songProvider.notifier).play(t(3, title: 'C'));
+    off.read(playerVolumeProvider.notifier).set(0.5);
+    off.read(_songProvider.notifier).play(a);
+    await pumpEventQueue();
+    expect(off.read(playerVolumeProvider), 0.5);
+    expect(memory.of(3), isNull);
   });
 
   testWidgets('seek bar hover shows the time bubble without errors', (tester) async {
@@ -122,3 +198,11 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 }
+
+class _Song extends Notifier<Track?> {
+  @override
+  Track? build() => null;
+  void play(Track t) => state = t;
+}
+
+final _songProvider = NotifierProvider<_Song, Track?>(_Song.new);

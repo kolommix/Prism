@@ -3173,12 +3173,6 @@ abstract class AppLocalizations {
   /// **'Theme'**
   String get theme;
 
-  /// No description provided for @shownInTheFullPlayer.
-  ///
-  /// In en, this message translates to:
-  /// **'Shown in the full player'**
-  String get shownInTheFullPlayer;
-
   /// No description provided for @reduceMotion.
   ///
   /// In en, this message translates to:
@@ -4770,18 +4764,6 @@ abstract class AppLocalizations {
   /// **'The visualizer needs FFmpeg, which is missing on this device'**
   String get theVisualizerNeedsFfmpegWhichIs;
 
-  /// No description provided for @bars.
-  ///
-  /// In en, this message translates to:
-  /// **'Bars'**
-  String get bars;
-
-  /// No description provided for @wave.
-  ///
-  /// In en, this message translates to:
-  /// **'Wave'**
-  String get wave;
-
   /// No description provided for @low.
   ///
   /// In en, this message translates to:
@@ -5739,7 +5721,7 @@ abstract class AppLocalizations {
   /// No description provided for @vizSensitivity.
   ///
   /// In en, this message translates to:
-  /// **'Sensitivity'**
+  /// **'Visualizer sensitivity'**
   String get vizSensitivity;
 
   /// No description provided for @vizLowPower.
@@ -7104,12 +7086,6 @@ abstract class AppLocalizations {
   /// **'YouTube blocks saving this song, and no other upload of it could be saved.'**
   String get youtubeBlocksThisSong;
 
-  /// No description provided for @vizRing.
-  ///
-  /// In en, this message translates to:
-  /// **'Ring'**
-  String get vizRing;
-
   /// No description provided for @windowMinimize.
   ///
   /// In en, this message translates to:
@@ -8339,6 +8315,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mesh gradient, Gradient and Aurora, for anyone who still likes them'**
   String get bgOldStylesHint;
+
+  /// No description provided for @volumeStyleLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Line'**
+  String get volumeStyleLine;
+
+  /// No description provided for @volumeStylePill.
+  ///
+  /// In en, this message translates to:
+  /// **'Thick bar'**
+  String get volumeStylePill;
+
+  /// No description provided for @volumeStyleBars.
+  ///
+  /// In en, this message translates to:
+  /// **'Bars'**
+  String get volumeStyleBars;
+
+  /// No description provided for @volumeControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume control'**
+  String get volumeControl;
+
+  /// No description provided for @volumeControlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can also right-click the volume in the player bar'**
+  String get volumeControlHint;
+
+  /// No description provided for @volumePerSong.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember the volume of each song'**
+  String get volumePerSong;
+
+  /// No description provided for @volumePerSongHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A song starts at the volume you last set while it played. Other songs keep the volume as it is'**
+  String get volumePerSongHint;
 }
 
 class _AppLocalizationsDelegate

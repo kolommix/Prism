@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../core/theme/prism_theme_extensions.dart';
+import '../../../core/widgets/artwork.dart';
 import '../../audio_fx/application/loudness_controller.dart';
 import '../../library/domain/track.dart';
 import '../../player/application/player_providers.dart';
@@ -19,7 +20,6 @@ import '../data/spectrum_service.dart';
 import '../domain/spectrum.dart';
 import 'visualizer_painter.dart';
 import '../../../l10n/l10n.dart';
-export 'visualizer_painter.dart' show VisualizerStyle;
 
 
 final spectrumServiceProvider = FutureProvider<SpectrumService>((ref) async {
@@ -32,13 +32,12 @@ final spectrumProvider = FutureProvider.family<Spectrum?, Track>((ref, t) async 
   return service.spectrumFor(t);
 });
 
-/// Spectrum visualizer synced to playback. Repaints every frame only while
-/// playing; bars rise fast and fall slowly like a real analyser.
+/// The visualizer, synced to playback: the cover turns slowly in the middle
+/// like a record and swells on the beat, the spectrum fans out around it
+/// (see [VisualizerPainter]). Frames are only made while playing; the low
+/// power mode (or a busy PC) moves it at most 30 times a second.
 class Visualizer extends ConsumerStatefulWidget {
-  const Visualizer({super.key, this.style});
-
-  /// Null = use the style from settings.
-  final VisualizerStyle? style;
+  const Visualizer({super.key});
 
   @override
   ConsumerState<Visualizer> createState() => _VisualizerState();
@@ -46,25 +45,29 @@ class Visualizer extends ConsumerStatefulWidget {
 
 class _VisualizerState extends ConsumerState<Visualizer> with SingleTickerProviderStateMixin {
   late final LivePosition _pos = LivePosition(this)..addListener(_onPos);
-
-  /// Low-power mode repaints from this instead, at most 30 times a second.
-  final _throttled = ChangeNotifier();
-  final _sinceRepaint = Stopwatch()..start();
+  final _viz = VizAnalyser();
+  final _sinceStep = Stopwatch()..start();
   LiveFft? _live;
   bool _liveFailed = false;
 
+  // What the next step reads (set by build).
+  BandSource? _source;
+  double _sensitivity = 1;
+  bool _lowPower = false;
+  bool _still = false;
+
   void _onPos() {
-    if (_sinceRepaint.elapsedMilliseconds >= 32) {
-      _sinceRepaint.reset();
-      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-      _throttled.notifyListeners();
-    }
+    final source = _source;
+    if (source == null) return;
+    if (_lowPower && _sinceStep.elapsedMilliseconds < 32) return;
+    _sinceStep.reset();
+    _viz.update(source, _pos.value, sensitivity: _sensitivity, still: _still);
   }
 
   @override
   void dispose() {
     _pos.dispose();
-    _throttled.dispose();
+    _viz.dispose();
     _live?.stop();
     super.dispose();
   }
@@ -91,73 +94,104 @@ class _VisualizerState extends ConsumerState<Visualizer> with SingleTickerProvid
     final track = ref.watch(currentTrackProvider);
     final state = ref.watch(engineStateProvider).value;
     final speed = ref.watch(tuningProvider.select((t) => t.value?.speed ?? 1));
-    if (state != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _pos.sync(state, speed: speed); // may be gone by then (stage switch)
-      });
-    }
-    final style = widget.style ?? VisualizerStyle.parse(ref.watch(settingsProvider.select((s) => s.visualizerStyle)));
     final spectrum = track == null ? null : ref.watch(spectrumProvider(track));
     final scheme = Theme.of(context).colorScheme;
     final muted = TextStyle(color: scheme.onSurfaceVariant);
     final picked = ref.watch(settingsProvider.select((s) => (s.visualizerSensitivity, s.visualizerLowPower, s.visualizerLive)));
+    _sensitivity = picked.$1;
     // A busy PC gets the light mode too (see BusyMeter).
-    final settings = (picked.$1, picked.$2 || ref.watch(busyPcProvider), picked.$3);
-    _syncLive(settings.$3);
-    Widget paint(BandSource source) => RepaintBoundary(
-          child: CustomPaint(
-            size: Size.infinite,
-            painter: VisualizerPainter(
-              spectrum: source,
-              position: _pos,
-              repaint: settings.$2 ? _throttled : _pos,
-              style: style,
-              ink: scheme.primary,
-              led: context.look.led,
-              reduce: !context.motion.decorative,
-              sensitivity: settings.$1,
-              lowPower: settings.$2,
-            ),
-          ),
-        );
+    _lowPower = picked.$2 || ref.watch(busyPcProvider);
+    _still = !context.motion.decorative;
+    _syncLive(picked.$3);
+
     final live = _live;
-    if (live != null && live.running) return paint(live);
+    final BandSource? source = live != null && live.running
+        ? live
+        : track != null && track.sourceId == 'local'
+            ? spectrum?.value
+            : null;
+    final first = source != null && !identical(source, _source);
+    _source = source;
+    if (state != null || first) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return; // may be gone by then (stage switch)
+        if (state != null) _pos.sync(state, speed: speed);
+        // Draw something right away, also when paused.
+        if (first) _onPos();
+      });
+    }
+
+    if (source != null && track != null) return _disc(track, scheme.primary);
     if (track != null && track.sourceId != 'local') {
-      return Center(child: Text(l10n.theVisualizerWorksWithSongsFrom, style: muted));
+      return Center(child: Text(l10n.theVisualizerWorksWithSongsFrom, style: muted, textAlign: TextAlign.center));
     }
     return spectrum?.when(
           loading: () => Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 12),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 12),
             Text(l10n.analysingTheSong),
           ])),
-          error: (e, _) => Center(child: Text(l10n.couldNotAnalyseThisSong, style: muted)),
-          data: (s) => s == null
-              ? Center(child: Text(l10n.theVisualizerNeedsFfmpegWhichIs, style: muted))
-              : paint(s),
+          error: (e, _) => Center(child: Text(l10n.couldNotAnalyseThisSong, style: muted, textAlign: TextAlign.center)),
+          data: (_) => Center(child: Text(l10n.theVisualizerNeedsFfmpegWhichIs, style: muted, textAlign: TextAlign.center)),
         ) ??
         const SizedBox.shrink();
   }
-}
 
-/// Small style picker (chips).
-class VisualizerStylePicker extends ConsumerWidget {
-  const VisualizerStylePicker({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final current = VisualizerStyle.parse(ref.watch(settingsProvider.select((s) => s.visualizerStyle)));
-    return Wrap(spacing: 6, alignment: WrapAlignment.center, children: [
-      for (final s in VisualizerStyle.values)
-        ChoiceChip(
-          // The icon already says which; a checkmark would sit on top of it.
-          showCheckmark: false,
-          avatar: Icon(s.icon, size: 16),
-          label: Text(s.label),
-          selected: s == current,
-          onSelected: (_) => ref.read(settingsProvider.notifier).update((x) => x.copyWith(visualizerStyle: s.name)),
-        ),
-    ]);
+  Widget _disc(Track track, Color ink) {
+    return LayoutBuilder(
+      builder: (context, c) {
+        final side = math.min(c.maxWidth, c.maxHeight);
+        final d = side * VisualizerPainter.coverShare * 2;
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned.fill(
+              child: RepaintBoundary(
+                child: CustomPaint(
+                  painter: VisualizerPainter(viz: _viz, ink: ink, led: context.look.led, lowPower: _lowPower),
+                ),
+              ),
+            ),
+            // The cover turns like a record; only the layer moves, the
+            // picture is not drawn again.
+            AnimatedBuilder(
+              animation: _viz,
+              builder: (context, child) => Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.rotationZ(_viz.spin)..scaleByDouble(1 + 0.04 * _viz.pulse, 1 + 0.04 * _viz.pulse, 1, 1),
+                child: child,
+              ),
+              child: RepaintBoundary(
+                child: SizedBox.square(
+                  dimension: d,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Artwork(
+                        path: track.artworkPath,
+                        size: d,
+                        borderRadius: BorderRadius.circular(d / 2),
+                        seed: track.album,
+                      ),
+                      // The record's hole.
+                      Container(
+                        width: d * 0.09,
+                        height: d * 0.09,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border.all(color: ink.withValues(alpha: 0.35), width: 1),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

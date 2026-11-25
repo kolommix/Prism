@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -163,125 +165,148 @@ class _PlayerColumn extends ConsumerWidget {
     final art = maxArt.clamp(160.0, 520.0);
     final stage = ref.watch(playerStageProvider);
 
+    // Cover, lyrics and visualizer cross-fade (with a little zoom) instead
+    // of jumping. The cover is as big as the room it gets allows.
+    final stageView = LayoutBuilder(
+      builder: (context, box) {
+        final side = math.min(art, math.min(box.maxWidth, box.maxHeight));
+        return AnimatedSwitcher(
+          duration: motion.d(PrismMotion.long),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          layoutBuilder: (current, previous) => Stack(
+            alignment: Alignment.center,
+            children: [
+              for (final p in previous) Positioned.fill(child: p),
+              if (current != null) Positioned.fill(child: current),
+            ],
+          ),
+          transitionBuilder: (child, a) => FadeTransition(
+            opacity: a,
+            child: ScaleTransition(scale: Tween(begin: 0.94, end: 1.0).animate(a), child: child),
+          ),
+          child: switch (stage) {
+            PlayerStage.lyrics => const LyricsView(key: ValueKey('lyrics')),
+            PlayerStage.visualizer => const Visualizer(key: ValueKey('viz')),
+            PlayerStage.cover => Center(
+                key: const ValueKey('cover'),
+                child: AnimatedScale(
+                  scale: playing ? 1 : 0.88,
+                  duration: motion.d(PrismMotion.long),
+                  curve: playing ? PrismMotion.curve : Curves.easeOutCubic,
+                  child: AnimatedContainer(
+                    duration: motion.d(PrismMotion.long),
+                    width: side,
+                    height: side,
+                    decoration: BoxDecoration(
+                      borderRadius: context.shape.large,
+                      boxShadow: [
+                        BoxShadow(
+                          // Black & white: a real drop shadow (the halo
+                          // behind the cover is the light).
+                          color: Colors.black.withValues(alpha: playing ? 0.5 : 0.25),
+                          blurRadius: playing ? 60 : 30,
+                          offset: const Offset(0, 24),
+                        ),
+                      ],
+                    ),
+                    child: BeatPulse(
+                      radius: context.shape.large,
+                      child: Hero(
+                        tag: nowPlayingArtHeroTag,
+                        child: AnimatedSwitcher(
+                          duration: motion.d(PrismMotion.long),
+                          child: Artwork(
+                            key: ValueKey(track.artworkPath ?? track.id),
+                            path: track.artworkPath,
+                            size: side,
+                            borderRadius: context.shape.large,
+                            seed: track.album,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          },
+        );
+      },
+    );
+
+    final controls = <Widget>[
+      const SizedBox(height: 20),
+      Row(
+        children: [
+          Expanded(child: TrackText(track: track)),
+          const FavoriteButton(size: 26),
+        ],
+      ),
+      const SizedBox(height: 14),
+      const WaveformSeekBar(height: 56),
+      const SizedBox(height: 12),
+      const TransportControls(),
+      const SizedBox(height: 12),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const SleepTimerButton(),
+          const TuningButton(),
+          const AbLoopButton(),
+          const EqButton(),
+          const TogetherButton(),
+          SpringIconButton(
+            icon: const Icon(Icons.content_cut_rounded),
+            tooltip: l10n.editThisSong,
+            onPressed: () => context.go(Routes.editor(track.id)),
+          ),
+          if (MediaQuery.sizeOf(context).width < 900)
+            SpringIconButton(
+              icon: const Icon(Icons.queue_music_rounded),
+              tooltip: l10n.queue,
+              onPressed: () => _showQueueSheet(context),
+            ),
+        ],
+      ),
+    ];
+
     return LayoutBuilder(
-      builder: (context, c) => SingleChildScrollView(
-        clipBehavior: Clip.none, // the cover halo and shadow reach past the edges
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: c.maxHeight),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+      builder: (context, c) {
+        const padding = EdgeInsets.symmetric(horizontal: 28, vertical: 12);
+        // The controls take about 420 px. With room for a 180 px stage on top
+        // the stage takes whatever is left, so nothing is ever pushed off the
+        // bottom; in a really short window the column scrolls instead.
+        if (c.maxHeight >= _minStage + _controlsRoom) {
+          return Padding(
+            padding: padding,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 const _StageSwitch(),
                 const SizedBox(height: 12),
-                // Cover, lyrics and visualizer cross-fade (with a little
-                // zoom) instead of jumping.
-                SizedBox(
-                  height: art,
-                  child: AnimatedSwitcher(
-                    duration: motion.d(PrismMotion.long),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, a) => FadeTransition(
-                      opacity: a,
-                      child: ScaleTransition(scale: Tween(begin: 0.94, end: 1.0).animate(a), child: child),
-                    ),
-                    child: switch (stage) {
-                      PlayerStage.lyrics => const LyricsView(key: ValueKey('lyrics')),
-                      PlayerStage.visualizer => const Column(
-                          key: ValueKey('viz'),
-                          children: [
-                            Expanded(child: Visualizer()),
-                            SizedBox(height: 8),
-                            VisualizerStylePicker(),
-                          ],
-                        ),
-                      PlayerStage.cover => Center(
-                          key: const ValueKey('cover'),
-                          child: AnimatedScale(
-                            scale: playing ? 1 : 0.88,
-                            duration: motion.d(PrismMotion.long),
-                            curve: playing ? PrismMotion.curve : Curves.easeOutCubic,
-                            child: AnimatedContainer(
-                              duration: motion.d(PrismMotion.long),
-                              width: art,
-                              height: art,
-                              decoration: BoxDecoration(
-                                borderRadius: context.shape.large,
-                                boxShadow: [
-                                  BoxShadow(
-                                    // Black & white: a real drop shadow (the
-                                    // halo behind the cover is the light).
-                                    color: Colors.black
-                                        .withValues(alpha: playing ? 0.5 : 0.25),
-                                    blurRadius: playing ? 60 : 30,
-                                    offset: const Offset(0, 24),
-                                  ),
-                                ],
-                              ),
-                              child: BeatPulse(
-                                radius: context.shape.large,
-                                child: Hero(
-                                  tag: nowPlayingArtHeroTag,
-                                  child: AnimatedSwitcher(
-                                    duration: motion.d(PrismMotion.long),
-                                    child: Artwork(
-                                      key: ValueKey(track.artworkPath ?? track.id),
-                                      path: track.artworkPath,
-                                      size: art,
-                                      borderRadius: context.shape.large,
-                                      seed: track.album,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                    },
-                  ),
-                ),
-                const SizedBox(height: 28),
-                Row(
-                  children: [
-                    Expanded(child: TrackText(track: track)),
-                    const FavoriteButton(size: 26),
-                  ],
-                ),
-                const SizedBox(height: 18),
-                const WaveformSeekBar(height: 56),
-                const SizedBox(height: 16),
-                const TransportControls(),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SleepTimerButton(),
-                    const TuningButton(),
-                    const AbLoopButton(),
-                    const EqButton(),
-                    const TogetherButton(),
-                    SpringIconButton(
-                      icon: const Icon(Icons.content_cut_rounded),
-                      tooltip: l10n.editThisSong,
-                      onPressed: () => context.go(Routes.editor(track.id)),
-                    ),
-                    if (MediaQuery.sizeOf(context).width < 900)
-                      SpringIconButton(
-                        icon: const Icon(Icons.queue_music_rounded),
-                        tooltip: l10n.queue,
-                        onPressed: () => _showQueueSheet(context),
-                      ),
-                  ],
-                ),
+                Expanded(child: stageView),
+                ...controls,
               ],
             ),
+          );
+        }
+        return SingleChildScrollView(
+          clipBehavior: Clip.none, // the cover halo and shadow reach past the edges
+          padding: padding,
+          child: Column(
+            children: [
+              const _StageSwitch(),
+              const SizedBox(height: 12),
+              SizedBox(height: math.min(art, 260), child: stageView),
+              ...controls,
+            ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
+
+  static const _minStage = 180.0;
+  static const _controlsRoom = 420.0;
 
   void _showQueueSheet(BuildContext context) => showModalBottomSheet<void>(
     context: context,

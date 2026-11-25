@@ -51,9 +51,6 @@ abstract class AppSettings with _$AppSettings {
     /// to Apple's and Deezer's public search). Files are never changed.
     @Default(true) bool autoFindInfo,
 
-    /// Visualizer style in the full player.
-    @Default('bars') String visualizerStyle,
-
     /// How strongly the visualizer reacts, 0.5..2.
     @Default(1.0) double visualizerSensitivity,
 
@@ -63,6 +60,13 @@ abstract class AppSettings with _$AppSettings {
     /// Android: real-time FFT of what is playing (needs the microphone
     /// permission). Off = analysis of the file, which needs no permission.
     @Default(false) bool visualizerLive,
+
+    /// A `VolumeStyle` name: the volume control in the player bar.
+    @Default('line') String volumeStyle,
+
+    /// Each song starts at the volume last set while it played (others keep
+    /// the volume as it is).
+    @Default(false) bool volumePerSong,
 
     /// A `SeekBarStyle` name.
     @Default('waveform') String seekBarStyle,

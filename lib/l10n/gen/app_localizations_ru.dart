@@ -2061,9 +2061,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get theme => 'Тема';
 
   @override
-  String get shownInTheFullPlayer => 'Показывается в полном плеере';
-
-  @override
   String get reduceMotion => 'Меньше анимации';
 
   @override
@@ -3032,12 +3029,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'Визуализатору нужен FFmpeg, которого нет на этом устройстве';
 
   @override
-  String get bars => 'Столбцы';
-
-  @override
-  String get wave => 'Волна';
-
-  @override
   String get low => 'НЧ';
 
   @override
@@ -3578,7 +3569,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Плюс показывает строки раньше, минус позже. Сохраняется для этой песни.';
 
   @override
-  String get vizSensitivity => 'Чувствительность';
+  String get vizSensitivity => 'Чувствительность визуализатора';
 
   @override
   String get vizLowPower => 'Экономный визуализатор';
@@ -4494,9 +4485,6 @@ class AppLocalizationsRu extends AppLocalizations {
       'YouTube не даёт сохранить эту песню, и другие загрузки тоже не сохраняются.';
 
   @override
-  String get vizRing => 'Кольцо';
-
-  @override
   String get windowMinimize => 'Свернуть';
 
   @override
@@ -5290,4 +5278,27 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get bgOldStylesHint =>
       'Сетка цветов, Градиент и Северное сияние, для тех, кому они нравятся';
+
+  @override
+  String get volumeStyleLine => 'Линия';
+
+  @override
+  String get volumeStylePill => 'Толстая полоса';
+
+  @override
+  String get volumeStyleBars => 'Столбики';
+
+  @override
+  String get volumeControl => 'Регулятор громкости';
+
+  @override
+  String get volumeControlHint =>
+      'Также можно нажать правой кнопкой на громкость в нижней панели';
+
+  @override
+  String get volumePerSong => 'Запоминать громкость каждой песни';
+
+  @override
+  String get volumePerSongHint =>
+      'Песня начинается с громкости, которую вы ставили, пока она играла. У остальных громкость не меняется';
 }

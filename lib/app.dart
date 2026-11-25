@@ -21,6 +21,7 @@ import 'features/desktop/application/desktop_extras.dart';
 import 'features/desktop/presentation/mini_overlay.dart';
 import 'features/desktop/presentation/window_caption.dart';
 import 'features/player/application/player_providers.dart';
+import 'features/player/presentation/player_extras.dart';
 import 'features/player/engine/playback_engine.dart';
 import 'features/online/domain/online_error.dart';
 import 'features/player/platform/windows_desktop_integration.dart';
@@ -288,6 +289,8 @@ class _PrismAppState extends ConsumerState<PrismApp> with WidgetsBindingObserver
     // Windows: system-wide hotkeys and the floating lyrics window.
     ref.listen(hotkeysProvider, (_, _) {});
     ref.listen(lyricsWindowProvider, (_, _) {});
+    // A song's own volume comes back when it starts (if that setting is on).
+    ref.listen(songVolumeFollowerProvider, (_, _) {});
     // Records listens for smart playlists and stats (never changes value).
     ref.watch(playRecorderProvider);
     // Android home-screen widget + Discord presence (no-ops elsewhere).

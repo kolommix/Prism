@@ -20,6 +20,8 @@ import 'package:prism/features/stats/presentation/stats_page.dart';
 import 'package:prism/features/together/presentation/together_sheet.dart';
 import 'package:prism/features/visualizer/domain/spectrum.dart';
 import 'package:prism/features/visualizer/presentation/visualizer.dart';
+import 'package:prism/features/visualizer/presentation/visualizer_painter.dart';
+import 'package:prism/core/widgets/artwork.dart';
 
 import 'package:prism/core/widgets/ambient_backdrop.dart';
 import 'package:prism/features/library/presentation/widgets/library_widgets.dart';
@@ -83,19 +85,51 @@ void main() {
     expect(find.ancestor(of: find.text('next line'), matching: find.byType(KaraokeLine)), findsNothing);
   });
 
-  testWidgets('every visualizer style paints', (tester) async {
+  testWidgets('visualizer paints the spectrum around the cover disc', (tester) async {
     final rnd = math.Random(1);
     final spectrum = Spectrum(data: Uint8List.fromList(List.generate(48 * 300, (_) => rnd.nextInt(256))), bands: 48, fps: 30);
-    for (final style in VisualizerStyle.values) {
-      await tester.pumpWidget(app(SizedBox(width: 400, height: 300, child: Visualizer(style: style)), [
+    for (final size in const [Size(400, 300), Size(220, 500), Size(40, 40)]) {
+      await tester.pumpWidget(app(SizedBox(width: size.width, height: size.height, child: const Visualizer()), [
         ...nowPlaying(song),
         spectrumProvider.overrideWith((ref, track) async => spectrum),
       ]));
       await tester.pump(const Duration(milliseconds: 50));
       await tester.pump(const Duration(milliseconds: 50));
-      expect(find.byType(CustomPaint), findsWidgets, reason: style.name);
-      expect(tester.takeException(), isNull, reason: style.name);
+      expect(find.byType(CustomPaint), findsWidgets, reason: '$size');
+      // The cover is a round disc in the middle.
+      expect(find.byType(Artwork), findsOneWidget, reason: '$size');
+      expect(tester.getCenter(find.byType(Artwork)), tester.getCenter(find.byType(Visualizer)), reason: '$size');
+      expect(tester.takeException(), isNull, reason: '$size');
     }
+  });
+
+  test('visualizer analyser: beats send rings, levels move by real time', () async {
+    // Loud bass every other 0.3 s, quiet in between: beats.
+    final data = Uint8List(48 * 300);
+    for (var f = 0; f < 300; f++) {
+      for (var b = 0; b < 48; b++) {
+        data[f * 48 + b] = (f ~/ 9).isEven && b < 6 ? 250 : 20;
+      }
+    }
+    final spectrum = Spectrum(data: data, bands: 48, fps: 30);
+    final viz = VizAnalyser();
+    var rings = 0;
+    for (var ms = 0; ms < 3000; ms += 16) {
+      await Future<void>.delayed(const Duration(milliseconds: 16));
+      viz.update(spectrum, Duration(milliseconds: ms));
+      rings = math.max(rings, viz.ripples.where((r) => r >= 0).length);
+    }
+    expect(viz.beat.beats, greaterThan(2));
+    expect(rings, greaterThan(0));
+    expect(viz.spin, greaterThan(0));
+    // Reduced motion: no rings, no turning.
+    final still = VizAnalyser();
+    for (var ms = 0; ms < 1000; ms += 16) {
+      await Future<void>.delayed(const Duration(milliseconds: 16));
+      still.update(spectrum, Duration(milliseconds: ms), still: true);
+    }
+    expect(still.ripples.every((r) => r < 0), isTrue);
+    expect(still.spin, 0);
   });
 
   testWidgets('cover pulses with the bass while playing', (tester) async {

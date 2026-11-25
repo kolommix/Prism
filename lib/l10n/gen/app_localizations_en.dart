@@ -2005,9 +2005,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get theme => 'Theme';
 
   @override
-  String get shownInTheFullPlayer => 'Shown in the full player';
-
-  @override
   String get reduceMotion => 'Reduce motion';
 
   @override
@@ -2965,12 +2962,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'The visualizer needs FFmpeg, which is missing on this device';
 
   @override
-  String get bars => 'Bars';
-
-  @override
-  String get wave => 'Wave';
-
-  @override
   String get low => 'Low';
 
   @override
@@ -3512,7 +3503,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Plus shows the lines earlier, minus later. Saved for this song.';
 
   @override
-  String get vizSensitivity => 'Sensitivity';
+  String get vizSensitivity => 'Visualizer sensitivity';
 
   @override
   String get vizLowPower => 'Low-power visualizer';
@@ -4402,9 +4393,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'YouTube blocks saving this song, and no other upload of it could be saved.';
 
   @override
-  String get vizRing => 'Ring';
-
-  @override
   String get windowMinimize => 'Minimize';
 
   @override
@@ -5181,4 +5169,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get bgOldStylesHint =>
       'Mesh gradient, Gradient and Aurora, for anyone who still likes them';
+
+  @override
+  String get volumeStyleLine => 'Line';
+
+  @override
+  String get volumeStylePill => 'Thick bar';
+
+  @override
+  String get volumeStyleBars => 'Bars';
+
+  @override
+  String get volumeControl => 'Volume control';
+
+  @override
+  String get volumeControlHint =>
+      'You can also right-click the volume in the player bar';
+
+  @override
+  String get volumePerSong => 'Remember the volume of each song';
+
+  @override
+  String get volumePerSongHint =>
+      'A song starts at the volume you last set while it played. Other songs keep the volume as it is';
 }

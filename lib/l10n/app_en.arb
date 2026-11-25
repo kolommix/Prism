@@ -1363,7 +1363,6 @@
   "sendsOnlyTitleArtistAlbumAnd": "Sends only title, artist, album and length to lrclib.net. Local .lrc files always work.",
   "findLyricsOnline": "Find lyrics online",
   "theme": "Theme",
-  "shownInTheFullPlayer": "Shown in the full player",
   "reduceMotion": "Reduce motion",
   "turnsOffDecorativeAnimations": "Turns off decorative animations",
   "seekBar": "Seek bar",
@@ -2037,8 +2036,6 @@
   "analysingTheSong": "Analysing the song",
   "couldNotAnalyseThisSong": "Could not analyse this song",
   "theVisualizerNeedsFfmpegWhichIs": "The visualizer needs FFmpeg, which is missing on this device",
-  "bars": "Bars",
-  "wave": "Wave",
   "low": "Low",
   "thisDeviceSEqualizerHasBands": "This device's Equalizer has {n} bands ({freqs} Hz, ±{db} dB); the 10-band curve is sampled at those frequencies.Bass boost uses the system BassBoost effect; its exact curve depends on the phone.Some phones (or other EQ apps like Wavelet) can override or block audio effects.",
   "@thisDeviceSEqualizerHasBands": {
@@ -2404,7 +2401,7 @@
   },
   "lyricsOffsetTitle": "Lyrics timing",
   "lyricsOffsetHint": "Plus shows the lines earlier, minus later. Saved for this song.",
-  "vizSensitivity": "Sensitivity",
+  "vizSensitivity": "Visualizer sensitivity",
   "vizLowPower": "Low-power visualizer",
   "vizLowPowerHint": "30 frames per second and fewer details",
   "vizLive": "Live spectrum",
@@ -2845,7 +2842,6 @@
     }
   },
   "youtubeBlocksThisSong": "YouTube blocks saving this song, and no other upload of it could be saved.",
-  "vizRing": "Ring",
   "windowMinimize": "Minimize",
   "windowMaximize": "Maximize",
   "windowRestore": "Restore down",
@@ -3239,5 +3235,12 @@
   "bgHalloween": "Halloween",
   "bgHalloweenDesc": "A pale moon behind thin clouds, bare branches, rolling fog, will-o'-wisps pulsing with the music, embers, bats now and then. Bats keep away from the mouse.",
   "bgOldStyles": "Old backgrounds",
-  "bgOldStylesHint": "Mesh gradient, Gradient and Aurora, for anyone who still likes them"
+  "bgOldStylesHint": "Mesh gradient, Gradient and Aurora, for anyone who still likes them",
+  "volumeStyleLine": "Line",
+  "volumeStylePill": "Thick bar",
+  "volumeStyleBars": "Bars",
+  "volumeControl": "Volume control",
+  "volumeControlHint": "You can also right-click the volume in the player bar",
+  "volumePerSong": "Remember the volume of each song",
+  "volumePerSongHint": "A song starts at the volume you last set while it played. Other songs keep the volume as it is"
 }
